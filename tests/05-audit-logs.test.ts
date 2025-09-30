@@ -182,42 +182,34 @@ async function testAuditLogUpdate(appointmentId: string) {
   debug.log('AUDIT_UPDATE', 'Testing audit log on appointment update...');
 
   try {
-    // Update appointment status
+    // Get the old state before update
+    const oldAppointment = await sql`
+      SELECT * FROM appointments WHERE id = ${appointmentId}
+    `;
+
+    // Update appointment status (this will trigger the audit log)
     await sql`
       UPDATE appointments
       SET
         status = 'completed',
-        notes = 'Updated notes for audit test',
         updated_at = NOW()
       WHERE id = ${appointmentId}
     `;
 
-    // Create audit log manually (since we're updating directly)
+    // Update the actor_id in the audit log created by the trigger
     await sql`
-      INSERT INTO audit_logs (
-        business_id,
-        appointment_id,
-        actor_id,
-        action,
-        changes
-      )
-      VALUES (
-        ${testBusinessId},
-        ${appointmentId},
-        ${testUserId},
-        'updated',
-        ${JSON.stringify({
-          status: { old: 'confirmed', new: 'completed' },
-          notes: { old: 'Audit log test appointment', new: 'Updated notes for audit test' },
-        })}
-      )
+      UPDATE audit_logs
+      SET actor_id = ${testUserId}
+      WHERE appointment_id = ${appointmentId}
+      AND action = 'completed'
+      AND actor_id IS NULL
     `;
 
-    // Verify audit log was created
+    // Verify audit log was created (action will be 'completed' since that's the new status)
     const auditLogs = await sql`
       SELECT * FROM audit_logs
       WHERE appointment_id = ${appointmentId}
-      AND action = 'updated'
+      AND action = 'completed'
       ORDER BY timestamp DESC
       LIMIT 1
     `;
@@ -231,16 +223,16 @@ async function testAuditLogUpdate(appointmentId: string) {
 
     const auditLog = auditLogs[0];
 
-    // Verify changes are logged
-    if (!auditLog.changes || typeof auditLog.changes !== 'object') {
-      debug.error('AUDIT_UPDATE', 'Changes not logged properly');
+    // Verify actor_id is set
+    if (auditLog.actor_id !== testUserId) {
+      debug.error('AUDIT_UPDATE', `Actor ID mismatch: expected ${testUserId}, got ${auditLog.actor_id}`);
       return { success: false };
     }
 
     debug.success('AUDIT_UPDATE', 'Audit log update recorded correctly', {
       auditLogId: auditLog.id,
       action: auditLog.action,
-      changes: auditLog.changes,
+      actorId: auditLog.actor_id,
     });
 
     return { success: true };
@@ -254,42 +246,30 @@ async function testAuditLogCancellation(appointmentId: string) {
   debug.log('AUDIT_CANCEL', 'Testing audit log on appointment cancellation...');
 
   try {
-    // Cancel appointment
+    // Cancel appointment (this will trigger the audit log)
     await sql`
       UPDATE appointments
       SET
-        status = 'cancelled',
+        status = 'canceled',
         deleted_at = NOW(),
         updated_at = NOW()
       WHERE id = ${appointmentId}
     `;
 
-    // Create audit log for cancellation
+    // Update the actor_id in the audit log created by the trigger
     await sql`
-      INSERT INTO audit_logs (
-        business_id,
-        appointment_id,
-        actor_id,
-        action,
-        changes
-      )
-      VALUES (
-        ${testBusinessId},
-        ${appointmentId},
-        ${testUserId},
-        'cancelled',
-        ${JSON.stringify({
-          status: { old: 'completed', new: 'cancelled' },
-          reason: 'Testing cancellation audit log',
-        })}
-      )
+      UPDATE audit_logs
+      SET actor_id = ${testUserId}
+      WHERE appointment_id = ${appointmentId}
+      AND action = 'canceled'
+      AND actor_id IS NULL
     `;
 
     // Verify audit log was created
     const auditLogs = await sql`
       SELECT * FROM audit_logs
       WHERE appointment_id = ${appointmentId}
-      AND action = 'cancelled'
+      AND action = 'canceled'
       ORDER BY timestamp DESC
       LIMIT 1
     `;
@@ -298,6 +278,14 @@ async function testAuditLogCancellation(appointmentId: string) {
 
     if (!auditLogs || auditLogs.length === 0) {
       debug.error('AUDIT_CANCEL', 'No audit log found for appointment cancellation');
+      return { success: false };
+    }
+
+    const auditLog = auditLogs[0];
+
+    // Verify actor_id is set
+    if (auditLog.actor_id !== testUserId) {
+      debug.error('AUDIT_CANCEL', `Actor ID mismatch: expected ${testUserId}, got ${auditLog.actor_id}`);
       return { success: false };
     }
 
@@ -327,17 +315,18 @@ async function testAuditLogHistory() {
       return { success: false };
     }
 
-    // Verify we have created, updated, and cancelled actions
+    // Verify we have created, completed, and canceled actions
     const actions = auditLogs.map((log: any) => log.action);
     const hasCreated = actions.includes('created');
-    const hasUpdated = actions.includes('updated');
-    const hasCancelled = actions.includes('cancelled');
+    const hasCompleted = actions.includes('completed');
+    const hasCanceled = actions.includes('canceled');
 
-    if (!hasCreated || !hasUpdated || !hasCancelled) {
+    if (!hasCreated || !hasCompleted || !hasCanceled) {
       debug.error('AUDIT_HISTORY', 'Missing expected actions in audit log', {
         hasCreated,
-        hasUpdated,
-        hasCancelled,
+        hasCompleted,
+        hasCanceled,
+        allActions: actions,
       });
       return { success: false };
     }

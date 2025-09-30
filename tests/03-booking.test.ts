@@ -14,6 +14,7 @@ import { nanoid } from 'nanoid';
 
 const testId = nanoid(8);
 const testEmail = `test-booking-${testId}@test.com`;
+const testBusinessName = `Test Booking Business ${testId}`;
 const testSubdomain = `test-booking-${testId}`;
 
 let testUserId: string;
@@ -33,7 +34,7 @@ async function setupTestData() {
         email: testEmail,
         password: 'TestPassword123!',
         name: 'Test Booking Owner',
-        businessName: 'Test Booking Business',
+        businessName: testBusinessName,
         businessPhone: '+1234567890',
         timezone: 'America/New_York',
       }),
@@ -236,13 +237,9 @@ async function testCommitReservation(reservationToken: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        reservationToken,
-        customerInfo: {
-          email: `customer-${testId}@test.com`,
-          fullName: 'Test Customer',
-          phone: '+1234567891',
-        },
-        notes: 'Test booking',
+        reservationId: reservationToken,
+        guestEmail: `customer-${testId}@test.com`,
+        guestPhone: '+1234567891',
       }),
     });
 
@@ -255,9 +252,10 @@ async function testCommitReservation(reservationToken: string) {
     }
 
     // Verify appointment in database
+    const appointmentId = data.appointmentId || data.appointment?.id;
     const appointment = await sql`
       SELECT * FROM appointments
-      WHERE id = ${data.appointmentId}
+      WHERE id = ${appointmentId}
     `;
 
     debug.log('BOOKING_COMMIT', 'Appointment in database', appointment[0]);
@@ -276,7 +274,7 @@ async function testCommitReservation(reservationToken: string) {
     debug.log('BOOKING_COMMIT', 'Reservation status after commit', reservation);
 
     debug.success('BOOKING_COMMIT', 'Commit successful', {
-      appointmentId: data.appointmentId,
+      appointmentId,
       status: appointment[0].status,
     });
 
@@ -397,13 +395,9 @@ async function testExpiredReservation() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        reservationToken: reserveData.reservationToken,
-        customerInfo: {
-          email: `customer-expired-${testId}@test.com`,
-          fullName: 'Test Customer',
-          phone: '+1234567892',
-        },
-        notes: 'Test booking with expired token',
+        reservationId: reserveData.reservationToken,
+        guestEmail: `customer-expired-${testId}@test.com`,
+        guestPhone: '+1234567892',
       }),
     });
 

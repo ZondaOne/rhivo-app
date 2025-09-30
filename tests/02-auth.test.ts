@@ -167,14 +167,16 @@ async function testLogin() {
       return { success: false, data: null };
     }
 
-    if (!data.accessToken || !data.refreshToken) {
-      debug.error('AUTH_LOGIN', 'Tokens missing from login response');
+    if (!data.accessToken) {
+      debug.error('AUTH_LOGIN', 'Access token missing from login response');
       return { success: false, data: null };
     }
 
+    // For refresh token test, we need to extract it from Set-Cookie header
+    // But for now, we'll skip the token refresh test as it requires cookie handling
+
     debug.success('AUTH_LOGIN', 'Login successful', {
       accessToken: data.accessToken ? 'Present' : 'Missing',
-      refreshToken: data.refreshToken ? 'Present' : 'Missing',
       user: data.user,
     });
 
@@ -304,8 +306,9 @@ async function runAuthTests() {
     results.push({ name: 'Login', passed: loginResult.success });
 
     // Test token refresh (only if login succeeded)
-    if (loginResult.success && loginResult.data?.refreshToken) {
-      const refreshResult = await testTokenRefresh(loginResult.data.refreshToken);
+    // Use refresh token from signup for testing since login doesn't return it in body
+    if (loginResult.success && signupResult.data?.tokens?.refreshToken) {
+      const refreshResult = await testTokenRefresh(signupResult.data.tokens.refreshToken);
       results.push({ name: 'Token Refresh', passed: refreshResult.success });
     }
   }

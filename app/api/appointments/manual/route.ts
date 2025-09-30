@@ -105,6 +105,14 @@ export async function POST(request: NextRequest) {
 
     const appointmentId = appointment[0].id;
 
+    // Update the audit log with the actor_id (since the trigger sets it to NULL)
+    await sql`
+      UPDATE audit_logs
+      SET actor_id = ${payload.sub}
+      WHERE appointment_id = ${appointmentId}
+      AND actor_id IS NULL
+    `;
+
     return NextResponse.json({ appointmentId, success: true }, { status: 201 });
   } catch (error) {
     console.error('Manual appointment creation error:', error);

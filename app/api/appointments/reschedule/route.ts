@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const apt = appointment[0];
     const duration = Math.floor(
-      (new Date(apt.end_time).getTime() - new Date(apt.start_time).getTime()) / (1000 * 60)
+      (new Date(apt.slot_end).getTime() - new Date(apt.slot_start).getTime()) / (1000 * 60)
     );
 
     // Get existing appointments to check for conflicts
@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
     // Update appointment (will trigger audit log via database trigger)
     await sql`
       UPDATE appointments
-      SET start_time = ${newStart.toISOString()},
-          end_time = ${newEnd.toISOString()},
+      SET slot_start = ${newStart.toISOString()},
+          slot_end = ${newEnd.toISOString()},
           updated_at = NOW()
       WHERE id = ${appointmentId}
     `;

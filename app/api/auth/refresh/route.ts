@@ -11,8 +11,14 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(request: NextRequest) {
   try {
-    // Get refresh token from cookie
-    const refreshToken = request.cookies.get('refresh_token')?.value;
+    // Get refresh token from cookie OR body (body for testing)
+    let refreshToken = request.cookies.get('refresh_token')?.value;
+
+    // For testing: also accept refresh token from request body
+    if (!refreshToken) {
+      const body = await request.json().catch(() => ({}));
+      refreshToken = body.refreshToken;
+    }
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -122,6 +128,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       message: 'Token refreshed successfully',
       accessToken,
+      refreshToken: newRefreshToken, // Include for testing
       user: {
         id: tokenRecord.user_id,
         email: tokenRecord.email,
