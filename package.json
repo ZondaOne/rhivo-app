@@ -10,7 +10,13 @@
     "migrate": "tsx src/db/migrate.ts",
     "migrate:up": "tsx src/db/migrate.ts up",
     "migrate:status": "tsx src/db/migrate.ts status",
-    "migrate:rollback": "tsx src/db/migrate.ts rollback"
+    "migrate:rollback": "tsx src/db/migrate.ts rollback",
+    "test": "tsx tests/run-all.ts",
+    "test:db": "tsx tests/01-database.test.ts",
+    "test:auth": "tsx tests/02-auth.test.ts",
+    "test:booking": "tsx tests/03-booking.test.ts",
+    "test:appointments": "tsx tests/04-appointments.test.ts",
+    "test:audit": "tsx tests/05-audit-logs.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",

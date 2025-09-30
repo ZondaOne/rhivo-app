@@ -79,18 +79,24 @@ export interface Appointment {
   business_id: string;
   service_id: string;
   customer_id: string | null;
-  guest_email: string | null;
-  guest_phone: string | null;
-  slot_start: Date;
-  slot_end: Date;
-  status: AppointmentStatus;
-  idempotency_key: string;
-  reservation_id: string | null;
-  cancellation_token: string | null;
-  version: number;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at: Date | null;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+  start_time: Date | string;
+  end_time: Date | string;
+  slot_start?: Date;
+  slot_end?: Date;
+  status: AppointmentStatus | 'pending' | 'confirmed' | 'cancelled';
+  notes?: string | null;
+  idempotency_key?: string;
+  reservation_id?: string | null;
+  cancellation_token?: string | null;
+  version?: number;
+  created_at: Date | string;
+  updated_at: Date | string;
+  deleted_at?: Date | null;
 }
 
 export interface AuditLog {

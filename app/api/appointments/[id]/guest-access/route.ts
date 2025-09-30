@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -139,55 +139,59 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const tokenHash = hashToken(validatedData.token);
 
     // Find and cancel appointment
-    const result = await sql.transaction(async (tx) => {
-      const [appointment] = await tx`
-        SELECT
-          id,
-          status,
-          guest_token_expires_at,
-          business_id
-        FROM appointments
-        WHERE id = ${appointmentId}
-          AND guest_token_hash = ${tokenHash}
-          AND deleted_at IS NULL
-          AND status = 'confirmed'
-      `;
+    const [appointment] = await sql`
+      SELECT
+        id,
+        status,
+        guest_token_expires_at,
+        business_id
+      FROM appointments
+      WHERE id = ${appointmentId}
+        AND guest_token_hash = ${tokenHash}
+        AND deleted_at IS NULL
+        AND status = 'confirmed'
+    `;
 
-      if (!appointment) {
-        throw new Error('INVALID_TOKEN');
-      }
+    if (!appointment) {
+      return NextResponse.json(
+        { error: 'Invalid access token or appointment not found' },
+        { status: 404 }
+      );
+    }
 
-      // Check if token expired
-      if (appointment.guest_token_expires_at && new Date(appointment.guest_token_expires_at) < new Date()) {
-        throw new Error('TOKEN_EXPIRED');
-      }
+    // Check if token expired
+    if (appointment.guest_token_expires_at && new Date(appointment.guest_token_expires_at) < new Date()) {
+      return NextResponse.json(
+        { error: 'Access token has expired' },
+        { status: 401 }
+      );
+    }
 
-      // Cancel appointment
-      await tx`
-        UPDATE appointments
-        SET
-          status = 'canceled',
-          guest_token_hash = NULL
-        WHERE id = ${appointmentId}
-      `;
+    // Cancel appointment
+    await sql`
+      UPDATE appointments
+      SET
+        status = 'canceled',
+        guest_token_hash = NULL
+      WHERE id = ${appointmentId}
+    `;
 
-      // Create audit log
-      await tx`
-        INSERT INTO audit_logs (
-          appointment_id,
-          action,
-          actor_id,
-          actor_type
-        ) VALUES (
-          ${appointmentId},
-          'canceled',
-          NULL,
-          'guest'
-        )
-      `;
+    // Create audit log
+    await sql`
+      INSERT INTO audit_logs (
+        appointment_id,
+        action,
+        actor_id,
+        actor_type
+      ) VALUES (
+        ${appointmentId},
+        'canceled',
+        NULL,
+        'guest'
+      )
+    `;
 
-      return appointment;
-    });
+    const result = appointment;
 
     return NextResponse.json({
       message: 'Appointment canceled successfully',
@@ -211,7 +215,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }

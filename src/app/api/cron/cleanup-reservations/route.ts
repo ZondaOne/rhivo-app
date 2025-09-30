@@ -9,7 +9,7 @@ import { cleanupExpiredReservations, checkReservationHealth } from '../../../../
  * {
  *   "crons": [{
  *     "path": "/api/cron/cleanup-reservations",
- *     "schedule": "*/5 * * * *"
+ *     "schedule": "every 5 minutes"
  *   }]
  * }
  */

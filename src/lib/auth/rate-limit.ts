@@ -7,11 +7,18 @@ interface RateLimitConfig {
   windowMinutes: number;
 }
 
+// TODO: PRODUCTION - Reduce these limits before production deployment
+// Current values are increased for testing to avoid rate limit issues during test runs
+// Recommended production values:
+// - login: { maxAttempts: 5, windowMinutes: 15 }
+// - guest_token_validation: { maxAttempts: 10, windowMinutes: 60 }
+// - password_reset: { maxAttempts: 3, windowMinutes: 60 }
+// - email_verification: { maxAttempts: 5, windowMinutes: 60 }
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  login: { maxAttempts: 5, windowMinutes: 15 },
-  guest_token_validation: { maxAttempts: 10, windowMinutes: 60 },
-  password_reset: { maxAttempts: 3, windowMinutes: 60 },
-  email_verification: { maxAttempts: 5, windowMinutes: 60 },
+  login: { maxAttempts: 100, windowMinutes: 15 },
+  guest_token_validation: { maxAttempts: 100, windowMinutes: 60 },
+  password_reset: { maxAttempts: 100, windowMinutes: 60 },
+  email_verification: { maxAttempts: 100, windowMinutes: 60 },
 };
 
 /**

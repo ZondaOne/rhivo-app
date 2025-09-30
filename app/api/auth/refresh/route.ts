@@ -96,29 +96,27 @@ export async function POST(request: NextRequest) {
     const deviceFingerprint = hashToken(userAgent + ip);
 
     // Rotate refresh token (revoke old, create new)
-    await sql.transaction(async (tx) => {
-      // Revoke old token
-      await tx`
-        UPDATE refresh_tokens
-        SET revoked_at = NOW()
-        WHERE id = ${tokenRecord.id}
-      `;
+    // Revoke old token
+    await sql`
+      UPDATE refresh_tokens
+      SET revoked_at = NOW()
+      WHERE id = ${tokenRecord.id}
+    `;
 
-      // Create new token
-      await tx`
-        INSERT INTO refresh_tokens (
-          user_id,
-          token_hash,
-          device_fingerprint,
-          expires_at
-        ) VALUES (
-          ${tokenRecord.user_id},
-          ${newRefreshTokenHash},
-          ${deviceFingerprint},
-          ${refreshTokenExpiry}
-        )
-      `;
-    });
+    // Create new token
+    await sql`
+      INSERT INTO refresh_tokens (
+        user_id,
+        token_hash,
+        device_fingerprint,
+        expires_at
+      ) VALUES (
+        ${tokenRecord.user_id},
+        ${newRefreshTokenHash},
+        ${deviceFingerprint},
+        ${refreshTokenExpiry}
+      )
+    `;
 
     // Set new refresh token in cookie
     const response = NextResponse.json({
