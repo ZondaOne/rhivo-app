@@ -1,119 +1,177 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { neon } from '@neondatabase/serverless';
+import { getDbClient } from '@/db/client';
+import { AppointmentManager } from '@/lib/booking';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
 
-const sql = neon(process.env.DATABASE_URL!);
+const createManualAppointmentSchema = z.object({
+  service_id: z.string().uuid({ message: 'Invalid service_id' }),
+  start_time: z.string().datetime({ message: 'start_time must be ISO datetime' }),
+  duration: z.number().int().positive().max(480).optional(),
+  status: z
+    .enum(['confirmed', 'completed', 'cancelled', 'canceled', 'no_show'])
+    .optional()
+    .default('confirmed'),
+  customer_email: z.string().email({ message: 'customer_email must be valid' }).optional(),
+  customer_name: z.string().min(1).max(120).optional(),
+  customer_phone: z.string().min(3).max(40).optional(),
+  notes: z.string().max(500).optional(),
+  idempotency_key: z.string().min(8).max(128).optional(),
+});
+
+const STATUS_UI_TO_DB: Record<string, 'confirmed' | 'canceled' | 'completed' | 'no_show'> = {
+  confirmed: 'confirmed',
+  completed: 'completed',
+  cancelled: 'canceled',
+  canceled: 'canceled',
+  no_show: 'no_show',
+};
 
 export async function POST(request: NextRequest) {
+  const token = request.headers.get('authorization')?.replace('Bearer ', '').trim();
+
+  if (!token) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  let payload: ReturnType<typeof verifyToken>;
+
   try {
-    // Verify authentication
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+    payload = verifyToken(token);
+  } catch {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
 
-    const payload = await verifyToken(token);
-    if (!payload || payload.role !== 'owner') {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+  if (payload.role !== 'owner' || !payload.business_id) {
+    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+  }
 
-    const {
-      service_id,
-      customer_email,
-      customer_name,
-      customer_phone,
-      start_time,
-      duration,
-      status = 'confirmed',
-    } = await request.json();
+  let body: z.infer<typeof createManualAppointmentSchema>;
 
-    // Validate required fields
-    if (!service_id || !customer_email || !start_time || !duration) {
+  try {
+    const json = await request.json();
+    body = createManualAppointmentSchema.parse(json);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: 'Missing required fields' },
+        { message: 'Validation failed', errors: error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    const startDate = new Date(start_time);
-    const endDate = new Date(startDate);
-    endDate.setMinutes(endDate.getMinutes() + duration);
+    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+  }
 
-    // Check for conflicts
-    const conflicts = await sql`
-      SELECT id FROM appointments
-      WHERE business_id = ${payload.business_id}
-      AND deleted_at IS NULL
-      AND status != 'canceled'
-      AND slot_start < ${endDate.toISOString()}
-      AND slot_end > ${startDate.toISOString()}
+  const sql = getDbClient();
+
+  try {
+    const [service] = await sql`
+      SELECT id, business_id, duration_minutes
+      FROM services
+      WHERE id = ${body.service_id}
+        AND business_id = ${payload.business_id}
+        AND deleted_at IS NULL
     `;
 
-    // TODO: Check against maxSimultaneousBookings from tenant config
-    if (conflicts.length >= 1) {
+    if (!service) {
+      return NextResponse.json({ message: 'Service not found' }, { status: 404 });
+    }
+
+    const durationMinutes = body.duration ?? Number(service.duration_minutes);
+    const slotStart = new Date(body.start_time);
+    const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
+
+    if (Number.isNaN(slotStart.getTime()) || Number.isNaN(slotEnd.getTime())) {
+      return NextResponse.json({ message: 'Invalid start_time or duration' }, { status: 400 });
+    }
+
+    if (slotStart < new Date()) {
+      return NextResponse.json({ message: 'Cannot create appointments in the past' }, { status: 400 });
+    }
+
+    if (!body.customer_email) {
       return NextResponse.json(
-        { message: 'Time slot is already booked' },
+        { message: 'customer_email is required for manual appointment creation' },
         { status: 400 }
       );
     }
 
-    // Create or get customer if email provided
-    let customerId: string | null = null;
-    if (customer_email) {
-      const existingCustomer = await sql`
-        SELECT id FROM users
-        WHERE email = ${customer_email}
+    const [existingCustomer] = await sql`
+      SELECT id FROM users
+      WHERE email = ${body.customer_email}
         AND role = 'customer'
         AND deleted_at IS NULL
+        AND (business_id = ${payload.business_id} OR business_id IS NULL)
+      LIMIT 1
+    `;
+
+    let customerId = existingCustomer?.id ?? null;
+
+    if (!customerId) {
+      const [newCustomer] = await sql`
+        INSERT INTO users (
+          email,
+          name,
+          phone,
+          role,
+          business_id,
+          email_verified,
+          created_at
+        ) VALUES (
+          ${body.customer_email},
+          ${body.customer_name ?? 'Guest'},
+          ${body.customer_phone ?? null},
+          'customer',
+          ${payload.business_id},
+          true,
+          NOW()
+        )
+        RETURNING id
       `;
 
-      if (existingCustomer.length > 0) {
-        customerId = existingCustomer[0].id;
-      } else {
-        const newCustomer = await sql`
-          INSERT INTO users (email, name, phone, role, email_verified, created_at)
-          VALUES (${customer_email}, ${customer_name || 'Guest'}, ${customer_phone}, 'customer', true, NOW())
-          RETURNING id
-        `;
-        customerId = newCustomer[0].id;
-      }
+      customerId = newCustomer.id as string;
     }
 
-    // Create appointment with idempotency key
-    const idempotencyKey = nanoid();
-    const appointment = await sql`
-      INSERT INTO appointments (
-        business_id, customer_id, guest_email, guest_phone,
-        service_id, slot_start, slot_end, status, idempotency_key, created_at, updated_at
-      )
-      VALUES (
-        ${payload.business_id},
-        ${customerId},
-        ${!customerId ? customer_email : null},
-        ${!customerId ? customer_phone : null},
-        ${service_id},
-        ${startDate.toISOString()},
-        ${endDate.toISOString()},
-        ${status},
-        ${idempotencyKey},
-        NOW(),
-        NOW()
-      )
-      RETURNING id
-    `;
+    const appointmentManager = new AppointmentManager(sql);
+    const idempotencyKey = body.idempotency_key ?? nanoid();
 
-    const appointmentId = appointment[0].id;
+    const appointment = await appointmentManager.createManualAppointment({
+      businessId: payload.business_id,
+      serviceId: body.service_id,
+      slotStart,
+      slotEnd,
+      customerId,
+      guestEmail: undefined,
+      guestPhone: undefined,
+      idempotencyKey,
+      actorId: payload.sub,
+    });
 
-    // Update the audit log with the actor_id (since the trigger sets it to NULL)
-    await sql`
-      UPDATE audit_logs
-      SET actor_id = ${payload.sub}
-      WHERE appointment_id = ${appointmentId}
-      AND actor_id IS NULL
-    `;
+    const desiredStatus = STATUS_UI_TO_DB[body.status] ?? 'confirmed';
 
-    return NextResponse.json({ appointmentId, success: true }, { status: 201 });
+    if (desiredStatus !== 'confirmed') {
+      await sql`
+        UPDATE appointments
+        SET status = ${desiredStatus}, updated_at = NOW()
+        WHERE id = ${appointment.id}
+      `;
+
+      await sql`
+        UPDATE audit_logs
+        SET actor_id = ${payload.sub}
+        WHERE id = (
+          SELECT id
+          FROM audit_logs
+          WHERE appointment_id = ${appointment.id}
+            AND actor_id IS NULL
+          ORDER BY timestamp DESC
+          LIMIT 1
+        )
+      `;
+    }
+
+    return NextResponse.json({ appointmentId: appointment.id, success: true }, { status: 201 });
   } catch (error) {
     console.error('Manual appointment creation error:', error);
     return NextResponse.json(

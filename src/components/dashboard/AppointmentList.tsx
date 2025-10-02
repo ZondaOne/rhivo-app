@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Appointment, AppointmentStatus } from '@/db/types';
 import { formatDate, formatTime } from '@/lib/calendar-utils';
+import { apiRequest } from '@/lib/auth/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AppointmentListProps {
   currentDate: Date;
@@ -16,6 +18,7 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
@@ -24,10 +27,26 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+
     loadAppointments();
-  }, [currentDate]);
+  }, [currentDate, isAuthenticated, authLoading]);
 
   async function loadAppointments() {
+    if (!isAuthenticated) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const start = new Date(currentDate);
@@ -39,11 +58,8 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
         end: end.toISOString(),
       });
 
-      const response = await fetch(`/api/appointments?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAppointments(data);
-      }
+      const data = await apiRequest<Appointment[]>(`/api/appointments?${params.toString()}`);
+      setAppointments(data);
     } catch (error) {
       console.error('Failed to load appointments:', error);
     } finally {
@@ -70,13 +86,17 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
   }
 
   async function handleBulkCancel() {
+    if (!isAuthenticated) {
+      alert('You must be signed in to cancel appointments.');
+      return;
+    }
+
     if (!confirm(`Cancel ${selectedAppointments.size} appointments?`)) return;
 
     try {
       const promises = Array.from(selectedAppointments).map(id =>
-        fetch(`/api/appointments/${id}`, {
+        apiRequest(`/api/appointments/${id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'cancelled' }),
         })
       );
@@ -163,10 +183,11 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
     return 0;
   });
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     confirmed: 'bg-teal-100 text-teal-800',
     cancelled: 'bg-gray-100 text-gray-600',
+    canceled: 'bg-gray-100 text-gray-600',
     completed: 'bg-green-100 text-green-800',
   };
 
@@ -174,6 +195,14 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center">
         <div className="text-gray-500">Loading appointments...</div>
+      </div>
+    );
+  }
+
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center">
+        <div className="text-gray-500">Please sign in to view appointments.</div>
       </div>
     );
   }
@@ -315,7 +344,7 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
                   <div className="text-sm text-gray-500">{apt.customer_phone}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusColors[apt.status]}`}>
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusColors[apt.status] ?? 'bg-gray-100 text-gray-600'}`}>
                     {apt.status}
                   </span>
                 </td>

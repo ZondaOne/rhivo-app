@@ -4,11 +4,10 @@ import { getDbClient } from '@/db/client';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    // Await params in Next.js 15
-    const { id } = await params;
+    const { id } = params;
     
     // Verify authentication
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -16,27 +15,28 @@ export async function POST(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = await verifyToken(token);
+    const payload = verifyToken(token);
     if (!payload || payload.role !== 'owner') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const notificationId = id;
-    const db = getDbClient();
+    const sql = getDbClient();
 
     // Get notification
-    const notification = await db.query(
-      `SELECT nl.* FROM notification_log nl
-       INNER JOIN appointments a ON nl.appointment_id = a.id
-       WHERE nl.id = $1 AND a.business_id = $2`,
-      [notificationId, payload.business_id]
-    );
+    const notifications = await sql`
+      SELECT nl.*
+      FROM notification_logs nl
+      INNER JOIN appointments a ON nl.appointment_id = a.id
+      WHERE nl.id = ${notificationId}
+        AND a.business_id = ${payload.business_id}
+    `;
 
-    if (notification.length === 0) {
+    if (notifications.length === 0) {
       return NextResponse.json({ message: 'Notification not found' }, { status: 404 });
     }
 
-    const notif = notification[0];
+    const notif = notifications[0];
 
     // Check if already sent or pending
     if (notif.status === 'sent') {
@@ -47,21 +47,22 @@ export async function POST(
     }
 
     // Update status to retrying
-    await db.query(
-      `UPDATE notification_log
-       SET status = 'retrying',
-           retry_count = retry_count + 1,
-           error_message = NULL
-       WHERE id = $1`,
-      [notificationId]
-    );
+    await sql`
+      UPDATE notification_logs
+      SET status = 'retrying',
+          attempts = attempts + 1,
+          last_attempt_at = NOW(),
+          error_message = NULL
+      WHERE id = ${notificationId}
+    `;
 
     // TODO: Integrate with email/SMS provider
     // For now, mark as sent
-    await db.query(
-      `UPDATE notification_log SET status = 'sent', sent_at = NOW() WHERE id = $1`,
-      [notificationId]
-    );
+    await sql`
+      UPDATE notification_logs
+      SET status = 'sent'
+      WHERE id = ${notificationId}
+    `;
 
     return NextResponse.json({ success: true });
   } catch (error) {

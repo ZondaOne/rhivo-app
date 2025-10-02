@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
+import { apiRequest } from '@/lib/auth/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CalendarProps {
   view: CalendarView;
@@ -14,12 +16,29 @@ export function Calendar({ view, currentDate }: CalendarProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+
     loadAppointments();
-  }, [currentDate, view]);
+  }, [currentDate, view, isAuthenticated, authLoading]);
 
   async function loadAppointments() {
+    if (!isAuthenticated) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       // Calculate date range based on view
@@ -40,11 +59,8 @@ export function Calendar({ view, currentDate }: CalendarProps) {
         end: end.toISOString(),
       });
 
-      const response = await fetch(`/api/appointments?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAppointments(data);
-      }
+      const data = await apiRequest<Appointment[]>(`/api/appointments?${params.toString()}`);
+      setAppointments(data);
     } catch (error) {
       console.error('Failed to load appointments:', error);
     } finally {
@@ -53,22 +69,25 @@ export function Calendar({ view, currentDate }: CalendarProps) {
   }
 
   async function handleReschedule(appointmentId: string, newStartTime: Date) {
+    if (!isAuthenticated) {
+      alert('You must be signed in to reschedule appointments.');
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/appointments/${appointmentId}/reschedule`, {
+      await apiRequest('/api/appointments/reschedule', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newStartTime: newStartTime.toISOString() }),
+        body: JSON.stringify({
+          appointmentId,
+          newStartTime: newStartTime.toISOString(),
+        }),
       });
 
-      if (response.ok) {
-        await loadAppointments();
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to reschedule appointment');
-      }
+      await loadAppointments();
     } catch (error) {
       console.error('Failed to reschedule:', error);
-      alert('Failed to reschedule appointment');
+      const message = error instanceof Error ? error.message : 'Failed to reschedule appointment';
+      alert(message);
     }
   }
 
@@ -76,6 +95,14 @@ export function Calendar({ view, currentDate }: CalendarProps) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center min-h-96">
         <div className="text-gray-500">Loading appointments...</div>
+      </div>
+    );
+  }
+
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center min-h-96">
+        <div className="text-gray-500">Please sign in to view appointments.</div>
       </div>
     );
   }

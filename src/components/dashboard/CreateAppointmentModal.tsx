@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AppointmentStatus } from '@/db/types';
+import { apiRequest } from '@/lib/auth/api-client';
 
 interface CreateAppointmentModalProps {
   isOpen: boolean;
@@ -43,22 +44,17 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
     setError(null);
 
     try {
-      const response = await fetch('/api/appointments/manual', {
+      await apiRequest('/api/appointments/manual', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        onSuccess();
-        onClose();
-        resetForm();
-      } else {
-        const data = await response.json();
-        setError(data.message || 'Failed to create appointment');
-      }
+      onSuccess();
+      onClose();
+      resetForm();
     } catch (err) {
-      setError('Failed to create appointment. Please try again.');
+      const message = err instanceof Error ? err.message : 'Failed to create appointment. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -217,7 +213,6 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as AppointmentStatus })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
-                <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>

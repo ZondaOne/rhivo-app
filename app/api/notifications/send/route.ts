@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = await verifyToken(token);
+    const payload = verifyToken(token);
     if (!payload || payload.role !== 'owner') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
@@ -71,19 +71,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getDbClient();
+    const sql = getDbClient();
 
     // Get appointment details
-    const appointment = await db.query(
-      `SELECT * FROM appointments WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL`,
-      [appointmentId, payload.business_id]
-    );
+    const appointments = await sql`
+      SELECT
+        a.id,
+        a.business_id,
+        a.slot_start,
+        a.slot_end,
+        a.customer_id,
+        a.guest_email,
+        a.guest_phone,
+        u.email AS customer_email,
+        u.phone AS customer_phone
+      FROM appointments a
+      LEFT JOIN users u ON u.id = a.customer_id
+      WHERE a.id = ${appointmentId}
+        AND a.business_id = ${payload.business_id}
+        AND a.deleted_at IS NULL
+      LIMIT 1
+    `;
 
-    if (appointment.length === 0) {
+    if (appointments.length === 0) {
       return NextResponse.json({ message: 'Appointment not found' }, { status: 404 });
     }
 
-    const apt = appointment[0];
+    const apt = appointments[0];
 
     // Get template
     const templateGroup = NOTIFICATION_TEMPLATES[template as keyof typeof NOTIFICATION_TEMPLATES];
@@ -97,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Format message
-    const startTime = new Date(apt.start_time);
+    const startTime = new Date(apt.slot_start);
     const message = templateData.template
       .replace('{date}', startTime.toLocaleDateString())
       .replace('{time}', startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -105,7 +119,12 @@ export async function POST(request: NextRequest) {
     const subject = 'subject' in templateData ? templateData.subject : undefined;
 
     // Determine recipient
-    const recipient = type === 'email' ? apt.customer_email : apt.customer_phone;
+    const recipientEmail = apt.customer_email ?? apt.guest_email ?? null;
+    const recipientPhone = apt.customer_phone ?? apt.guest_phone ?? null;
+
+    const channel = type === 'email' ? 'email' : 'sms';
+    const recipient = channel === 'email' ? recipientEmail : recipientPhone;
+
     if (!recipient) {
       return NextResponse.json(
         { message: `Customer ${type === 'email' ? 'email' : 'phone'} not available` },
@@ -115,22 +134,42 @@ export async function POST(request: NextRequest) {
 
     // Create notification log entry
     const notificationId = nanoid();
-    await db.query(
-      `INSERT INTO notification_log (
-        id, appointment_id, type, recipient, subject, message, status, created_at
+    await sql`
+      INSERT INTO notification_logs (
+        id,
+        appointment_id,
+        recipient_email,
+        recipient_phone,
+        channel,
+        template_name,
+        status,
+        attempts,
+        last_attempt_at,
+        error_message
+      ) VALUES (
+        ${notificationId},
+        ${appointmentId},
+        ${channel === 'email' ? recipientEmail : null},
+        ${channel === 'sms' ? recipientPhone : null},
+        ${channel},
+        ${template},
+        'sent',
+        1,
+        NOW(),
+        NULL
       )
-      VALUES ($1, $2, $3, $4, $5, $6, 'pending', NOW())`,
-      [notificationId, appointmentId, type, recipient, subject, message]
-    );
+    `;
 
-    // TODO: Integrate with email/SMS provider
-    // For now, mark as sent
-    await db.query(
-      `UPDATE notification_log SET status = 'sent', sent_at = NOW() WHERE id = $1`,
-      [notificationId]
-    );
-
-    return NextResponse.json({ success: true, notificationId });
+    return NextResponse.json({
+      success: true,
+      notificationId,
+      preview: {
+        subject,
+        message,
+        channel,
+        recipient,
+      },
+    });
   } catch (error) {
     console.error('Send notification error:', error);
     return NextResponse.json(

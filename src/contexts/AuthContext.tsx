@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { setAccessToken as setGlobalAccessToken } from '@/lib/auth/api-client';
 import type {
   User,
   AuthState,
@@ -37,28 +38,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        setState({
+        const nextState: AuthState = {
           user: data.user,
           accessToken: data.accessToken,
           isAuthenticated: true,
           isLoading: false,
-        });
+        };
+
+        setState(nextState);
+        setGlobalAccessToken(data.accessToken);
       } else {
-        setState({
+        const nextState: AuthState = {
           user: null,
           accessToken: null,
           isAuthenticated: false,
           isLoading: false,
-        });
+        };
+
+        setState(nextState);
+        setGlobalAccessToken(null);
       }
     } catch (error) {
       console.error('Auth refresh failed:', error);
-      setState({
+      const nextState: AuthState = {
         user: null,
         accessToken: null,
         isAuthenticated: false,
         isLoading: false,
-      });
+      };
+
+      setState(nextState);
+      setGlobalAccessToken(null);
     }
   }, []);
 
@@ -77,12 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const data = await response.json();
-    setState({
+    const nextState: AuthState = {
       user: data.user,
       accessToken: data.accessToken,
       isAuthenticated: true,
       isLoading: false,
-    });
+    };
+
+    setState(nextState);
+    setGlobalAccessToken(data.accessToken);
   }, []);
 
   // Logout
@@ -98,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: false,
       isLoading: false,
     });
+    setGlobalAccessToken(null);
   }, []);
 
   // Owner signup

@@ -10,79 +10,63 @@ const guestAccessSchema = z.object({
   token: z.string().min(1),
 });
 
-interface RouteParams {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-/**
- * Validate guest token and return appointment details
- */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id: appointmentId } = await params;
+    const { id: appointmentId } = params;
     const body = await request.json();
-    const validatedData = guestAccessSchema.parse(body);
+    const validated = guestAccessSchema.parse(body);
 
-    // Get IP for rate limiting
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
     const identifier = `${ip}:${appointmentId}`;
 
-    // Check rate limit
     const isRateLimited = await checkRateLimit(identifier, 'guest_token_validation');
     if (isRateLimited) {
-      return NextResponse.json(
-        { error: 'Too many attempts. Please try again later.' },
-        { status: 429 }
-      );
+      return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
     }
 
-    const tokenHash = hashToken(validatedData.token);
+    const tokenHash = hashToken(validated.token);
 
-    // Find appointment with matching token
     const [appointment] = await sql`
       SELECT
         a.id,
-        a.appointment_start,
-        a.appointment_end,
+        a.slot_start,
+        a.slot_end,
         a.status,
         a.guest_token_expires_at,
-        s.name as service_name,
+        a.guest_email,
+        a.guest_phone,
+        s.name AS service_name,
         s.duration_minutes,
         s.price_cents,
-        b.name as business_name,
-        u.email as customer_email,
-        u.name as customer_name
+        b.name AS business_name,
+        u.email AS customer_email,
+        u.name AS customer_name,
+        u.phone AS customer_phone
       FROM appointments a
-      JOIN services s ON s.id = a.service_id
-      JOIN businesses b ON b.id = a.business_id
-      JOIN users u ON u.id = a.customer_id
+      LEFT JOIN services s ON s.id = a.service_id
+      LEFT JOIN businesses b ON b.id = a.business_id
+      LEFT JOIN users u ON u.id = a.customer_id
       WHERE a.id = ${appointmentId}
         AND a.guest_token_hash = ${tokenHash}
         AND a.deleted_at IS NULL
     `;
 
     if (!appointment) {
-      return NextResponse.json(
-        { error: 'Invalid or expired access token' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Invalid or expired access token' }, { status: 403 });
     }
 
-    // Check if token expired
     if (appointment.guest_token_expires_at && new Date(appointment.guest_token_expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: 'Access token expired' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Access token expired' }, { status: 403 });
     }
 
     return NextResponse.json({
       appointment: {
         id: appointment.id,
-        start: appointment.appointment_start,
-        end: appointment.appointment_end,
+        start: appointment.slot_start,
+        end: appointment.slot_end,
         status: appointment.status,
         service: {
           name: appointment.service_name,
@@ -93,8 +77,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           name: appointment.business_name,
         },
         customer: {
-          email: appointment.customer_email,
-          name: appointment.customer_name,
+          email: appointment.customer_email ?? appointment.guest_email,
+          name: appointment.customer_name ?? 'Guest',
+          phone: appointment.customer_phone ?? appointment.guest_phone,
         },
       },
     });
@@ -107,112 +92,147 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     console.error('Guest access error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-/**
- * Cancel appointment using guest token
- */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id: appointmentId } = await params;
-    const body = await request.json();
-    const validatedData = guestAccessSchema.parse(body);
+    const { id: appointmentId } = params;
+    const token = request.nextUrl.searchParams.get('token');
 
-    // Get IP for rate limiting
+    if (!token) {
+      return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+    }
+
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
     const identifier = `${ip}:${appointmentId}`;
 
-    // Check rate limit
     const isRateLimited = await checkRateLimit(identifier, 'guest_token_validation');
     if (isRateLimited) {
-      return NextResponse.json(
-        { error: 'Too many attempts. Please try again later.' },
-        { status: 429 }
-      );
+      return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
     }
 
-    const tokenHash = hashToken(validatedData.token);
+    const tokenHash = hashToken(token);
 
-    // Find and cancel appointment
     const [appointment] = await sql`
       SELECT
-        id,
-        status,
-        guest_token_expires_at,
-        business_id
+        a.id,
+        a.slot_start,
+        a.slot_end,
+        a.status,
+        a.guest_token_expires_at,
+        a.guest_email,
+        a.guest_phone,
+        s.name AS service_name,
+        s.duration_minutes,
+        s.price_cents,
+        b.name AS business_name,
+        u.email AS customer_email,
+        u.name AS customer_name,
+        u.phone AS customer_phone
+      FROM appointments a
+      LEFT JOIN services s ON s.id = a.service_id
+      LEFT JOIN businesses b ON b.id = a.business_id
+      LEFT JOIN users u ON u.id = a.customer_id
+      WHERE a.id = ${appointmentId}
+        AND a.guest_token_hash = ${tokenHash}
+        AND a.deleted_at IS NULL
+    `;
+
+    if (!appointment) {
+      return NextResponse.json({ error: 'Invalid or expired access token' }, { status: 403 });
+    }
+
+    if (appointment.guest_token_expires_at && new Date(appointment.guest_token_expires_at) < new Date()) {
+      return NextResponse.json({ error: 'Access token expired' }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      appointment: {
+        id: appointment.id,
+        start: appointment.slot_start,
+        end: appointment.slot_end,
+        status: appointment.status,
+        service: {
+          name: appointment.service_name,
+          duration: appointment.duration_minutes,
+          price: appointment.price_cents,
+        },
+        business: {
+          name: appointment.business_name,
+        },
+        customer: {
+          email: appointment.customer_email ?? appointment.guest_email,
+          name: appointment.customer_name ?? 'Guest',
+          phone: appointment.customer_phone ?? appointment.guest_phone,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Guest access GET error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id: appointmentId } = params;
+    const body = await request.json();
+    const validated = guestAccessSchema.parse(body);
+
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const identifier = `${ip}:${appointmentId}`;
+
+    const isRateLimited = await checkRateLimit(identifier, 'guest_token_validation');
+    if (isRateLimited) {
+      return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
+    }
+
+    const tokenHash = hashToken(validated.token);
+
+    const [appointment] = await sql`
+      SELECT id, status, guest_token_expires_at
       FROM appointments
       WHERE id = ${appointmentId}
         AND guest_token_hash = ${tokenHash}
         AND deleted_at IS NULL
-        AND status = 'confirmed'
     `;
 
     if (!appointment) {
-      return NextResponse.json(
-        { error: 'Invalid access token or appointment not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Invalid access token or appointment not found' }, { status: 404 });
     }
 
-    // Check if token expired
     if (appointment.guest_token_expires_at && new Date(appointment.guest_token_expires_at) < new Date()) {
-      return NextResponse.json(
-        { error: 'Access token has expired' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Access token has expired' }, { status: 401 });
     }
 
-    // Cancel appointment
+    if (appointment.status !== 'confirmed') {
+      return NextResponse.json({ error: 'Only confirmed appointments can be cancelled' }, { status: 409 });
+    }
+
     await sql`
       UPDATE appointments
       SET
         status = 'canceled',
-        guest_token_hash = NULL
+        deleted_at = NOW(),
+        guest_token_hash = NULL,
+        guest_token_expires_at = NULL,
+        updated_at = NOW()
       WHERE id = ${appointmentId}
     `;
 
-    // Create audit log
-    await sql`
-      INSERT INTO audit_logs (
-        appointment_id,
-        action,
-        actor_id,
-        actor_type
-      ) VALUES (
-        ${appointmentId},
-        'canceled',
-        NULL,
-        'guest'
-      )
-    `;
-
-    const result = appointment;
-
     return NextResponse.json({
       message: 'Appointment canceled successfully',
-      appointmentId: result.id,
+      appointmentId,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'INVALID_TOKEN') {
-        return NextResponse.json(
-          { error: 'Invalid access token or appointment not found' },
-          { status: 403 }
-        );
-      }
-      if (error.message === 'TOKEN_EXPIRED') {
-        return NextResponse.json(
-          { error: 'Access token expired' },
-          { status: 403 }
-        );
-      }
-    }
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
@@ -221,9 +241,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     console.error('Guest cancel error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

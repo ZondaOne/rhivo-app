@@ -10,35 +10,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = await verifyToken(token);
+    const payload = verifyToken(token);
     if (!payload || payload.role !== 'owner') {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const db = getDbClient();
+    const sql = getDbClient();
 
-    const result = await db.query(
-      `SELECT
+    const notifications = await sql`
+      SELECT
         nl.id,
         nl.appointment_id,
-        nl.type,
-        nl.recipient,
+        nl.channel,
+        nl.template_name,
+        nl.recipient_email,
+        nl.recipient_phone,
         nl.status,
-        nl.subject,
-        nl.message,
-        nl.sent_at,
+        nl.attempts,
+        nl.last_attempt_at,
         nl.error_message,
-        nl.retry_count,
-        nl.created_at
-       FROM notification_log nl
-       INNER JOIN appointments a ON nl.appointment_id = a.id
-       WHERE a.business_id = $1
-       ORDER BY nl.created_at DESC
-       LIMIT 100`,
-      [payload.business_id]
-    );
+        nl.created_at,
+        a.slot_start,
+        a.slot_end
+      FROM notification_logs nl
+      INNER JOIN appointments a ON nl.appointment_id = a.id
+      WHERE a.business_id = ${payload.business_id}
+      ORDER BY nl.created_at DESC
+      LIMIT 100
+    `;
 
-    return NextResponse.json(result);
+    return NextResponse.json(notifications);
   } catch (error) {
     console.error('Notifications fetch error:', error);
     return NextResponse.json(

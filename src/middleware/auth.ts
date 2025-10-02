@@ -41,20 +41,14 @@ export function withAuth(
       }
 
       // Add user info to request headers for downstream use
-      const requestHeaders = new Headers(request.headers);
-      requestHeaders.set('x-user-id', payload.sub);
-      requestHeaders.set('x-user-role', payload.role);
+      request.headers.set('x-user-id', payload.sub);
+      request.headers.set('x-user-role', payload.role);
       if (payload.business_id) {
-        requestHeaders.set('x-business-id', payload.business_id);
+        request.headers.set('x-business-id', payload.business_id);
       }
 
-      // Create new request with updated headers
-      const newRequest = new NextRequest(request, {
-        headers: requestHeaders,
-      });
-
       // Call handler with authenticated request
-      return handler(newRequest, context);
+      return handler(request, context);
     } catch (error) {
       console.error('Auth middleware error:', error);
       return NextResponse.json(
