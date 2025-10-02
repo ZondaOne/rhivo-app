@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Calendar } from '@/components/dashboard/Calendar';
-import { AppointmentList } from '@/components/dashboard/AppointmentList';
 import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointmentModal';
 import { CalendarView } from '@/lib/calendar-utils';
 
@@ -239,11 +238,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Calendar View */}
-          {view === 'list' ? (
-            <AppointmentList key={refreshKey} currentDate={currentDate} />
-          ) : (
-            <Calendar key={refreshKey} view={view} currentDate={currentDate} />
-          )}
+          <Calendar key={refreshKey} view={view} currentDate={currentDate} />
         </div>
       </main>
 

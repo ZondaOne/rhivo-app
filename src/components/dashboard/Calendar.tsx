@@ -59,6 +59,11 @@ export function Calendar({ view, currentDate }: CalendarProps) {
       } else if (view === 'day') {
         start.setHours(0, 0, 0, 0);
         end.setHours(23, 59, 59, 999);
+      } else if (view === 'list') {
+        // For list view, show 30 days starting from current date
+        start.setHours(0, 0, 0, 0);
+        end.setDate(end.getDate() + 30);
+        end.setHours(23, 59, 59, 999);
       }
 
       const params = new URLSearchParams({
@@ -124,6 +129,10 @@ export function Calendar({ view, currentDate }: CalendarProps) {
 
   if (view === 'day') {
     return <DayView currentDate={currentDate} appointments={appointments} onReschedule={handleReschedule} />;
+  }
+
+  if (view === 'list') {
+    return <ListView currentDate={currentDate} appointments={appointments} onReschedule={handleReschedule} />;
   }
 
   return null;
@@ -687,4 +696,190 @@ function DayHourCell({
   );
 }
 
+function ListView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
+  // Group appointments by date
+  const appointmentsByDate = appointments.reduce((acc, apt) => {
+    const dateKey = new Date(apt.start_time).toDateString();
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(apt);
+    return acc;
+  }, {} as Record<string, Appointment[]>);
+
+  // Sort dates
+  const sortedDates = Object.keys(appointmentsByDate).sort((a, b) => 
+    new Date(a).getTime() - new Date(b).getTime()
+  );
+
+  const today = new Date().toDateString();
+
+  return (
+    <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
+      {/* List content */}
+      <div className="flex-1 overflow-y-auto">
+        {sortedDates.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-lg mb-2">No appointments</div>
+              <div className="text-gray-500 text-sm">
+                No appointments found for this period
+              </div>
+            </div>
+          </div>
+        ) : (
+          sortedDates.map(dateKey => {
+            const date = new Date(dateKey);
+            const isToday = dateKey === today;
+            const dayAppointments = appointmentsByDate[dateKey].sort(
+              (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+            );
+
+            return (
+              <div key={dateKey} className="border-b border-gray-200/60 last:border-b-0">
+                {/* Date Header */}
+                <div className={`sticky top-0 z-10 px-6 py-4 border-b border-gray-200/60 ${
+                  isToday ? 'bg-gradient-to-r from-teal-50 to-green-50' : 'bg-white'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    {isToday ? (
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-green-500 flex-shrink-0">
+                        <span className="text-lg font-bold text-white">
+                          {date.getDate()}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 flex-shrink-0">
+                        <span className="text-lg font-semibold text-gray-900">
+                          {date.getDate()}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {dayAppointments.length} {dayAppointments.length === 1 ? 'appointment' : 'appointments'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Appointments List */}
+                <div className="divide-y divide-gray-100">
+                  {dayAppointments.map((apt, idx) => (
+                    <ListAppointmentCard
+                      key={apt.id}
+                      appointment={apt}
+                      isFirst={idx === 0}
+                      isLast={idx === dayAppointments.length - 1}
+                      onReschedule={onReschedule}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ListAppointmentCard({ 
+  appointment, 
+  isFirst, 
+  isLast, 
+  onReschedule 
+}: { 
+  appointment: Appointment; 
+  isFirst: boolean; 
+  isLast: boolean; 
+  onReschedule: (id: string, date: Date) => void;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const startTime = new Date(appointment.start_time);
+  const endTime = new Date(appointment.end_time);
+  const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+
+  const statusColors = {
+    confirmed: 'bg-teal-50 border-teal-200 text-teal-700',
+    pending: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+    cancelled: 'bg-gray-50 border-gray-200 text-gray-500',
+    canceled: 'bg-gray-50 border-gray-200 text-gray-500',
+    completed: 'bg-green-50 border-green-200 text-green-700',
+    no_show: 'bg-red-50 border-red-200 text-red-700',
+  };
+
+  const statusColor = statusColors[appointment.status as keyof typeof statusColors] || statusColors.confirmed;
+
+  return (
+    <div
+      draggable
+      className={`group px-6 py-4 hover:bg-gray-50/50 transition-all ${
+        isDragging ? 'opacity-50' : ''
+      } ${isLast ? '' : ''}`}
+      onDragStart={(e) => {
+        setIsDragging(true);
+        e.dataTransfer.setData('appointmentId', appointment.id);
+      }}
+      onDragEnd={() => setIsDragging(false)}
+    >
+      <div className="flex items-start gap-4">
+        {/* Time Badge */}
+        <div className="flex-shrink-0 text-right min-w-[80px]">
+          <div className="text-base font-semibold text-gray-900">
+            {formatTime(startTime)}
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">
+            {duration} min
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex-1">
+              <div className="text-base font-semibold text-gray-900 mb-1">
+                {appointment.customer_name || 'Unnamed Customer'}
+              </div>
+              {(appointment.customer_email || appointment.guest_email) && (
+                <div className="text-sm text-gray-600">
+                  {appointment.customer_email || appointment.guest_email}
+                </div>
+              )}
+              {(appointment.customer_phone || appointment.guest_phone) && (
+                <div className="text-sm text-gray-600">
+                  {appointment.customer_phone || appointment.guest_phone}
+                </div>
+              )}
+            </div>
+            
+            {/* Status Badge */}
+            <div className={`px-3 py-1 rounded-lg border text-xs font-semibold uppercase tracking-wider ${statusColor}`}>
+              {appointment.status}
+            </div>
+          </div>
+
+          {/* Notes */}
+          {appointment.notes && (
+            <div className="mt-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="text-sm text-gray-700 leading-relaxed">
+                {appointment.notes}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Drag Handle */}
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
 
