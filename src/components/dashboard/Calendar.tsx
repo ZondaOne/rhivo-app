@@ -137,23 +137,35 @@ function MonthView({ currentDate, appointments, onReschedule }: { currentDate: D
   const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-2xl font-semibold text-gray-900">{monthName}</h2>
+    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200/60 shadow-sm">
+      {/* Header */}
+      <div className="px-10 py-8 border-b border-gray-200/40">
+        <h2 className="text-4xl font-semibold text-gray-900">{monthName}</h2>
       </div>
 
-      <div className="grid grid-cols-7 gap-px bg-gray-200">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-          <div key={day} className="bg-gray-50 px-3 py-2 text-center text-sm font-medium text-gray-700">
-            {day}
-          </div>
-        ))}
+      {/* Calendar Grid */}
+      <div className="p-6">
+        {/* Day Labels */}
+        <div className="grid grid-cols-7 mb-4">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+            <div key={day} className="text-center">
+              <span className={`text-[13px] font-semibold uppercase tracking-wide ${
+                day === 'Sun' ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                {day}
+              </span>
+            </div>
+          ))}
+        </div>
 
-        {days.map((day, idx) => (
-          <DayCell key={idx} day={day} onAppointmentDrop={(date) => {
-            // Handle drop
-          }} />
-        ))}
+        {/* Days Grid */}
+        <div className="grid grid-cols-7 gap-2">
+          {days.map((day, idx) => (
+            <DayCell key={idx} day={day} onAppointmentDrop={(date) => {
+              // Handle drop
+            }} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -162,11 +174,27 @@ function MonthView({ currentDate, appointments, onReschedule }: { currentDate: D
 function DayCell({ day, onAppointmentDrop }: { day: CalendarDay; onAppointmentDrop: (date: Date) => void }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
+  // Determine background color based on closing day/holiday status
+  const getBackgroundColor = () => {
+    if (!day.isCurrentMonth) return 'bg-gray-50/40';
+    if (day.isHoliday) return 'bg-red-50/40';
+    if (day.isClosingDay) return 'bg-gray-50/60';
+    return 'bg-white';
+  };
+
+  const getBorderColor = () => {
+    if (isDragOver) return 'border-teal-400';
+    if (!day.isCurrentMonth) return 'border-transparent';
+    if (day.isHoliday) return 'border-red-100';
+    if (day.isClosingDay) return 'border-gray-200';
+    return 'border-gray-100';
+  };
+
   return (
     <div
-      className={`bg-white min-h-32 p-2 relative ${
-        !day.isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
-      } ${day.isToday ? 'ring-2 ring-inset ring-teal-500' : ''}`}
+      className={`h-[140px] rounded-lg transition-all relative border-2 ${getBackgroundColor()} ${getBorderColor()} ${
+        day.isCurrentMonth && !isDragOver ? 'hover:border-gray-200' : ''
+      } ${isDragOver ? 'bg-teal-50/40 shadow-md' : 'shadow-sm'}`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -178,30 +206,49 @@ function DayCell({ day, onAppointmentDrop }: { day: CalendarDay; onAppointmentDr
         onAppointmentDrop(day.date);
       }}
     >
-      <div className={`text-sm font-medium mb-1 ${day.isToday ? 'text-teal-600' : ''}`}>
-        {day.date.getDate()}
-      </div>
+      {/* Content wrapper */}
+      <div className="p-3 h-full flex flex-col">
+        {/* Day Number */}
+        <div className="flex items-start justify-center mb-2">
+          {day.isToday ? (
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
+              <span className="text-[15px] font-semibold text-white">
+                {day.date.getDate()}
+              </span>
+            </div>
+          ) : (
+            <span className={`text-[15px] font-semibold ${
+              !day.isCurrentMonth
+                ? 'text-gray-400'
+                : day.isHoliday
+                ? 'text-red-600'
+                : day.isClosingDay
+                ? 'text-gray-500'
+                : 'text-gray-900'
+            }`}>
+              {day.date.getDate()}
+            </span>
+          )}
+        </div>
 
-      <div className="space-y-1">
-        {day.appointments.slice(0, 3).map((apt) => (
-          <div
-            key={apt.id}
-            draggable
-            className="text-xs px-2 py-1 rounded bg-teal-100 text-teal-800 cursor-move hover:bg-teal-200 transition-colors truncate"
-          >
-            {formatTime(new Date(apt.start_time))}
-          </div>
-        ))}
-        {day.appointments.length > 3 && (
-          <div className="text-xs text-gray-500 px-2">
-            +{day.appointments.length - 3} more
-          </div>
-        )}
+        {/* Appointments */}
+        <div className="flex-1 space-y-1.5">
+          {day.appointments.slice(0, 3).map((apt) => (
+            <div
+              key={apt.id}
+              draggable
+              className="text-[11px] px-2 py-1 rounded-md bg-gradient-to-r from-teal-500/10 to-green-500/10 border border-teal-500/20 text-teal-700 hover:from-teal-500/20 hover:to-green-500/20 cursor-move truncate font-medium transition-all"
+            >
+              {formatTime(new Date(apt.start_time))}
+            </div>
+          ))}
+          {day.appointments.length > 3 && (
+            <div className="text-[11px] text-gray-500 font-semibold text-center pt-0.5">
+              +{day.appointments.length - 3}
+            </div>
+          )}
+        </div>
       </div>
-
-      {isDragOver && (
-        <div className="absolute inset-0 bg-teal-100 bg-opacity-50 border-2 border-teal-500 border-dashed rounded" />
-      )}
     </div>
   );
 }
@@ -209,7 +256,8 @@ function DayCell({ day, onAppointmentDrop }: { day: CalendarDay; onAppointmentDr
 function WeekView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
   const weekStart = new Date(currentDate);
   const dayOfWeek = weekStart.getDay();
-  weekStart.setDate(weekStart.getDate() - dayOfWeek);
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  weekStart.setDate(weekStart.getDate() - daysFromMonday);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(weekStart);

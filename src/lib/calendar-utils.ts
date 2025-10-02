@@ -6,6 +6,8 @@ export interface CalendarDay {
   date: Date;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isClosingDay: boolean; // Non-working day (configurable via YAML)
+  isHoliday: boolean;
   appointments: Appointment[];
 }
 
@@ -38,12 +40,13 @@ export function getViewDateRange(
       break;
 
     case 'week':
-      // Start of week (Sunday)
+      // Start of week (Monday)
       const dayOfWeek = start.getDay();
-      start.setDate(start.getDate() - dayOfWeek);
+      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      start.setDate(start.getDate() - daysFromMonday);
       start.setHours(0, 0, 0, 0);
 
-      // End of week (Saturday)
+      // End of week (Sunday)
       end.setDate(start.getDate() + 6);
       end.setHours(23, 59, 59, 999);
       break;
@@ -65,7 +68,64 @@ export function getViewDateRange(
 }
 
 /**
+ * Italian holidays (hardcoded for now - will be configurable via YAML later)
+ * TODO: Move to tenant YAML config under business.holidays
+ */
+function isItalianHoliday(date: Date): boolean {
+  const month = date.getMonth() + 1; // 1-based month
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  // Fixed holidays
+  const fixedHolidays = [
+    [1, 1],   // New Year's Day
+    [1, 6],   // Epiphany
+    [4, 25],  // Liberation Day
+    [5, 1],   // Labour Day
+    [6, 2],   // Republic Day
+    [8, 15],  // Ferragosto (Assumption)
+    [11, 1],  // All Saints' Day
+    [12, 8],  // Immaculate Conception
+    [12, 25], // Christmas
+    [12, 26], // Santo Stefano
+  ];
+
+  if (fixedHolidays.some(([m, d]) => m === month && d === day)) {
+    return true;
+  }
+
+  // Easter Monday (moveable holiday - simplified calculation)
+  // This is a basic implementation - in production, use a proper Easter calculation library
+  const easterDates: Record<number, [number, number]> = {
+    2024: [4, 1],  // April 1, 2024
+    2025: [4, 21], // April 21, 2025
+    2026: [4, 6],  // April 6, 2026
+    2027: [3, 29], // March 29, 2027
+    2028: [4, 17], // April 17, 2028
+  };
+
+  const easter = easterDates[year];
+  if (easter && month === easter[0] && day === easter[1]) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check if a day is a closing day (non-working day)
+ * Currently hardcoded to Sunday (0) - will be configurable via YAML later
+ * TODO: Move to tenant YAML config under business.closingDays (array of day numbers: 0=Sunday, 6=Saturday)
+ */
+function isClosingDay(date: Date): boolean {
+  const dayOfWeek = date.getDay();
+  // Hardcoded: Sunday only
+  return dayOfWeek === 0;
+}
+
+/**
  * Generate calendar days for month view including padding
+ * Week starts on Monday
  */
 export function generateMonthCalendar(
   year: number,
@@ -80,13 +140,19 @@ export function generateMonthCalendar(
 
   const days: CalendarDay[] = [];
 
+  // Calculate padding for Monday start (0=Sunday, 1=Monday, etc.)
+  // If Sunday (0), need 6 days padding; if Monday (1), need 0 days, etc.
+  const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
   // Add previous month's padding days
-  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-    const date = new Date(year, month, -i);
+  for (let i = paddingDays; i > 0; i--) {
+    const date = new Date(year, month, 1 - i);
     days.push({
       date,
       isCurrentMonth: false,
       isToday: date.getTime() === today.getTime(),
+      isClosingDay: isClosingDay(date),
+      isHoliday: isItalianHoliday(date),
       appointments: getAppointmentsForDay(date, appointments),
     });
   }
@@ -98,11 +164,13 @@ export function generateMonthCalendar(
       date,
       isCurrentMonth: true,
       isToday: date.getTime() === today.getTime(),
+      isClosingDay: isClosingDay(date),
+      isHoliday: isItalianHoliday(date),
       appointments: getAppointmentsForDay(date, appointments),
     });
   }
 
-  // Add next month's padding days
+  // Add next month's padding days to complete the grid
   const remainingDays = 42 - days.length; // 6 rows of 7 days
   for (let day = 1; day <= remainingDays; day++) {
     const date = new Date(year, month + 1, day);
@@ -110,6 +178,8 @@ export function generateMonthCalendar(
       date,
       isCurrentMonth: false,
       isToday: date.getTime() === today.getTime(),
+      isClosingDay: isClosingDay(date),
+      isHoliday: isItalianHoliday(date),
       appointments: getAppointmentsForDay(date, appointments),
     });
   }
