@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users u ON u.id = a.customer_id
       WHERE a.business_id = ${payload.business_id}
         AND a.deleted_at IS NULL
-        ${validated.start ? sql`AND a.slot_start >= ${new Date(validated.start).toISOString()}` : sql``}
-        ${validated.end ? sql`AND a.slot_end <= ${new Date(validated.end).toISOString()}` : sql``}
+        ${validated.start ? sql`AND a.slot_end > ${new Date(validated.start).toISOString()}` : sql``}
+        ${validated.end ? sql`AND a.slot_start < ${new Date(validated.end).toISOString()}` : sql``}
         ${dbStatus ? sql`AND a.status = ${dbStatus}` : sql``}
         ${validated.serviceId ? sql`AND a.service_id = ${validated.serviceId}` : sql``}
       ORDER BY a.slot_start ASC

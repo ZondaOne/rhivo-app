@@ -50,8 +50,11 @@ export function AppointmentList({ currentDate }: AppointmentListProps) {
     setLoading(true);
     try {
       const start = new Date(currentDate);
+      start.setHours(0, 0, 0, 0);
+
       const end = new Date(currentDate);
       end.setDate(end.getDate() + 30);
+      end.setHours(23, 59, 59, 999);
 
       const params = new URLSearchParams({
         start: start.toISOString(),

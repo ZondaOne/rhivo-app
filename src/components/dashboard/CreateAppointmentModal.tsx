@@ -1,8 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppointmentStatus } from '@/db/types';
 import { apiRequest } from '@/lib/auth/api-client';
+
+interface Service {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  price_cents: number;
+  category_name?: string;
+}
 
 interface CreateAppointmentModalProps {
   isOpen: boolean;
@@ -25,6 +33,7 @@ interface FormData {
 export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate }: CreateAppointmentModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
   const [formData, setFormData] = useState<FormData>({
     customer_name: '',
     customer_email: '',
@@ -35,6 +44,25 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
     notes: '',
     status: 'confirmed',
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      loadServices();
+    }
+  }, [isOpen]);
+
+  async function loadServices() {
+    try {
+      const data = await apiRequest<Service[]>('/api/services');
+      setServices(data);
+      if (data.length > 0 && !formData.service_id) {
+        setFormData(prev => ({ ...prev, service_id: data[0].id, duration: data[0].duration_minutes }));
+      }
+    } catch (err) {
+      console.error('Failed to load services:', err);
+      setError('Failed to load services. Please try again.');
+    }
+  }
 
   if (!isOpen) return null;
 
@@ -162,11 +190,23 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
                 id="service_id"
                 required
                 value={formData.service_id}
-                onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+                onChange={(e) => {
+                  const serviceId = e.target.value;
+                  const service = services.find(s => s.id === serviceId);
+                  setFormData({
+                    ...formData,
+                    service_id: serviceId,
+                    duration: service?.duration_minutes ?? formData.duration
+                  });
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
                 <option value="">Select a service</option>
-                {/* Services will be loaded dynamically */}
+                {services.map(service => (
+                  <option key={service.id} value={service.id}>
+                    {service.name} ({service.duration_minutes} min - ${(service.price_cents / 100).toFixed(2)})
+                  </option>
+                ))}
               </select>
             </div>
 

@@ -128,18 +128,30 @@ export function generateTimeSlots(
   appointments: Appointment[]
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
-  const currentDate = new Date(date);
+  const baseDate = new Date(date);
+  baseDate.setHours(0, 0, 0, 0);
+
+  const endTime = new Date(baseDate);
+  endTime.setHours(endHour, 0, 0, 0);
+
+  const currentDate = new Date(baseDate);
   currentDate.setHours(startHour, 0, 0, 0);
 
-  while (currentDate.getHours() < endHour) {
+  // Prevent infinite loop: stop when we reach endHour
+  while (currentDate < endTime) {
     const startTime = new Date(currentDate);
     currentDate.setMinutes(currentDate.getMinutes() + slotDuration);
-    const endTime = new Date(currentDate);
+    const slotEndTime = new Date(currentDate);
+
+    // Don't add slots that go beyond the end hour
+    if (slotEndTime > endTime) {
+      break;
+    }
 
     slots.push({
       startTime,
-      endTime,
-      appointments: getAppointmentsInSlot(startTime, endTime, appointments),
+      endTime: slotEndTime,
+      appointments: getAppointmentsInSlot(startTime, slotEndTime, appointments),
     });
   }
 

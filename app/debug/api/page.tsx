@@ -777,10 +777,7 @@ export default function ApiDebugPage() {
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-900">Documentation</h3>
                 <button
-                  onClick={() => {
-                    setShowDocsModal(false);
-                    setSelectedDoc(null);
-                  }}
+                  onClick={() => setShowDocsModal(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
