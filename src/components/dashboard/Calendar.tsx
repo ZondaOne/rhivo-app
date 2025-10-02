@@ -100,7 +100,7 @@ export function Calendar({ view, currentDate }: CalendarProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center min-h-96">
+      <div className="bg-white rounded-2xl border border-gray-200/60 p-12 flex items-center justify-center min-h-96">
         <div className="text-gray-500">Loading appointments...</div>
       </div>
     );
@@ -108,7 +108,7 @@ export function Calendar({ view, currentDate }: CalendarProps) {
 
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center min-h-96">
+      <div className="bg-white rounded-2xl border border-gray-200/60 p-12 flex items-center justify-center min-h-96">
         <div className="text-gray-500">Please sign in to view appointments.</div>
       </div>
     );
@@ -134,67 +134,50 @@ function MonthView({ currentDate, appointments, onReschedule }: { currentDate: D
   const month = currentDate.getMonth();
   const days = generateMonthCalendar(year, month, appointments);
 
-  const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200/60 shadow-sm">
-      {/* Header */}
-      <div className="px-10 py-8 border-b border-gray-200/40">
-        <h2 className="text-4xl font-semibold text-gray-900">{monthName}</h2>
+    <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
+      {/* Day Labels */}
+      <div className="grid grid-cols-7 border-b border-gray-200/60 flex-shrink-0">
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+          <div key={day} className="py-4 text-center border-r border-gray-200/60 last:border-r-0">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              {day}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Calendar Grid */}
-      <div className="p-6">
-        {/* Day Labels */}
-        <div className="grid grid-cols-7 mb-4">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-            <div key={day} className="text-center">
-              <span className={`text-[13px] font-semibold uppercase tracking-wide ${
-                day === 'Sun' ? 'text-gray-400' : 'text-gray-500'
-              }`}>
-                {day}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Days Grid */}
-        <div className="grid grid-cols-7 gap-2">
-          {days.map((day, idx) => (
-            <DayCell key={idx} day={day} onAppointmentDrop={(date) => {
+      {/* Days Grid */}
+      <div className="grid grid-cols-7 flex-1 overflow-y-auto">
+        {days.map((day, idx) => (
+          <DayCell
+            key={idx}
+            day={day}
+            isLastRow={idx >= days.length - 7}
+            onAppointmentDrop={(date) => {
               // Handle drop
-            }} />
-          ))}
-        </div>
+            }}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-function DayCell({ day, onAppointmentDrop }: { day: CalendarDay; onAppointmentDrop: (date: Date) => void }) {
+function DayCell({ day, isLastRow, onAppointmentDrop }: { day: CalendarDay; isLastRow: boolean; onAppointmentDrop: (date: Date) => void }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Determine background color based on closing day/holiday status
-  const getBackgroundColor = () => {
-    if (!day.isCurrentMonth) return 'bg-gray-50/40';
-    if (day.isHoliday) return 'bg-red-50/40';
-    if (day.isClosingDay) return 'bg-gray-50/60';
-    return 'bg-white';
-  };
-
-  const getBorderColor = () => {
-    if (isDragOver) return 'border-teal-400';
-    if (!day.isCurrentMonth) return 'border-transparent';
-    if (day.isHoliday) return 'border-red-100';
-    if (day.isClosingDay) return 'border-gray-200';
-    return 'border-gray-100';
-  };
+  const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6;
 
   return (
     <div
-      className={`h-[140px] rounded-lg transition-all relative border-2 ${getBackgroundColor()} ${getBorderColor()} ${
-        day.isCurrentMonth && !isDragOver ? 'hover:border-gray-200' : ''
-      } ${isDragOver ? 'bg-teal-50/40 shadow-md' : 'shadow-sm'}`}
+      className={`min-h-[140px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
+        isLastRow ? 'border-b-0' : ''
+      } ${
+        !day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'
+      } ${
+        day.isCurrentMonth ? 'hover:bg-gray-50/50' : ''
+      } transition-colors`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -206,23 +189,25 @@ function DayCell({ day, onAppointmentDrop }: { day: CalendarDay; onAppointmentDr
         onAppointmentDrop(day.date);
       }}
     >
-      {/* Content wrapper */}
+      {isDragOver && (
+        <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10" />
+      )}
+
+      {/* Content */}
       <div className="p-3 h-full flex flex-col">
         {/* Day Number */}
-        <div className="flex items-start justify-center mb-2">
+        <div className="mb-3">
           {day.isToday ? (
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-md">
-              <span className="text-[15px] font-semibold text-white">
+            <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
+              <span className="text-sm font-bold text-white">
                 {day.date.getDate()}
               </span>
             </div>
           ) : (
-            <span className={`text-[15px] font-semibold ${
+            <span className={`text-sm font-semibold ${
               !day.isCurrentMonth
                 ? 'text-gray-400'
-                : day.isHoliday
-                ? 'text-red-600'
-                : day.isClosingDay
+                : isWeekend
                 ? 'text-gray-500'
                 : 'text-gray-900'
             }`}>
@@ -232,19 +217,19 @@ function DayCell({ day, onAppointmentDrop }: { day: CalendarDay; onAppointmentDr
         </div>
 
         {/* Appointments */}
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 space-y-1">
           {day.appointments.slice(0, 3).map((apt) => (
             <div
               key={apt.id}
               draggable
-              className="text-[11px] px-2 py-1 rounded-md bg-gradient-to-r from-teal-500/10 to-green-500/10 border border-teal-500/20 text-teal-700 hover:from-teal-500/20 hover:to-green-500/20 cursor-move truncate font-medium transition-all"
+              className="text-xs px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move truncate font-medium transition-all"
             >
               {formatTime(new Date(apt.start_time))}
             </div>
           ))}
           {day.appointments.length > 3 && (
-            <div className="text-[11px] text-gray-500 font-semibold text-center pt-0.5">
-              +{day.appointments.length - 3}
+            <div className="text-xs text-gray-500 font-semibold px-2 py-1">
+              +{day.appointments.length - 3} more
             </div>
           )}
         </div>
@@ -265,229 +250,441 @@ function WeekView({ currentDate, appointments, onReschedule }: { currentDate: Da
     return date;
   });
 
+  const START_HOUR = 6;
+  const END_HOUR = 22;
+  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
+
+  const today = new Date();
+  const todayStr = today.toDateString();
+
+  // Calculate appointments with positions
+  const appointmentsByDay = weekDays.map((day) => {
+    const dayAppts = appointments
+      .filter(apt => new Date(apt.start_time).toDateString() === day.toDateString())
+      .map(apt => {
+        const start = new Date(apt.start_time);
+        const end = new Date(apt.end_time);
+
+        const startHour = start.getHours();
+        const startMinute = start.getMinutes();
+        const endHour = end.getHours();
+        const endMinute = end.getMinutes();
+
+        const rowStart = ((startHour - START_HOUR) * 60 + startMinute) / 60;
+        const rowEnd = ((endHour - START_HOUR) * 60 + endMinute) / 60;
+        const rowSpan = rowEnd - rowStart;
+
+        return { ...apt, rowStart, rowSpan };
+      });
+
+    return dayAppts;
+  });
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div className="grid grid-cols-8 gap-px bg-gray-200">
-        <div className="bg-gray-50 p-4"></div>
-        {weekDays.map((day) => (
-          <div key={day.toISOString()} className="bg-gray-50 p-4 text-center">
-            <div className="text-sm font-medium text-gray-700">
-              {day.toLocaleDateString('en-US', { weekday: 'short' })}
+    <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
+      {/* Day Headers */}
+      <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-gray-200/60 flex-shrink-0">
+        {/* Empty corner for time column */}
+        <div className="border-r border-gray-200/60" />
+        
+        {/* Day labels */}
+        {weekDays.map((day, idx) => {
+          const isToday = day.toDateString() === todayStr;
+          const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+
+          return (
+            <div key={day.toISOString()} className="py-4 text-center border-r border-gray-200/60 last:border-r-0">
+              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                {day.toLocaleDateString('en-US', { weekday: 'short' })}
+              </div>
+              {isToday ? (
+                <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
+                  <span className="text-sm font-bold text-white">
+                    {day.getDate()}
+                  </span>
+                </div>
+              ) : (
+                <span className={`text-sm font-semibold ${isWeekend ? 'text-gray-500' : 'text-gray-900'}`}>
+                  {day.getDate()}
+                </span>
+              )}
             </div>
-            <div className="text-2xl font-semibold text-gray-900 mt-1">
-              {day.getDate()}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-8 gap-px bg-gray-200 max-h-[600px] overflow-y-auto">
-        {Array.from({ length: 24 }, (_, hour) => (
-          <Fragment key={`hour-${hour}`}>
-            <div className="bg-white p-2 text-xs text-gray-500 text-right">
-              {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+      {/* Time Grid */}
+      <div className="flex-1 overflow-y-auto">
+        {hours.map((hour, hourIdx) => (
+          <div key={hour} className="grid grid-cols-[64px_repeat(7,1fr)]">
+            {/* Time Label */}
+            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[80px]`}>
+              <span className="text-xs text-gray-500 font-medium">
+                {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
+              </span>
             </div>
-            {weekDays.map((day) => {
-              const slotStart = new Date(day);
-              slotStart.setHours(hour, 0, 0, 0);
-              const slotEnd = new Date(slotStart);
-              slotEnd.setHours(hour + 1);
 
-              const slotAppointments = appointments.filter((apt) => {
-                const aptStart = new Date(apt.start_time);
-                return aptStart >= slotStart && aptStart < slotEnd;
-              });
-
+            {/* Day Cells */}
+            {weekDays.map((day, dayIdx) => {
+              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              
               return (
-                <TimeSlotCell
+                <WeekDayCell
                   key={`${day.toISOString()}-${hour}`}
-                  date={slotStart}
-                  appointments={slotAppointments}
+                  day={day}
+                  hour={hour}
+                  hourIdx={hourIdx}
+                  isLastHour={hourIdx === hours.length - 1}
+                  isLastDay={dayIdx === 6}
+                  isWeekend={isWeekend}
+                  appointments={appointmentsByDay[dayIdx].filter(apt => {
+                    const aptStartHour = new Date(apt.start_time).getHours();
+                    return aptStartHour === hour;
+                  })}
+                  startHour={START_HOUR}
                   onReschedule={onReschedule}
                 />
               );
             })}
-          </Fragment>
+          </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function WeekDayCell({ 
+  day, 
+  hour, 
+  hourIdx,
+  isLastHour, 
+  isLastDay,
+  isWeekend,
+  appointments, 
+  startHour,
+  onReschedule
+}: { 
+  day: Date; 
+  hour: number; 
+  hourIdx: number;
+  isLastHour: boolean; 
+  isLastDay: boolean;
+  isWeekend: boolean;
+  appointments: Array<Appointment & { rowStart: number; rowSpan: number }>; 
+  startHour: number;
+  onReschedule: (id: string, date: Date) => void;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null); // 0=top half, 1=bottom half
+  const CELL_HEIGHT = 80;
+
+  const handleDragOver = (e: React.DragEvent, slot: number) => {
+    e.preventDefault();
+    setIsDragOver(true);
+    setDragOverSlot(slot);
+  };
+
+  const handleDrop = (e: React.DragEvent, slot: number) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    setDragOverSlot(null);
+    
+    // Calculate the new time based on the slot (0 or 1 for half-hour increments)
+    const newTime = new Date(day);
+    newTime.setHours(hour, slot * 30, 0, 0);
+    
+    // TODO: Get appointment ID from drag data
+    // onReschedule(appointmentId, newTime);
+  };
+
+  return (
+    <div
+      className={`relative min-h-[80px] border-r border-b border-gray-200/60 ${
+        isLastDay ? 'border-r-0' : ''
+      } ${
+        isLastHour ? 'border-b-0' : ''
+      } ${
+        isWeekend ? 'bg-gray-50/30' : 'bg-white'
+      } transition-colors`}
+    >
+      {/* Sub-hour drop zones */}
+      <div
+        className={`absolute inset-x-0 top-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
+          isDragOver && dragOverSlot === 0 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+        }`}
+        onDragOver={(e) => handleDragOver(e, 0)}
+        onDragLeave={() => {
+          setIsDragOver(false);
+          setDragOverSlot(null);
+        }}
+        onDrop={(e) => handleDrop(e, 0)}
+      />
+      <div
+        className={`absolute inset-x-0 bottom-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
+          isDragOver && dragOverSlot === 1 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+        }`}
+        onDragOver={(e) => handleDragOver(e, 1)}
+        onDragLeave={() => {
+          setIsDragOver(false);
+          setDragOverSlot(null);
+        }}
+        onDrop={(e) => handleDrop(e, 1)}
+      />
+
+      {/* Half-hour divider line */}
+      <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
+
+      {/* Appointments positioned within this cell */}
+      {appointments.map(apt => {
+        const startMinute = new Date(apt.start_time).getMinutes();
+        const offsetFromHour = startMinute / 60;
+        
+        return (
+          <div
+            key={apt.id}
+            draggable
+            className="absolute left-1 right-1 px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
+            style={{
+              top: `${offsetFromHour * CELL_HEIGHT}px`,
+              height: `${Math.max(apt.rowSpan * CELL_HEIGHT - 4, 32)}px`,
+            }}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('appointmentId', apt.id);
+            }}
+          >
+            <div className="text-xs font-medium leading-tight">
+              {formatTime(new Date(apt.start_time))}
+            </div>
+            {apt.rowSpan > 0.5 && (
+              <div className="text-xs text-gray-700 leading-tight truncate mt-0.5">
+                {apt.customer_name}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 function DayView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
-  const START_HOUR = 6; // 6 AM
-  const END_HOUR = 22; // 10 PM
+  const START_HOUR = 6;
+  const END_HOUR = 22;
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
-  const HOUR_HEIGHT = 80; // pixels per hour (taller blocks)
   const now = new Date();
   const isToday = currentDate.toDateString() === now.toDateString();
 
   // Calculate current time indicator position
-  const currentTimeTop = isToday && now.getHours() >= START_HOUR && now.getHours() < END_HOUR
-    ? ((now.getHours() - START_HOUR) + now.getMinutes() / 60) * HOUR_HEIGHT
-    : null;
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const showCurrentTime = isToday && currentHour >= START_HOUR && currentHour < END_HOUR;
+  const currentTimeRow = showCurrentTime ? currentHour - START_HOUR : null;
+  const currentTimeOffset = showCurrentTime ? (currentMinute / 60) : 0;
 
   // Calculate position for each appointment
-  const appointmentsWithPosition = appointments.map(apt => {
-    const start = new Date(apt.start_time);
-    const end = new Date(apt.end_time);
+  const appointmentsByHour = hours.map(hour => {
+    return appointments
+      .filter(apt => {
+        const start = new Date(apt.start_time);
+        return start.getHours() === hour;
+      })
+      .map(apt => {
+        const start = new Date(apt.start_time);
+        const end = new Date(apt.end_time);
 
-    const startHour = start.getHours();
-    const startMinute = start.getMinutes();
-    const endHour = end.getHours();
-    const endMinute = end.getMinutes();
+        const startHour = start.getHours();
+        const startMinute = start.getMinutes();
+        const endHour = end.getHours();
+        const endMinute = end.getMinutes();
 
-    // Calculate position relative to START_HOUR
-    const top = ((startHour - START_HOUR) + startMinute / 60) * HOUR_HEIGHT;
-    const height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * HOUR_HEIGHT;
+        const rowStart = startHour - START_HOUR + startMinute / 60;
+        const rowEnd = endHour - START_HOUR + endMinute / 60;
+        const rowSpan = rowEnd - rowStart;
 
-    return { ...apt, top, height };
+        return { ...apt, rowStart, rowSpan };
+      });
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-2xl font-semibold text-gray-900">{formatDate(currentDate, 'long')}</h2>
+    <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
+      {/* Day Header */}
+      <div className="py-4 px-6 border-b border-gray-200/60 flex-shrink-0">
+        <div className="text-center">
+          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+            {currentDate.toLocaleDateString('en-US', { weekday: 'long' })}
+          </div>
+          {isToday ? (
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
+              <span className="text-lg font-bold text-white">
+                {currentDate.getDate()}
+              </span>
+            </div>
+          ) : (
+            <span className="text-2xl font-bold text-gray-900">
+              {currentDate.getDate()}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="max-h-[600px] overflow-y-auto bg-white">
-        <div className="flex">
-          {/* Time labels column */}
-          <div className="w-20 flex-shrink-0 bg-white">
-            {hours.map(hour => (
-              <div key={hour} className="relative" style={{ height: `${HOUR_HEIGHT}px` }}>
-                <div className="absolute -top-2 right-3 text-[11px] text-gray-500 font-medium">
-                  {hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
-                </div>
-              </div>
-            ))}
+      {/* Time Grid */}
+      <div className="flex-1 overflow-y-auto">
+        {hours.map((hour, hourIdx) => (
+          <div key={hour} className="grid grid-cols-[64px_1fr]">
+            {/* Time Label */}
+            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[120px]`}>
+              <span className="text-xs text-gray-500 font-medium">
+                {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
+              </span>
+            </div>
+
+            {/* Hour Cell */}
+            <DayHourCell
+              date={currentDate}
+              hour={hour}
+              hourIdx={hourIdx}
+              isLastHour={hourIdx === hours.length - 1}
+              appointments={appointmentsByHour[hourIdx]}
+              startHour={START_HOUR}
+              showCurrentTime={currentTimeRow === hourIdx}
+              currentTimeOffset={currentTimeOffset}
+              onReschedule={onReschedule}
+            />
           </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          {/* Appointments column */}
-          <div className="flex-1 relative border-l border-gray-200/60">
-            {/* Hour grid */}
-            {hours.map(hour => (
-              <div key={hour} className="relative" style={{ height: `${HOUR_HEIGHT}px` }}>
-                {/* Hour line */}
-                <div className="absolute top-0 left-0 right-0 border-t border-gray-200/60" />
-                {/* Half-hour line (dotted) */}
-                <div className="absolute left-0 right-0 border-t border-dashed border-gray-100" style={{ top: `${HOUR_HEIGHT / 2}px` }} />
-              </div>
-            ))}
+function DayHourCell({
+  date,
+  hour,
+  hourIdx,
+  isLastHour,
+  appointments,
+  startHour,
+  showCurrentTime,
+  currentTimeOffset,
+  onReschedule,
+}: {
+  date: Date;
+  hour: number;
+  hourIdx: number;
+  isLastHour: boolean;
+  appointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
+  startHour: number;
+  showCurrentTime: boolean;
+  currentTimeOffset: number;
+  onReschedule: (id: string, date: Date) => void;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const CELL_HEIGHT = 120; // Increased from 80 to 120 for better visibility
 
-            {/* Current time indicator */}
-            {currentTimeTop !== null && (
-              <div
-                className="absolute left-0 right-0 z-20 pointer-events-none"
-                style={{ top: `${currentTimeTop}px` }}
-              >
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <div className="flex-1 h-0.5 bg-red-500" />
-                </div>
+  const handleDragOver = (e: React.DragEvent, slot: number) => {
+    e.preventDefault();
+    setIsDragOver(true);
+    setDragOverSlot(slot);
+  };
+
+  const handleDrop = (e: React.DragEvent, slot: number) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    setDragOverSlot(null);
+    
+    // Calculate the new time based on the slot
+    const newTime = new Date(date);
+    newTime.setHours(hour, slot * 30, 0, 0);
+    
+    const appointmentId = e.dataTransfer.getData('appointmentId');
+    if (appointmentId) {
+      onReschedule(appointmentId, newTime);
+    }
+  };
+
+  return (
+    <div
+      className={`relative min-h-[120px] border-b border-gray-200/60 ${
+        isLastHour ? 'border-b-0' : ''
+      } bg-white transition-colors`}
+    >
+      {/* Sub-hour drop zones */}
+      <div
+        className={`absolute inset-x-0 top-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
+          isDragOver && dragOverSlot === 0 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+        }`}
+        onDragOver={(e) => handleDragOver(e, 0)}
+        onDragLeave={() => {
+          setIsDragOver(false);
+          setDragOverSlot(null);
+        }}
+        onDrop={(e) => handleDrop(e, 0)}
+      />
+      <div
+        className={`absolute inset-x-0 bottom-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
+          isDragOver && dragOverSlot === 1 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+        }`}
+        onDragOver={(e) => handleDragOver(e, 1)}
+        onDragLeave={() => {
+          setIsDragOver(false);
+          setDragOverSlot(null);
+        }}
+        onDrop={(e) => handleDrop(e, 1)}
+      />
+
+      {/* Half-hour divider line */}
+      <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
+
+      {/* Current time indicator */}
+      {showCurrentTime && (
+        <div
+          className="absolute left-0 right-0 z-20 pointer-events-none"
+          style={{ top: `${currentTimeOffset * CELL_HEIGHT}px` }}
+        >
+          <div className="flex items-center">
+            <div className="w-2 h-2 rounded-full bg-gradient-to-br from-teal-500 to-green-500 -ml-1" />
+            <div className="flex-1 h-0.5 bg-gradient-to-r from-teal-500 to-green-500" />
+          </div>
+        </div>
+      )}
+
+      {/* Appointments positioned within this cell */}
+      {appointments.map(apt => {
+        // Get just the minutes to position within this specific hour cell
+        const start = new Date(apt.start_time);
+        const startMinute = start.getMinutes();
+        const offsetFromHour = startMinute / 60; // 0 to 1 representing position within the hour
+        
+        return (
+          <div
+            key={apt.id}
+            draggable
+            className="absolute left-2 right-2 px-3 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
+            style={{
+              top: `${offsetFromHour * CELL_HEIGHT}px`,
+              height: `${Math.max(apt.rowSpan * CELL_HEIGHT - 4, 48)}px`,
+            }}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('appointmentId', apt.id);
+            }}
+          >
+            <div className="text-sm font-semibold text-gray-900 leading-tight">
+              {formatTime(new Date(apt.start_time))}
+            </div>
+            <div className="text-sm text-gray-700 leading-tight truncate mt-0.5">
+              {apt.customer_name}
+            </div>
+            {apt.notes && apt.rowSpan > 1 && (
+              <div className="text-xs text-gray-600 leading-tight truncate mt-1">
+                {apt.notes}
               </div>
             )}
-
-            {/* Appointments positioned absolutely */}
-            {appointmentsWithPosition.map(apt => (
-              <div
-                key={apt.id}
-                className="absolute left-2 right-2 px-3 py-2 bg-teal-50/80 hover:bg-teal-100/80 rounded border-l-4 border-teal-500 cursor-pointer overflow-hidden transition-colors"
-                style={{
-                  top: `${apt.top + 1}px`,
-                  height: `${Math.max(apt.height - 2, 32)}px`,
-                }}
-                onClick={() => {
-                  // Could open appointment details modal here
-                }}
-              >
-                <div className="text-sm font-semibold text-gray-900 leading-tight">
-                  {formatTime(new Date(apt.start_time))}
-                </div>
-                <div className="text-sm text-gray-700 leading-tight truncate">
-                  {apt.customer_name}
-                </div>
-                {apt.service_name && apt.height > 60 && (
-                  <div className="text-xs text-gray-600 leading-tight truncate mt-1">
-                    {apt.service_name}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
 
-function TimeSlotCell({ date, appointments, onReschedule }: { date: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
-  const [isDragOver, setIsDragOver] = useState(false);
 
-  return (
-    <div
-      className="bg-white p-2 min-h-16 border-t border-gray-100 relative"
-      onDragOver={(e) => {
-        e.preventDefault();
-        setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        // Handle drop
-      }}
-    >
-      {appointments.map((apt) => (
-        <div
-          key={apt.id}
-          draggable
-          className="text-xs px-2 py-1 mb-1 rounded bg-teal-100 text-teal-800 cursor-move hover:bg-teal-200 transition-colors"
-        >
-          {formatTime(new Date(apt.start_time))}
-        </div>
-      ))}
-
-      {isDragOver && (
-        <div className="absolute inset-0 bg-teal-100 bg-opacity-50 border-2 border-teal-500 border-dashed" />
-      )}
-    </div>
-  );
-}
-
-function TimeSlotRow({ slot, onReschedule }: { slot: TimeSlot; onReschedule: (id: string, date: Date) => void }) {
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  return (
-    <div
-      className="flex border-t border-gray-100 hover:bg-gray-50 transition-colors"
-      onDragOver={(e) => {
-        e.preventDefault();
-        setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        // Handle drop
-      }}
-    >
-      <div className="w-24 p-4 text-sm text-gray-500 flex-shrink-0">
-        {formatTime(slot.startTime)}
-      </div>
-      <div className="flex-1 p-2 relative">
-        {slot.appointments.map((apt) => (
-          <AppointmentCard
-            key={apt.id}
-            appointment={apt}
-            onReschedule={(newDate) => onReschedule(apt.id, newDate)}
-          />
-        ))}
-
-        {isDragOver && (
-          <div className="absolute inset-0 bg-teal-100 bg-opacity-50 border-2 border-teal-500 border-dashed" />
-        )}
-      </div>
-    </div>
-  );
-}
