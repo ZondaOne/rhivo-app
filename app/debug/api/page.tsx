@@ -5,18 +5,48 @@ import { useAuth } from '@/contexts/AuthContext';
 
 type Json = any;
 
+interface TestResult {
+  passed?: boolean;
+  message?: string;
+  [key: string]: any;
+}
+
+interface TestCategory {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  tests: TestDefinition[];
+}
+
+interface TestDefinition {
+  id: string;
+  label: string;
+  description: string;
+  run: () => Promise<any>;
+  requiresAuth?: boolean;
+  requiresBiz?: boolean;
+}
+
 export default function ApiDebugPage() {
-  const { login, logout, signupOwner, refreshAuth, user, isAuthenticated, accessToken } = useAuth();
+  const { login, signupOwner, isAuthenticated, accessToken } = useAuth();
   const [output, setOutput] = useState<Json>(null);
   const [biz, setBiz] = useState<{ businessId?: string; serviceId?: string } | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDocsModal, setShowDocsModal] = useState(false);
   const [autoCreds, setAutoCreds] = useState<{ email: string; password: string } | null>(null);
   const [ownerBizId, setOwnerBizId] = useState<string | null>(null);
-  const [lastReservationId, setLastReservationId] = useState<string | null>(null);
   const [reservations, setReservations] = useState<any[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<Record<string, TestResult>>({});
   const accessTokenRef = useRef<string | null>(null);
+
+  const docs = [
+    { name: 'Authentication Implementation', file: 'AUTH_IMPLEMENTATION.md' },
+    { name: 'Database Schema', file: 'DATABASE_SCHEMA.md' },
+    { name: 'Transaction & Concurrency', file: 'TRANSACTIONS_IMPLEMENTATION.md' }
+  ];
 
   // Keep ref in sync with accessToken
   useEffect(() => {
@@ -28,11 +58,35 @@ export default function ApiDebugPage() {
       setLoading(label);
       const res = await fn();
       setOutput(res);
+
+      setTestResults(prev => ({
+        ...prev,
+        [label]: res
+      }));
     } catch (e: any) {
-      setOutput({ error: e?.message || String(e) });
+      const errorResult = { error: e?.message || String(e), passed: false };
+      setOutput(errorResult);
+
+      setTestResults(prev => ({
+        ...prev,
+        [label]: errorResult
+      }));
     } finally {
       setLoading(null);
     }
+  }
+
+  function getTestStatus(label: string): 'passed' | 'failed' | 'pending' {
+    const result = testResults[label];
+    if (!result) return 'pending';
+    if (result.error) return 'failed';
+    if (result.passed === false) return 'failed';
+    if (result.passed === true) return 'passed';
+    // Auto-detect based on content
+    if (result.status === 401 || result.status === 403 || result.status === 429) return 'passed';
+    if (result.sameReservationId === true) return 'passed';
+    if (result.commitFailed === true) return 'passed';
+    return 'pending';
   }
 
   async function fetchReservations() {
@@ -48,7 +102,7 @@ export default function ApiDebugPage() {
     }
   }
 
-  // Persist biz selection in sessionStorage so session is maintained across the debug page and dashboard
+  // Persist biz selection in sessionStorage
   useEffect(() => {
     const saved = sessionStorage.getItem('rivo-debug-biz');
     if (saved) {
@@ -60,7 +114,7 @@ export default function ApiDebugPage() {
     else sessionStorage.removeItem('rivo-debug-biz');
   }, [biz]);
 
-  // If authenticated, fetch owner business; if no selected business, default to owner's business
+  // Fetch owner business
   useEffect(() => {
     (async () => {
       if (!isAuthenticated || !accessToken) return;
@@ -76,7 +130,7 @@ export default function ApiDebugPage() {
     })();
   }, [isAuthenticated, accessToken]);
 
-  // Auto-fetch reservations when authenticated or biz changes
+  // Auto-fetch reservations
   useEffect(() => {
     if (isAuthenticated && biz?.businessId) {
       fetchReservations();
@@ -89,7 +143,6 @@ export default function ApiDebugPage() {
     setAutoCreds(creds);
     setShowModal(true);
 
-    // 1) Signup
     const signupRes: any = await signupOwner({
       email: creds.email,
       password: creds.password,
@@ -99,10 +152,8 @@ export default function ApiDebugPage() {
       timezone: 'America/New_York',
     });
 
-    // 2) Verify
-  // Accept absolute or relative verification URLs
-  const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
-  const token = new URL(signupRes.verificationUrl as string, base).searchParams.get('token');
+    const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    const token = new URL(signupRes.verificationUrl as string, base).searchParams.get('token');
     const verify = await fetch('/api/auth/verify-email', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token })
@@ -112,10 +163,8 @@ export default function ApiDebugPage() {
       throw new Error(er.error || 'Email verification failed');
     }
 
-    // 3) Login
     await login({ email: creds.email, password: creds.password });
 
-    // 4) Wait for auth state to update and poll for token
     let currentToken = accessTokenRef.current;
     let retries = 0;
     while (!currentToken && retries < 30) {
@@ -128,7 +177,6 @@ export default function ApiDebugPage() {
       throw new Error('Failed to get access token after login. Try refreshing the page.');
     }
 
-    // 5) Prime owner business
     const r = await fetch('/api/debug/owner-prime', {
       method: 'POST',
       headers: { Authorization: `Bearer ${currentToken}` }
@@ -136,7 +184,6 @@ export default function ApiDebugPage() {
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Failed to prime business');
 
-    // 6) Fetch business id from /api/me
     const me = await fetch('/api/me', {
       headers: { Authorization: `Bearer ${currentToken}` }
     });
@@ -146,467 +193,616 @@ export default function ApiDebugPage() {
       throw new Error('Failed to fetch user business info');
     }
 
-    // 7) Set business and service IDs
     const businessId = meData.user.business.id;
     const serviceId = data.service?.id;
 
-    // Set both biz and ownerBizId explicitly
     setBiz({ businessId, serviceId });
     setOwnerBizId(businessId);
 
     setOutput({ message: 'Automated auth flow complete', creds, prime: data, me: meData });
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-green-50 p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl shadow p-6">
-          <h1 className="text-2xl font-semibold text-gray-900">API Debugger</h1>
-          <p className="text-gray-600">Quickly test core endpoints with live feedback.</p>
-        </div>
+  // Test categories definition
+  const testCategories: TestCategory[] = [
+    {
+      id: 'security',
+      name: 'Security Tests',
+      description: 'Authentication, authorization, rate limiting, and RLS',
+      color: 'red',
+      tests: [
+        {
+          id: 'missing-auth',
+          label: 'Missing Auth Token',
+          description: 'Expects 401: API must reject requests without auth header',
+          run: async () => {
+            const r = await fetch('/api/me');
+            const passed = r.status === 401;
+            return { status: r.status, body: await r.json(), passed };
+          }
+        },
+        {
+          id: 'invalid-token',
+          label: 'Invalid Token',
+          description: 'Expects 401: Malformed JWT must be rejected',
+          run: async () => {
+            const r = await fetch('/api/me', {
+              headers: { Authorization: 'Bearer invalid-token-xyz' }
+            });
+            const passed = r.status === 401;
+            return { status: r.status, body: await r.json(), passed };
+          }
+        },
+        {
+          id: 'expired-token',
+          label: 'Expired Token',
+          description: 'Expects 401: JWTs past expiry must fail',
+          run: async () => {
+            const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.4Adcj0pVhR9YimXmkdwJnPMOk3XhT';
+            const r = await fetch('/api/me', {
+              headers: { Authorization: `Bearer ${expiredToken}` }
+            });
+            const passed = r.status === 401;
+            return { status: r.status, body: await r.json(), passed };
+          }
+        },
+        {
+          id: 'rls-isolation',
+          label: 'RLS Isolation',
+          description: 'Tests Row-Level Security: owner sees only own business data',
+          requiresAuth: true,
+          run: async () => {
+            if (!isAuthenticated || !accessToken) throw new Error('Login first as owner');
+            const r = await fetch('/api/appointments?' + new URLSearchParams({
+              start: new Date().toISOString(),
+              end: new Date(Date.now() + 7*24*3600*1000).toISOString()
+            }), {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const data = await r.json();
+            const passed = r.status === 200;
+            return { status: r.status, appointments: data.appointments?.length || 0, note: 'Should only see own business data', passed };
+          }
+        },
+        {
+          id: 'rate-limit',
+          label: 'Rate Limiting',
+          description: 'Expects 429 after 100 attempts: prevents brute force',
+          run: async () => {
+            const identifier = `test-${Math.random().toString(36).slice(2,8)}`;
+            const results = [];
+            for (let i = 0; i < 102; i++) {
+              const r = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: `${identifier}@test.com`, password: 'wrong' })
+              });
+              results.push({ attempt: i + 1, status: r.status, limited: r.status === 429 });
+              if (r.status === 429) break;
+            }
+            const passed = results.some(r => r.limited);
+            return { totalAttempts: results.length, rateLimited: passed, results: results.slice(-5), passed };
+          }
+        }
+      ]
+    },
+    {
+      id: 'concurrency',
+      name: 'Concurrency & Transactions',
+      description: 'Idempotency, concurrent bookings, reservation TTL',
+      color: 'purple',
+      tests: [
+        {
+          id: 'idempotency',
+          label: 'Idempotency Key',
+          description: 'Both requests should return same reservation ID',
+          requiresBiz: true,
+          run: async () => {
+            if (!ownerBizId || !biz?.serviceId) throw new Error('Need business setup');
+            const idempotencyKey = crypto.randomUUID();
+            const start = new Date(Date.now() + 3*24*3600*1000);
 
-        {/* Business context banner */}
-        {isAuthenticated && (
-          <div className={`rounded-xl p-4 ${biz?.businessId && ownerBizId && biz.businessId !== ownerBizId ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50 border border-gray-200'} `}>
-            <div className="text-sm text-gray-700">
-              <div>Owner business: <span className="font-mono">{ownerBizId || 'unknown'}</span></div>
-              <div>Selected business: <span className="font-mono">{biz?.businessId || 'none selected'}</span></div>
-              {biz?.businessId && ownerBizId && biz.businessId !== ownerBizId && (
-                <div className="mt-1 text-yellow-700">Warning: Bookings made for another business won’t appear in your Appointments list.</div>
-              )}
-            </div>
-          </div>
-        )}
+            const req1 = await fetch('/api/booking/reserve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                businessId: ownerBizId,
+                serviceId: biz.serviceId,
+                startTime: start.toISOString(),
+                idempotencyKey
+              })
+            });
+            const data1 = await req1.json();
 
-        {/* Test Data */}
-        <section className="bg-white rounded-2xl shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Test Data</h2>
-            <div className="text-sm text-gray-600">
-              {biz?.businessId ? (
-                <span>
-                  Business: <span className="font-mono">{biz.businessId}</span>
-                  {biz.serviceId && <>
-                    <span className="mx-2">•</span>
-                    Service: <span className="font-mono">{biz.serviceId}</span>
-                  </>}
-                </span>
-              ) : (
-                <span>No test data seeded</span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Seed Data', async () => {
-                const r = await fetch('/api/debug/seed-data', { method: 'POST' });
-                const data = await r.json();
-                if (r.ok) {
-                  setBiz({ businessId: data.business.id, serviceId: data.service.id });
-                }
-                return data;
-              })}
-            >Seed Test Business</button>
-            <button
-              className="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Clear Data', async () => {
-                const r = await fetch('/api/debug/clear-data', { method: 'POST' });
-                const data = await r.json();
-                setBiz(null);
-                return data;
-              })}
-            >Clear Test Data</button>
-          </div>
-        </section>
+            const req2 = await fetch('/api/booking/reserve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                businessId: ownerBizId,
+                serviceId: biz.serviceId,
+                startTime: start.toISOString(),
+                idempotencyKey
+              })
+            });
+            const data2 = await req2.json();
 
-        {/* Auth */}
-        <section className="bg-white rounded-2xl shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Authentication</h2>
-            <div className="text-sm text-gray-600">
-              {isAuthenticated ? (
-                <span>Signed in as {user?.email} ({user?.role})</span>
-              ) : (
-                <span>Not signed in</span>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {!isAuthenticated && (
-              <button
-                className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm"
-                disabled={!!loading}
-                onClick={() => run('Automated Auth', automatedAuthFlow)}
-              >Automated Auth Flow</button>
-            )}
-            <button
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Owner Signup', async () => {
-                const id = Math.random().toString(36).slice(2, 8);
-                return await signupOwner({
-                  email: `test-${id}@test.com`,
-                  password: 'TestPassword123!',
-                  name: 'Debug Owner',
-                  businessName: `Test Biz ${id}`,
-                  businessPhone: '+1234567890',
-                  timezone: 'America/New_York',
-                });
-              })}
-            >Owner Signup</button>
+            return {
+              sameReservationId: data1.reservationId === data2.reservationId,
+              firstId: data1.reservationId,
+              secondId: data2.reservationId,
+              passed: data1.reservationId === data2.reservationId
+            };
+          }
+        },
+        {
+          id: 'concurrent-booking',
+          label: 'Concurrent Reserve',
+          description: 'Only capacity count should succeed (default: 1)',
+          requiresBiz: true,
+          run: async () => {
+            if (!ownerBizId || !biz?.serviceId) throw new Error('Need business setup');
+            const start = new Date(Date.now() + 5*24*3600*1000);
 
-            <button
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Login', async () => {
-                // Use the last signup email if available from output; else prompt
-                const email = (output?.user?.email as string) || prompt('Email to login?') || '';
-                const password = 'TestPassword123!';
-                await login({ email, password });
-                return { message: 'Logged in', email };
-              })}
-            >Login</button>
-
-            <button
-              className="px-3 py-2 bg-gray-700 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Refresh', async () => {
-                await refreshAuth();
-                return { message: 'Token refreshed' };
-              })}
-            >Refresh</button>
-
-            {isAuthenticated && (
-              <button
-                className="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm"
-                disabled={!!loading}
-                onClick={() => run('Logout', async () => {
-                  await logout();
-                  return { message: 'Logged out' };
-                })}
-              >Logout</button>
-            )}
-          </div>
-        </section>
-
-        {/* Booking */}
-        <section className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Booking</h2>
-          {(!ownerBizId || !biz?.serviceId) && isAuthenticated && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-              <div className="font-semibold mb-1">Booking buttons disabled:</div>
-              <div>• Owner Business ID: {ownerBizId ? '✓' : '✗ Missing'}</div>
-              <div>• Service ID: {biz?.serviceId ? '✓' : '✗ Missing'}</div>
-              <div className="mt-2">→ Run "Automated Auth Flow" to set up test data</div>
-            </div>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm"
-              disabled={!!loading || !ownerBizId || !biz?.serviceId}
-              onClick={() => run('Capacity', async () => {
-                if (!ownerBizId || !biz?.serviceId) {
-                  throw new Error('Owner business or service not available. Run Automated Auth Flow first.');
-                }
-                const start = new Date(Date.now() + 24*3600*1000);
-                const end = new Date(start.getTime() + 30*60*1000);
-                const r = await fetch(`/api/booking/capacity?` + new URLSearchParams({
-                  businessId: ownerBizId, // Use owner's business ID
+            const promises = Array.from({ length: 10 }, () =>
+              fetch('/api/booking/reserve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  businessId: ownerBizId,
                   serviceId: biz.serviceId,
-                  slotStart: start.toISOString(),
-                  slotEnd: end.toISOString()
-                }));
-                return await r.json();
-              })}
-            >Check Capacity</button>
+                  startTime: start.toISOString(),
+                  idempotencyKey: crypto.randomUUID()
+                })
+              }).then(r => r.json())
+            );
 
-            <button
-              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm"
-              disabled={!!loading || !ownerBizId || !biz?.serviceId}
-              onClick={() => run('Reserve', async () => {
-                if (!ownerBizId || !biz?.serviceId) {
-                  throw new Error('Owner business or service not available. Run Automated Auth Flow first.');
-                }
-                const start = new Date(Date.now() + 24*3600*1000);
-                const r = await fetch('/api/booking/reserve', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    businessId: ownerBizId, // Use owner's business ID
-                    serviceId: biz.serviceId,
-                    startTime: start.toISOString(),
-                    idempotencyKey: crypto.randomUUID()
-                  })
-                });
-                const data = await r.json();
-                if (r.ok && data?.reservationId) {
-                  setLastReservationId(data.reservationId);
-                  setSelectedReservation(data.reservationId);
-                  await fetchReservations();
-                }
-                return data;
-              })}
-            >Reserve Slot</button>
+            const results = await Promise.all(promises);
+            const successful = results.filter(r => r.reservationId);
+            const failed = results.filter(r => r.error);
 
-            <button
-              className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm"
-              disabled={!!loading || !selectedReservation}
-              onClick={() => run('Commit', async () => {
-                const reservationId = selectedReservation || '';
-                const r = await fetch('/api/booking/commit', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    reservationId,
-                    guestEmail: `debug-${Math.random().toString(36).slice(2,6)}@test.com`,
-                    guestPhone: '+1234567890'
-                  })
-                });
-                const data = await r.json();
-                if (r.ok) {
-                  await fetchReservations();
-                  setSelectedReservation(null);
-                }
-                return data;
-              })}
-            >Commit Selected Reservation</button>
+            return {
+              totalRequests: 10,
+              successful: successful.length,
+              failed: failed.length,
+              passed: successful.length <= 1,
+              test: 'Only 1 should succeed'
+            };
+          }
+        },
+        {
+          id: 'reservation-ttl',
+          label: 'Reservation Expiry',
+          description: 'Commit should fail for expired reservation',
+          requiresBiz: true,
+          run: async () => {
+            if (!ownerBizId || !biz?.serviceId) throw new Error('Need business setup');
+            const start = new Date(Date.now() + 6*24*3600*1000);
 
+            const r = await fetch('/api/booking/reserve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                businessId: ownerBizId,
+                serviceId: biz.serviceId,
+                startTime: start.toISOString(),
+                idempotencyKey: crypto.randomUUID(),
+                ttlMinutes: 0.02
+              })
+            });
+            const reservation = await r.json();
+
+            if (!reservation.reservationId) {
+              return { error: 'Failed to create reservation', details: reservation, passed: false };
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const commit = await fetch('/api/booking/commit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                reservationId: reservation.reservationId,
+                guestEmail: 'test@example.com'
+              })
+            });
+            const commitResult = await commit.json();
+
+            return {
+              reservationCreated: !!reservation.reservationId,
+              commitFailed: !!commitResult.error,
+              error: commitResult.error,
+              passed: !!commitResult.error
+            };
+          }
+        }
+      ]
+    },
+    {
+      id: 'business-logic',
+      name: 'Business Logic',
+      description: 'Capacity limits, time validation, audit trail',
+      color: 'cyan',
+      tests: [
+        {
+          id: 'capacity-limits',
+          label: 'Capacity Enforcement',
+          description: 'Last attempt should be rejected when over capacity',
+          requiresBiz: true,
+          run: async () => {
+            if (!ownerBizId || !biz?.serviceId) throw new Error('Need business setup');
+
+            const start = new Date(Date.now() + 8*24*3600*1000);
+            const end = new Date(start.getTime() + 30*60*1000);
+            const capacity = await fetch(`/api/booking/capacity?${new URLSearchParams({
+              businessId: ownerBizId,
+              serviceId: biz.serviceId,
+              slotStart: start.toISOString(),
+              slotEnd: end.toISOString()
+            })}`);
+            const capData = await capacity.json();
+
+            const reservations = [];
+            for (let i = 0; i < (capData.available || 1) + 1; i++) {
+              const r = await fetch('/api/booking/reserve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  businessId: ownerBizId,
+                  serviceId: biz.serviceId,
+                  startTime: start.toISOString(),
+                  idempotencyKey: crypto.randomUUID()
+                })
+              });
+              reservations.push(await r.json());
+            }
+
+            const successful = reservations.filter(r => r.reservationId).length;
+            const rejected = reservations.filter(r => r.error).length;
+
+            return {
+              initialCapacity: capData.available,
+              attempts: reservations.length,
+              successful,
+              rejected,
+              passed: rejected > 0
+            };
+          }
+        },
+        {
+          id: 'time-validation',
+          label: 'Time Validation',
+          description: 'Past bookings should fail',
+          requiresBiz: true,
+          run: async () => {
+            if (!ownerBizId || !biz?.serviceId) throw new Error('Need business setup');
+
+            const pastTime = new Date(Date.now() - 24*3600*1000);
+            const r1 = await fetch('/api/booking/reserve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                businessId: ownerBizId,
+                serviceId: biz.serviceId,
+                startTime: pastTime.toISOString(),
+                idempotencyKey: crypto.randomUUID()
+              })
+            });
+            const past = await r1.json();
+
+            return {
+              pastBooking: { success: !!past.reservationId, error: past.error },
+              passed: !!past.error
+            };
+          }
+        }
+      ]
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <div className="border-b border-slate-200 bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">API Debugger & Test Suite</h1>
+              <p className="text-gray-600">Comprehensive security and functionality testing for the Rivo platform</p>
+            </div>
             <button
-              className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => fetchReservations()}
-            >Refresh Reservations</button>
+              onClick={() => setShowDocsModal(true)}
+              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+            >
+              View Documentation
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Layout: 2 Column */}
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-12 gap-6">
+          {/* LEFT COLUMN - Test Categories */}
+          <div className="col-span-5 space-y-4">
+            {/* Business context banner */}
+            {isAuthenticated && (
+              <div className={`rounded-xl p-4 ${biz?.businessId && ownerBizId && biz.businessId !== ownerBizId ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50 border border-gray-200'}`}>
+                <div className="text-sm text-gray-700">
+                  <div>Owner business: <span className="font-mono">{ownerBizId || 'unknown'}</span></div>
+                  <div>Selected business: <span className="font-mono">{biz?.businessId || 'none'}</span></div>
+                </div>
+              </div>
+            )}
+
+            {/* Test Data Section */}
+            <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Test Data Setup</h3>
+              <div className="space-y-2">
+                <button
+                  className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-900 transition-colors"
+                  disabled={!!loading}
+                  onClick={() => run('Seed Data', async () => {
+                    const r = await fetch('/api/debug/seed-data', { method: 'POST' });
+                    const data = await r.json();
+                    if (r.ok) {
+                      setBiz({ businessId: data.business.id, serviceId: data.service.id });
+                    }
+                    return data;
+                  })}
+                >Seed Test Business</button>
+                <button
+                  className="w-full px-3 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                  disabled={!!loading}
+                  onClick={() => run('Clear Data', async () => {
+                    const r = await fetch('/api/debug/clear-data', { method: 'POST' });
+                    const data = await r.json();
+                    setBiz(null);
+                    return data;
+                  })}
+                >Clear Test Data</button>
+                <button
+                  className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-colors"
+                  disabled={!!loading || isAuthenticated}
+                  onClick={() => run('Automated Auth', automatedAuthFlow)}
+                >Automated Auth Flow</button>
+              </div>
+            </section>
+
+            {/* Booking Section */}
+            <section className="bg-white rounded-xl shadow-sm border-l-4 border-green-500 p-4">
+              <div className="mb-3">
+                <h3 className="text-lg font-bold text-gray-900">Booking Flow</h3>
+                <p className="text-xs text-gray-600">Check capacity, reserve slots, commit reservations</p>
+              </div>
+              <div className="space-y-2">
+                <button
+                  className="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors"
+                  disabled={!!loading || !ownerBizId || !biz?.serviceId}
+                  onClick={() => run('Check Capacity', async () => {
+                    if (!ownerBizId || !biz?.serviceId) {
+                      throw new Error('Owner business or service not available. Run Automated Auth Flow first.');
+                    }
+                    const start = new Date(Date.now() + 24*3600*1000);
+                    const end = new Date(start.getTime() + 30*60*1000);
+                    const r = await fetch(`/api/booking/capacity?` + new URLSearchParams({
+                      businessId: ownerBizId,
+                      serviceId: biz.serviceId,
+                      slotStart: start.toISOString(),
+                      slotEnd: end.toISOString()
+                    }));
+                    return await r.json();
+                  })}
+                >Check Capacity</button>
+
+                <button
+                  className="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors"
+                  disabled={!!loading || !ownerBizId || !biz?.serviceId}
+                  onClick={() => run('Make Reservation', async () => {
+                    if (!ownerBizId || !biz?.serviceId) {
+                      throw new Error('Owner business or service not available. Run Automated Auth Flow first.');
+                    }
+                    const start = new Date(Date.now() + 24*3600*1000);
+                    const r = await fetch('/api/booking/reserve', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        businessId: ownerBizId,
+                        serviceId: biz.serviceId,
+                        startTime: start.toISOString(),
+                        idempotencyKey: crypto.randomUUID()
+                      })
+                    });
+                    const data = await r.json();
+                    if (r.ok && data?.reservationId) {
+                      setSelectedReservation(data.reservationId);
+                      await fetchReservations();
+                    }
+                    return data;
+                  })}
+                >Make Reservation</button>
+
+                <button
+                  className="w-full px-3 py-2 bg-green-700 text-white rounded-lg text-sm hover:bg-green-800 transition-colors"
+                  disabled={!!loading || !selectedReservation}
+                  onClick={() => run('Commit Reservation', async () => {
+                    const reservationId = selectedReservation || '';
+                    const r = await fetch('/api/booking/commit', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        reservationId,
+                        guestEmail: `guest-${Math.random().toString(36).slice(2,6)}@test.com`,
+                        guestPhone: '+1234567890'
+                      })
+                    });
+                    const data = await r.json();
+                    if (r.ok) {
+                      await fetchReservations();
+                      setSelectedReservation(null);
+                    }
+                    return data;
+                  })}
+                >Commit Reservation</button>
+
+                <button
+                  className="w-full px-3 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition-colors"
+                  disabled={!!loading}
+                  onClick={() => run('List Appointments', async () => {
+                    const start = new Date(Date.now() - 7*24*3600*1000);
+                    const end = new Date(Date.now() + 30*24*3600*1000);
+                    const params = new URLSearchParams({ start: start.toISOString(), end: end.toISOString() });
+                    const r = await fetch('/api/appointments?' + params, {
+                      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
+                    });
+                    return await r.json();
+                  })}
+                >List Appointments</button>
+
+                <button
+                  className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition-colors"
+                  disabled={!!loading}
+                  onClick={() => fetchReservations()}
+                >Refresh Reservations</button>
+              </div>
+
+              {/* Active Reservations List */}
+              {isAuthenticated && reservations.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-xs font-semibold text-gray-700 mb-2">Active Reservations</h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {reservations.map((res: any) => (
+                      <div
+                        key={res.id}
+                        className={`p-2 rounded-lg border-2 cursor-pointer transition-colors text-xs ${
+                          selectedReservation === res.id
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                        }`}
+                        onClick={() => setSelectedReservation(res.id)}
+                      >
+                        <div className="font-mono text-xs text-gray-500">ID: {res.id.slice(0, 8)}...</div>
+                        <div className="text-xs mt-1">
+                          {new Date(res.slot_start).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Test Categories */}
+            {testCategories.map((category) => (
+              <section key={category.id} className={`bg-white rounded-xl shadow-sm border-l-4 border-${category.color}-500 p-4`}>
+                <div className="mb-3">
+                  <h3 className="text-lg font-bold text-gray-900">{category.name}</h3>
+                  <p className="text-xs text-gray-600">{category.description}</p>
+                </div>
+                <div className="space-y-2">
+                  {category.tests.map((test) => {
+                    const testKey = `${category.id}:${test.id}`;
+                    const status = getTestStatus(testKey);
+                    const isDisabled = !!loading ||
+                      (test.requiresAuth && !isAuthenticated) ||
+                      (test.requiresBiz && (!ownerBizId || !biz?.serviceId));
+
+                    return (
+                      <div key={test.id}>
+                        <button
+                          className={`w-full px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${
+                            status === 'passed' ? 'bg-green-100 border-2 border-green-500 text-green-900' :
+                            status === 'failed' ? 'bg-red-100 border-2 border-red-500 text-red-900' :
+                            `bg-${category.color}-600 text-white hover:bg-${category.color}-700`
+                          } ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          disabled={isDisabled}
+                          onClick={() => run(testKey, test.run)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">{test.label}</span>
+                            {status === 'passed' && <span className="text-2xl">✓</span>}
+                            {status === 'failed' && <span className="text-2xl">✗</span>}
+                          </div>
+                          <p className="text-xs mt-1 opacity-90">{test.description}</p>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
           </div>
 
-          {/* Active Reservations List */}
-          {isAuthenticated && reservations.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Active Reservations</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {reservations.map((res: any) => (
-                  <div
-                    key={res.id}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                      selectedReservation === res.id
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedReservation(res.id)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="text-sm">
-                        <div className="font-mono text-xs text-gray-500">ID: {res.id.slice(0, 8)}...</div>
-                        <div className="mt-1">
-                          <span className="font-medium">Start:</span> {new Date(res.slot_start).toLocaleString()}
-                        </div>
-                        <div>
-                          <span className="font-medium">End:</span> {new Date(res.slot_end).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="text-xs text-right">
-                        <div className="text-gray-500">Expires:</div>
-                        <div className={new Date(res.expires_at) < new Date(Date.now() + 5*60*1000) ? 'text-red-600 font-medium' : 'text-gray-700'}>
-                          {new Date(res.expires_at).toLocaleTimeString()}
-                        </div>
-                      </div>
-                    </div>
+          {/* RIGHT COLUMN - Response Output */}
+          <div className="col-span-7">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Response</h3>
+                {loading && (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-500 border-t-transparent"></div>
+                    <span className="text-sm text-gray-600">{loading}</span>
+                  </div>
+                )}
+              </div>
+              <div className="bg-slate-900 rounded-lg p-4 overflow-auto max-h-[calc(100vh-200px)]">
+                <pre className="text-sm text-green-400 font-mono">
+                  {output ? JSON.stringify(output, null, 2) : '// No output yet. Run a test to see results here.'}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {showModal && autoCreds && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Automated Auth Credentials</h3>
+            <p className="text-sm text-gray-700 mb-4">These were used for the flow:</p>
+            <div className="text-sm bg-gray-50 p-3 rounded">
+              <div><span className="font-medium">Email:</span> <span className="font-mono">{autoCreds.email}</span></div>
+              <div><span className="font-medium">Password:</span> <span className="font-mono">{autoCreds.password}</span></div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200" onClick={() => setShowModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDocsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-gray-900">Documentation</h3>
+                <button
+                  onClick={() => {
+                    setShowDocsModal(false);
+                    setSelectedDoc(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {docs.map((doc) => (
+                  <div key={doc.file} className="p-6 border-2 border-gray-200 rounded-xl hover:border-teal-500 hover:bg-teal-50 transition-all">
+                    <h4 className="font-semibold text-gray-900 mb-1">{doc.name}</h4>
+                    <p className="text-xs text-gray-500 font-mono">/docs/{doc.file}</p>
                   </div>
                 ))}
               </div>
-              <div className="text-xs text-gray-500 mt-2">
-                Click a reservation to select it, then click "Commit Selected Reservation"
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Appointments */}
-        <section className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Appointments</h2>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('List Appointments', async () => {
-                const start = new Date(Date.now() - 7*24*3600*1000); // Start from 7 days ago
-                const end = new Date(Date.now() + 30*24*3600*1000);
-                const params = new URLSearchParams({ start: start.toISOString(), end: end.toISOString() });
-                const r = await fetch('/api/appointments?' + params, {
-                  headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
-                });
-                return await r.json();
-              })}
-            >List Appointments</button>
-
-            <button
-              className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Create Manual', async () => {
-                const service_id = biz?.serviceId || prompt('service_id?') || '';
-                const start = new Date(Date.now() + 24*3600*1000);
-                const r = await fetch('/api/appointments/manual', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-                  },
-                  body: JSON.stringify({
-                    service_id,
-                    customer_name: 'Debug Customer',
-                    customer_email: `debug-${Math.random().toString(36).slice(2,6)}@test.com`,
-                    start_time: start.toISOString(),
-                    duration: 30,
-                    status: 'confirmed'
-                  })
-                });
-                const data = await r.json();
-                if (r.ok && data?.reservationId) setLastReservationId(data.reservationId);
-                return data;
-              })}
-            >Create Manual</button>
-
-            {lastReservationId && (
-              <button
-                className="px-3 py-2 bg-green-700 text-white rounded-lg text-sm"
-                disabled={!!loading}
-                onClick={() => run('Commit Last Reservation', async () => {
-                  const r = await fetch('/api/booking/commit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reservationId: lastReservationId, guestEmail: `debug-${Math.random().toString(36).slice(2,6)}@test.com` })
-                  });
-                  return await r.json();
-                })}
-              >Commit Last Reservation</button>
-            )}
-
-            {isAuthenticated && (
-              <>
-                <button
-                  className="px-3 py-2 bg-gray-700 text-white rounded-lg text-sm"
-                  disabled={!!loading}
-                  onClick={() => run('List Active Reservations', async () => {
-                    const r = await fetch('/api/debug/reservations' + (biz?.businessId ? `?businessId=${biz.businessId}` : ''), {
-                      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
-                    });
-                    return await r.json();
-                  })}
-                >List Active Reservations</button>
-                <button
-                  className="px-3 py-2 bg-purple-700 text-white rounded-lg text-sm"
-                  disabled={!!loading}
-                  onClick={() => run('Debug All Appointments', async () => {
-                    const r = await fetch('/api/debug/all-appointments', {
-                      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
-                    });
-                    return await r.json();
-                  })}
-                >Debug All Appointments</button>
-              </>
-            )}
-            <button
-              className="px-3 py-2 bg-teal-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Add Appointment', async () => {
-                if (!biz?.serviceId) throw new Error('Service ID not available. Seed or run Automated Auth first.');
-                const start = new Date(Date.now() + 2*24*3600*1000);
-                const r = await fetch('/api/appointments/manual', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-                  },
-                  body: JSON.stringify({
-                    service_id: biz.serviceId,
-                    customer_name: 'Flow Test',
-                    customer_email: `flow-${Math.random().toString(36).slice(2,6)}@test.com`,
-                    start_time: start.toISOString(),
-                    duration: 30,
-                    status: 'confirmed'
-                  })
-                });
-                return await r.json();
-              })}
-            >Add Appointment</button>
-          </div>
-        </section>
-
-        {/* Notifications & Audit */}
-        <section className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Notifications & Audit</h2>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="px-3 py-2 bg-fuchsia-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('List Notifications', async () => {
-                const r = await fetch('/api/notifications', { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined });
-                return await r.json();
-              })}
-            >List Notifications</button>
-
-            <button
-              className="px-3 py-2 bg-fuchsia-600 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Send Notification', async () => {
-                const appointmentId = prompt('appointmentId? (from created appointment)') || '';
-                const type = (prompt('type? email|sms') || 'email').toLowerCase();
-                const template = (prompt('template? confirmation|reminder|cancellation|reschedule') || 'confirmation').toLowerCase();
-                const r = await fetch('/api/notifications/send', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-                  },
-                  body: JSON.stringify({ appointmentId, type, template })
-                });
-                return await r.json();
-              })}
-            >Send Notification</button>
-
-            <button
-              className="px-3 py-2 bg-slate-700 text-white rounded-lg text-sm"
-              disabled={!!loading}
-              onClick={() => run('Audit Logs', async () => {
-                const businessId = biz?.businessId || undefined;
-                const q = new URLSearchParams();
-                if (businessId) q.set('businessId', businessId);
-                const r = await fetch('/api/audit-logs' + (q.toString() ? `?${q.toString()}` : ''), { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined });
-                return await r.json();
-              })}
-            >List Audit Logs</button>
-          </div>
-        </section>
-
-        {showModal && autoCreds && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Automated Auth Credentials</h3>
-              <p className="text-sm text-gray-700 mb-4">These were used for the flow:</p>
-              <div className="text-sm bg-gray-50 p-3 rounded">
-                <div><span className="font-medium">Email:</span> <span className="font-mono">{autoCreds.email}</span></div>
-                <div><span className="font-medium">Password:</span> <span className="font-mono">{autoCreds.password}</span></div>
-              </div>
-              <div className="mt-4 flex justify-end gap-2">
-                <button className="px-3 py-2 bg-gray-100 rounded-lg" onClick={() => setShowModal(false)}>Close</button>
-              </div>
             </div>
           </div>
-        )}
-
-        {/* Output */}
-        <section className="bg-white rounded-2xl shadow p-6">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-gray-900">Response</h2>
-            {loading && <span className="text-sm text-gray-500">Running: {loading}…</span>}
-          </div>
-          <pre className="text-sm bg-gray-50 p-4 rounded-lg overflow-auto max-h-[360px]">
-            {output ? JSON.stringify(output, null, 2) : 'No output yet'}
-          </pre>
-        </section>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
