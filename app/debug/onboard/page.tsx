@@ -13,6 +13,12 @@ interface OnboardingResponse {
   warnings?: string[];
 }
 
+interface Business {
+  subdomain: string;
+  name: string;
+  id: string;
+}
+
 export default function OnboardDebugPage() {
   const [yamlFiles, setYamlFiles] = useState<string[]>([]);
   const [selectedYaml, setSelectedYaml] = useState('');
@@ -20,6 +26,12 @@ export default function OnboardDebugPage() {
   const [ownerName, setOwnerName] = useState('Test Owner');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<OnboardingResponse | null>(null);
+  
+  // Delete business state
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusiness, setSelectedBusiness] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteResponse, setDeleteResponse] = useState<{success: boolean; message?: string; error?: string} | null>(null);
 
   // Load available YAML files
   useEffect(() => {
@@ -34,7 +46,62 @@ export default function OnboardDebugPage() {
         }
       })
       .catch(err => console.error('Failed to load YAML files:', err));
+      
+    // Load existing businesses
+    loadBusinesses();
   }, []);
+
+  const loadBusinesses = async () => {
+    try {
+      const res = await fetch('/api/debug/check-db?table=businesses');
+      const data = await res.json();
+      if (data.success && data.data) {
+        setBusinesses(data.data);
+        if (data.data.length > 0) {
+          setSelectedBusiness(data.data[0].subdomain);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load businesses:', err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedBusiness) {
+      alert('Please select a business to delete');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete business "${selectedBusiness}"? This will remove ALL data including users, services, appointments, etc. This action CANNOT be undone.`)) {
+      return;
+    }
+
+    setDeleting(true);
+    setDeleteResponse(null);
+
+    try {
+      const res = await fetch('/api/debug/clear-business', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain: selectedBusiness }),
+      });
+
+      const data = await res.json();
+      setDeleteResponse(data);
+      
+      if (data.success) {
+        // Reload businesses list
+        await loadBusinesses();
+      }
+    } catch (err) {
+      setDeleteResponse({
+        success: false,
+        error: 'Failed to connect to delete API: ' + (err instanceof Error ? err.message : 'Unknown error'),
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleOnboard = async () => {
     if (!selectedYaml || !ownerEmail) {
@@ -76,6 +143,94 @@ export default function OnboardDebugPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Business Onboarding</h1>
           <p className="text-gray-600">Debug tool to onboard businesses from YAML configuration files</p>
+        </div>
+
+        {/* Delete Business Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-red-200 p-8 mb-6">
+          <h2 className="text-2xl font-semibold text-red-900 mb-2">Delete Business</h2>
+          <p className="text-gray-600 mb-6">Remove a business and all associated data (users, services, appointments, etc.)</p>
+
+          <div className="space-y-6">
+            {/* Business Selector */}
+            <div>
+              <label htmlFor="business" className="block text-sm font-semibold text-gray-900 mb-2">
+                Select Business <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="business"
+                value={selectedBusiness}
+                onChange={(e) => setSelectedBusiness(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-gray-900 bg-white"
+                disabled={deleting}
+              >
+                {businesses.length === 0 ? (
+                  <option value="">No businesses found</option>
+                ) : (
+                  businesses.map((biz) => (
+                    <option key={biz.id} value={biz.subdomain}>
+                      {biz.name} ({biz.subdomain})
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            {/* Delete Button */}
+            <button
+              onClick={handleDelete}
+              disabled={deleting || businesses.length === 0}
+              className={`w-full px-6 py-4 rounded-xl font-semibold text-white transition-all shadow-lg ${
+                deleting || businesses.length === 0
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700 hover:shadow-xl'
+              }`}
+            >
+              {deleting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Deleting Business...
+                </span>
+              ) : (
+                '🗑️ Delete Business'
+              )}
+            </button>
+
+            {/* Warning */}
+            <div className="bg-red-50 rounded-xl p-4 border border-red-200">
+              <p className="text-sm text-red-800 font-semibold">⚠️ Warning: This action is permanent and cannot be undone!</p>
+              <p className="text-sm text-red-700 mt-1">All data including users, services, appointments, reservations, and audit logs will be permanently deleted.</p>
+            </div>
+          </div>
+
+          {/* Delete Response */}
+          {deleteResponse && (
+            <div className="mt-6">
+              {deleteResponse.success ? (
+                <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+                  <h4 className="text-lg font-semibold text-green-900 mb-2 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Business Deleted Successfully
+                  </h4>
+                  <p className="text-sm text-green-800">{deleteResponse.message}</p>
+                </div>
+              ) : (
+                <div className="bg-red-50 rounded-xl p-6 border border-red-200">
+                  <h4 className="text-lg font-semibold text-red-900 mb-2 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Deletion Failed
+                  </h4>
+                  <p className="text-sm text-red-800">{deleteResponse.error}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Onboarding Form */}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
 import { ReservationManager } from '@/lib/booking';
+import { getServiceByIdentifier } from '@/lib/db/service-helpers';
 import { z } from 'zod';
 
 const reserveSchema = z.object({
@@ -18,27 +19,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = reserveSchema.parse(body);
 
+    const db = getDbClient();
+
+    console.log('🔍 DEBUG: Looking up service');
+    console.log('  businessId:', data.businessId);
+    console.log('  serviceId:', data.serviceId);
+    console.log('  serviceId type:', typeof data.serviceId);
+
+    // Check what's in the database
+    const allServices = await db`
+      SELECT id, name, external_id, business_id 
+      FROM services 
+      WHERE business_id = ${data.businessId} 
+        AND deleted_at IS NULL
+    `;
+    console.log('  All services in business:', JSON.stringify(allServices, null, 2));
+
+    // Resolve serviceId (can be UUID or external_id)
+    const service = await getServiceByIdentifier(db, data.businessId, data.serviceId);
+    console.log('  Found service:', service ? JSON.stringify(service, null, 2) : 'NULL');
+
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: 'Service not found', debug: { businessId: data.businessId, serviceId: data.serviceId, availableServices: allServices } },
+        { status: 404 }
+      );
+    }
+
     // Handle both startTime (simplified) and slotStart/slotEnd (explicit)
     let slotStart: Date;
     let slotEnd: Date;
 
     if (data.startTime) {
-      // Get service duration to calculate end time
-      const db = getDbClient();
-      const serviceResult = await db`
-        SELECT duration_minutes FROM services WHERE id = ${data.serviceId}
-      `;
-
-      if (serviceResult.length === 0) {
-        return NextResponse.json(
-          { success: false, error: 'Service not found' },
-          { status: 404 }
-        );
-      }
-
+      // Use service duration to calculate end time
       slotStart = new Date(data.startTime);
       slotEnd = new Date(slotStart);
-      slotEnd.setMinutes(slotEnd.getMinutes() + serviceResult[0].duration_minutes);
+      slotEnd.setMinutes(slotEnd.getMinutes() + service.duration_minutes);
     } else if (data.slotStart && data.slotEnd) {
       slotStart = new Date(data.slotStart);
       slotEnd = new Date(data.slotEnd);
@@ -49,12 +65,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getDbClient();
     const manager = new ReservationManager(db);
 
     const reservation = await manager.createReservation({
       businessId: data.businessId,
-      serviceId: data.serviceId,
+      serviceId: service.id,  // Use resolved UUID
       slotStart,
       slotEnd,
       idempotencyKey: data.idempotencyKey,

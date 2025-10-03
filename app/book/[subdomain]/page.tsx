@@ -172,7 +172,7 @@ export default function BookingPage() {
         body: JSON.stringify({
           businessId,
           serviceId: selectedService.id,
-          slotStart: selectedSlot.start,
+          startTime: selectedSlot.start,
           idempotencyKey,
         }),
       });

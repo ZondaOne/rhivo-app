@@ -175,7 +175,8 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
               price_cents,
               color,
               max_simultaneous_bookings,
-              sort_order
+              sort_order,
+              external_id
             ) VALUES (
               gen_random_uuid(),
               ${business.id},
@@ -185,7 +186,8 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
               ${service.price},
               ${service.color || '#14b8a6'},
               ${config.bookingLimits.maxSimultaneousBookings},
-              ${service.sortOrder}
+              ${service.sortOrder},
+              ${service.id}
             )
           `;
         }

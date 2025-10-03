@@ -131,6 +131,24 @@
   <acceptance>Owners can reset forgotten passwords securely. First-time login requires password change. Password policies enforced. Rate limiting prevents abuse.</acceptance>
 </step>
 
+<step number="7e">
+  <title>Service external ID mapping for YAML-to-DB consistency</title>
+  <tasks>
+    <task>Add external_id column to services table to store YAML config IDs (slugs like "swedish-massage-60").</task>
+    <task>Create unique constraint on (business_id, external_id) to ensure slug uniqueness per business.</task>
+    <task>Update business onboarding pipeline to populate external_id from YAML service.id during service creation.</task>
+    <task>Modify all booking API endpoints to accept and resolve service lookups by external_id OR UUID.</task>
+    <task>Update /api/booking/reserve to handle external_id parameter and resolve to database UUID internally.</task>
+    <task>Update /api/booking/slots response to include both id (UUID) and external_id for client flexibility.</task>
+    <task>Create database helper function get_service_uuid(business_id, external_id) for consistent lookups.</task>
+    <task>Add data migration to backfill external_id for existing services using name-based slugification as fallback.</task>
+    <task>Update YAML validation to enforce external_id format rules (lowercase, alphanumeric with hyphens).</task>
+    <task>Document the dual-ID system: external_id for YAML/API contracts, UUID for internal foreign keys.</task>
+  </tasks>
+  <deliverables>Migration SQL adding external_id column and constraints, updated onboarding code, modified booking API endpoints, service lookup helper function, backfill migration for existing data, updated API documentation showing both ID types, validation rules for external_id format.</deliverables>
+  <acceptance>YAML service IDs map reliably to database records. Booking flow works with external_ids from config. No UUID exposure to public booking API. Existing services backfilled with valid external_ids. All service lookups use consistent resolution logic. API accepts both UUID (for internal/dashboard) and external_id (for public booking).</acceptance>
+</step>
+
 <step number="8">
   <title>Notifications & external integrations</title>
   <tasks>
