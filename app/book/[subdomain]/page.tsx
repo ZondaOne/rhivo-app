@@ -373,100 +373,191 @@ export default function BookingPage() {
             </div>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* Left Column - Category & Service Selection */}
-            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-              {/* Categories */}
-              <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Select Category</h2>
-                <div className="space-y-2">
-                  {config.categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => {
-                        setSelectedCategory(category);
-                        setSelectedService(null);
-                        setCurrentStep('service');
-                      }}
-                      className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all ${
-                        selectedCategory?.id === category.id
-                          ? 'bg-gray-50 text-gray-900 border-2 border-teal-600'
-                          : 'bg-white text-gray-900 border-2 border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="text-sm sm:text-base font-semibold">{category.name}</div>
-                      {category.description && (
-                        <div className={`text-xs sm:text-sm mt-0.5 sm:mt-1 ${
-                          selectedCategory?.id === category.id ? 'text-gray-600' : 'text-gray-500'
-                        }`}>
-                          {category.description}
-                        </div>
-                      )}
-                    </button>
-                  ))}
+          <>
+            {/* Step Indicator */}
+            <div className="mb-6 sm:mb-8">
+              <div className="flex items-center justify-center gap-2 sm:gap-3">
+                <div className={`flex items-center gap-2 ${currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details'
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {selectedService ? '✓' : '1'}
+                  </div>
+                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Service</span>
+                </div>
+
+                <div className="h-0.5 w-8 sm:w-16 bg-gray-200"></div>
+
+                <div className={`flex items-center gap-2 ${currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === 'datetime' || currentStep === 'details'
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {selectedSlot ? '✓' : '2'}
+                  </div>
+                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Date & Time</span>
+                </div>
+
+                <div className="h-0.5 w-8 sm:w-16 bg-gray-200"></div>
+
+                <div className={`flex items-center gap-2 ${currentStep === 'details' ? '' : 'opacity-40'}`}>
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                    currentStep === 'details'
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    3
+                  </div>
+                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Details</span>
                 </div>
               </div>
-
-              {/* Services */}
-              {selectedCategory && (
-                <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Select Service</h2>
-                  <div className="space-y-2 sm:space-y-3">
-                    {selectedCategory.services
-                      .filter(s => s.enabled)
-                      .map((service) => (
-                        <button
-                          key={service.id}
-                          onClick={() => handleServiceSelect(service)}
-                          className={`w-full text-left p-3 sm:p-4 rounded-xl border-2 transition-all ${
-                            selectedService?.id === service.id
-                              ? 'border-teal-600 bg-gray-50'
-                              : 'border-gray-200 bg-white hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm sm:text-base font-semibold text-gray-900">{service.name}</div>
-                              {service.description && (
-                                <div className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 line-clamp-2">{service.description}</div>
-                              )}
-                              <div className="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600">
-                                <span>{service.duration} min</span>
-                                <span>•</span>
-                                <span className="font-semibold text-gray-900">
-                                  {(service.price / 100).toFixed(2)} {config.business.currency}
-                                </span>
-                              </div>
-                            </div>
-                            {service.color && (
-                              <div
-                                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: service.color }}
-                              />
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Right Column - Date, Time & Details */}
-            <div className="lg:col-span-2">
-              {!selectedService ? (
-                <div className="bg-white rounded-2xl border border-gray-200/60 p-8 sm:p-12 text-center">
-                  <svg className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Select a Service</h3>
-                  <p className="text-sm sm:text-base text-gray-500">
-                    Choose a category and service to see available times
-                  </p>
+            <div className="max-w-4xl mx-auto">
+              {/* Step Content */}
+              {(currentStep === 'service' || currentStep === 'datetime') && !selectedService && (
+                <div className="space-y-6">
+                  {/* Categories */}
+                  <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        1
+                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Choose a Category</h2>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {config.categories.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            setSelectedService(null);
+                            setCurrentStep('service');
+                          }}
+                          className={`text-left p-4 rounded-xl transition-all ${
+                            selectedCategory?.id === category.id
+                              ? 'bg-gray-50 border-2 border-teal-600 shadow-sm'
+                              : 'bg-white border-2 border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="font-semibold text-gray-900 mb-1">{category.name}</div>
+                          {category.description && (
+                            <div className="text-xs text-gray-500 line-clamp-2">
+                              {category.description}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  {selectedCategory && (
+                    <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                            2
+                          </div>
+                          <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Select a Service</h2>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedCategory(null);
+                            setSelectedService(null);
+                          }}
+                          className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                        >
+                          Change category
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedCategory.services
+                          .filter(s => s.enabled)
+                          .map((service) => (
+                            <button
+                              key={service.id}
+                              onClick={() => handleServiceSelect(service)}
+                              className={`w-full text-left p-4 rounded-xl border-2 transition-all hover:shadow-sm ${
+                                selectedService?.id === service.id
+                                  ? 'border-teal-600 bg-gray-50'
+                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-gray-900 mb-1">{service.name}</div>
+                                  {service.description && (
+                                    <div className="text-sm text-gray-500 mb-2 line-clamp-2">{service.description}</div>
+                                  )}
+                                  <div className="flex items-center gap-3 text-sm">
+                                    <div className="flex items-center gap-1.5 text-gray-600">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      {service.duration} min
+                                    </div>
+                                    <span className="text-gray-300">•</span>
+                                    <div className="font-bold text-gray-900">
+                                      {(service.price / 100).toFixed(2)} {config.business.currency}
+                                    </div>
+                                  </div>
+                                </div>
+                                {service.color && (
+                                  <div
+                                    className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
+                                    style={{ backgroundColor: service.color }}
+                                  />
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : currentStep === 'datetime' ? (
-                <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Select Date & Time</h2>
+              )}
+
+              {currentStep === 'datetime' && selectedService && (
+                <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        2
+                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Pick Date & Time</h2>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedService(null);
+                        setSelectedDate(null);
+                        setSelectedSlot(null);
+                        setCurrentStep('service');
+                      }}
+                      className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                    >
+                      Change service
+                    </button>
+                  </div>
+
+                  {/* Selected Service Summary */}
+                  <div className="mb-5 p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">{selectedService.name}</div>
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <span>{selectedService.duration} min</span>
+                          <span>•</span>
+                          <span className="font-bold text-gray-900">
+                            {(selectedService.price / 100).toFixed(2)} {config.business.currency}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   {error && (
                     <div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-800 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-start gap-2 sm:gap-3">
@@ -548,9 +639,27 @@ export default function BookingPage() {
                     </div>
                   )}
                 </div>
-              ) : currentStep === 'details' ? (
-                <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Your Information</h2>
+              )}
+
+              {currentStep === 'details' && selectedSlot && (
+                <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        3
+                      </div>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Your Information</h2>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedSlot(null);
+                        setCurrentStep('datetime');
+                      }}
+                      className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                    >
+                      Change time
+                    </button>
+                  </div>
 
                   {error && (
                     <div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-800 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-start gap-2 sm:gap-3">
@@ -749,113 +858,126 @@ export default function BookingPage() {
                     </button>
                   </div>
                 </div>
-              ) : null}
-            </div>
-          </div>
-        )}
+              )}
 
-        {/* Contact Information */}
-        {currentStep !== 'confirmation' && (
-          <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
-            {/* Map */}
-            <div className="bg-white rounded-2xl border border-gray-200/60 overflow-hidden">
-              <div className="relative w-full h-[250px] sm:h-[300px] bg-gray-100">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  className="border-0"
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent([
-                    config.contact.address.street,
-                    config.contact.address.city,
-                    config.contact.address.state,
-                    config.contact.address.postalCode,
-                    config.contact.address.country
-                  ].join(', '))}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                ></iframe>
-              </div>
-              <div className="p-4 sm:p-5 border-t border-gray-100">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <svg className="w-5 h-5 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Contact Information - Inside the centered layout */}
+              {currentStep !== 'confirmation' && (
+                <div className="mt-8 space-y-5">
+                  {/* Location & Contact */}
+                  <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-5">
+                      <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                       </svg>
-                      <h3 className="text-sm font-semibold text-gray-900">Address</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">Location & Contact</h3>
                     </div>
-                    <div className="text-gray-500 space-y-0.5 text-sm">
-                      <div>{config.contact.address.street}</div>
-                      <div>{config.contact.address.city}, {config.contact.address.state} {config.contact.address.postalCode}</div>
-                      <div>{config.contact.address.country}</div>
+
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      {/* Address */}
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900 mb-2">Address</div>
+                        <div className="text-sm text-gray-500 space-y-1 mb-4">
+                          <div>{config.contact.address.street}</div>
+                          <div>{config.contact.address.city}, {config.contact.address.state} {config.contact.address.postalCode}</div>
+                          <div>{config.contact.address.country}</div>
+                        </div>
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([
+                            config.contact.address.street,
+                            config.contact.address.city,
+                            config.contact.address.state,
+                            config.contact.address.postalCode,
+                            config.contact.address.country
+                          ].join(', '))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
+                          Get Directions
+                        </a>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900 mb-3">Get in Touch</div>
+                        <div className="space-y-3">
+                          <a
+                            href={`tel:${config.contact.phone}`}
+                            className="flex items-center gap-3 text-sm text-gray-600 hover:text-gray-900 transition-colors group"
+                          >
+                            <div className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-gray-100 transition-colors">
+                              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                              </svg>
+                            </div>
+                            <span className="font-medium">{config.contact.phone}</span>
+                          </a>
+                          <a
+                            href={`mailto:${config.contact.email}`}
+                            className="flex items-center gap-3 text-sm text-gray-600 hover:text-gray-900 transition-colors group"
+                          >
+                            <div className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-gray-100 transition-colors">
+                              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                              </svg>
+                            </div>
+                            <span className="font-medium">{config.contact.email}</span>
+                          </a>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([
-                      config.contact.address.street,
-                      config.contact.address.city,
-                      config.contact.address.state,
-                      config.contact.address.postalCode,
-                      config.contact.address.country
-                    ].join(', '))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-shrink-0 px-4 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all flex items-center gap-1.5"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    Directions
-                  </a>
+
+                  {/* Business Hours */}
+                  <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h3 className="text-sm font-semibold text-gray-900">Business Hours</h3>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+                      {config.availability
+                        .filter(a => a.enabled)
+                        .map(a => {
+                          const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                          const isToday = a.day === today;
+
+                          return (
+                            <div
+                              key={a.day}
+                              className={`flex justify-between items-center gap-4 py-2 px-3 rounded-lg transition-colors ${
+                                isToday ? 'bg-teal-50 border border-teal-100' : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {isToday && (
+                                  <div className="w-2 h-2 rounded-full bg-teal-600"></div>
+                                )}
+                                <span className={`text-sm capitalize ${
+                                  isToday ? 'font-semibold text-gray-900' : 'text-gray-700'
+                                }`}>
+                                  {a.day}
+                                </span>
+                              </div>
+                              <span className={`text-sm tabular-nums ${
+                                isToday ? 'font-semibold text-teal-900' : 'text-gray-500 font-medium'
+                              }`}>
+                                {a.open} - {a.close}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-
-            {/* Business Hours */}
-            <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-sm font-semibold text-gray-900">Business Hours</h3>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
-                {config.availability
-                  .filter(a => a.enabled)
-                  .map(a => {
-                    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-                    const isToday = a.day === today;
-
-                    return (
-                      <div
-                        key={a.day}
-                        className={`flex justify-between items-center gap-4 py-2 px-3 rounded-lg transition-colors ${
-                          isToday ? 'bg-teal-50 border border-teal-100' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {isToday && (
-                            <div className="w-2 h-2 rounded-full bg-teal-600"></div>
-                          )}
-                          <span className={`text-sm capitalize ${
-                            isToday ? 'font-semibold text-gray-900' : 'text-gray-700'
-                          }`}>
-                            {a.day}
-                          </span>
-                        </div>
-                        <span className={`text-sm tabular-nums ${
-                          isToday ? 'font-semibold text-teal-900' : 'text-gray-500 font-medium'
-                        }`}>
-                          {a.open} - {a.close}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>
