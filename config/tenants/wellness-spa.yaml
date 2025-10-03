@@ -1,0 +1,229 @@
+version: "1.0.0"
+
+business:
+  id: "wellness-spa"
+  name: "Tranquillo Wellness Spa Firenze"
+  description: "Scopri la serenità con i nostri trattamenti premium di spa e benessere nel cuore di Firenze. Rilassati, ringiovanisci e ritrova il tuo equilibrio interiore."
+  timezone: "Europe/Rome"
+  locale: "it-IT"
+  currency: "EUR"
+
+contact:
+  address:
+    street: "Via dei Servi 45"
+    city: "Firenze"
+    state: "Toscana"
+    postalCode: "50122"
+    country: "IT"
+  email: "prenotazioni@tranquillospa.it"
+  phone: "+390552345678"
+  website: "https://tranquillospa.it"
+
+branding:
+  primaryColor: "#10b981"
+  secondaryColor: "#14b8a6"
+  logoUrl: "https://example.com/spa-logo.png"
+  coverImageUrl: "https://example.com/spa-cover.jpg"
+  faviconUrl: "https://example.com/spa-favicon.ico"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "09:00"
+    close: "20:00"
+    enabled: true
+  - day: tuesday
+    open: "09:00"
+    close: "20:00"
+    enabled: true
+  - day: wednesday
+    open: "09:00"
+    close: "20:00"
+    enabled: true
+  - day: thursday
+    open: "09:00"
+    close: "20:00"
+    enabled: true
+  - day: friday
+    open: "09:00"
+    close: "21:00"
+    enabled: true
+  - day: saturday
+    open: "10:00"
+    close: "21:00"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "19:00"
+    enabled: true
+
+availabilityExceptions:
+  - date: "2025-12-25"
+    reason: "Natale"
+    closed: true
+  - date: "2026-08-15"
+    reason: "Ferragosto"
+    closed: true
+
+categories:
+  - id: "massage"
+    name: "Massaggi Terapeutici"
+    description: "Servizi di massaggio terapeutico e relax"
+    sortOrder: 0
+    services:
+      - id: "swedish-massage-60"
+        name: "Massaggio Svedese (60 min)"
+        description: "Massaggio classico rilassante con movimenti delicati e fluidi"
+        duration: 60
+        price: 8000
+        color: "#3f51b5"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 20
+
+      - id: "swedish-massage-90"
+        name: "Massaggio Svedese (90 min)"
+        description: "Sessione estesa di massaggio rilassante"
+        duration: 90
+        price: 11500
+        color: "#3f51b5"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 20
+
+      - id: "deep-tissue"
+        name: "Massaggio Profondo (60 min)"
+        description: "Massaggio terapeutico che lavora sui muscoli più profondi"
+        duration: 60
+        price: 9500
+        color: "#5e35b1"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 20
+
+  - id: "facials"
+    name: "Trattamenti Viso"
+    description: "Trattamenti viso ringiovanenti e cura della pelle"
+    sortOrder: 1
+    services:
+      - id: "signature-facial"
+        name: "Trattamento Viso Signature"
+        description: "Trattamento viso personalizzato per il tuo tipo di pelle"
+        duration: 60
+        price: 9000
+        color: "#ec407a"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "anti-aging-facial"
+        name: "Trattamento Anti-Età"
+        description: "Trattamento avanzato contro rughe e invecchiamento"
+        duration: 90
+        price: 13000
+        color: "#e91e63"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "body-treatments"
+    name: "Trattamenti Corpo"
+    description: "Trattamenti spa per tutto il corpo"
+    sortOrder: 2
+    services:
+      - id: "body-scrub"
+        name: "Scrub Corpo Esfoliante"
+        description: "Esfoliazione completa del corpo e trattamento idratante"
+        duration: 60
+        price: 7500
+        color: "#26a69a"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 20
+
+      - id: "hot-stone"
+        name: "Massaggio Pietre Calde"
+        description: "Massaggio con pietre vulcaniche riscaldate"
+        duration: 90
+        price: 12500
+        color: "#d84315"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 15
+        bufferAfter: 20
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields:
+    - id: "massage-pressure"
+      label: "Pressione massaggio preferita"
+      type: "select"
+      required: false
+      options:
+        - "Leggera"
+        - "Media"
+        - "Forte"
+    - id: "health-concerns"
+      label: "Problemi di salute o lesioni?"
+      type: "textarea"
+      required: true
+      placeholder: "Per favore, comunicaci eventuali condizioni mediche, lesioni o zone da evitare"
+      maxLength: 500
+
+bookingLimits:
+  maxSimultaneousBookings: 3
+  advanceBookingDays: 90
+  minAdvanceBookingMinutes: 180
+  maxBookingsPerCustomerPerDay: 2
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 48
+  allowRescheduling: true
+  rescheduleDeadlineHours: 24
+  refundPolicy: "partial"
+  partialRefundPercentage: 50
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 48
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: "manager@tranquillospa.it"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: true
+  enableWaitlist: true
+  enableReviews: true
+  enableMultipleStaff: true
+
+metadata:
+  parkingAvailable: false
+  wheelchairAccessible: true
+  languages: ["it", "en"]
+  acceptsWalkIns: false
+  dresscode: "Accappatoi forniti dalla spa"

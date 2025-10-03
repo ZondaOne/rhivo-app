@@ -66,18 +66,80 @@
   <tasks>
     <task>Describe slot generation algorithm, display rules, pagination/scrolling for long date ranges.</task>
     <task>Define guest booking experience and minimal data required, and cancellation link flow.</task>
+    <task>Create YAML-based tenant configuration system for per-business customization.</task>
+    <task>Build customer-facing booking pages with dynamic config loading and subdomain routing.</task>
   </tasks>
-  <deliverables>Booking flow spec, UX edge cases, and telemetry hooks to track drop-off points.</deliverables>
-  <acceptance>Booking flow covers all configuration permutations (e.g., required email/phone, capacity limits).</acceptance>
+  <deliverables>Booking flow spec, YAML schema, config validation system, booking page implementation, UX edge cases, and telemetry hooks to track drop-off points.</deliverables>
+  <acceptance>Booking flow covers all configuration permutations (e.g., required email/phone, capacity limits). YAML configs validate correctly and populate booking pages dynamically.</acceptance>
+</step>
+
+<step number="7a">
+  <title>Multi-business ownership database migration</title>
+  <tasks>
+    <task>Create business_owners junction table for many-to-many business-owner relationships.</task>
+    <task>Migrate existing business_id data from users table to junction table without data loss.</task>
+    <task>Add is_primary flag to identify default/primary business for each owner.</task>
+    <task>Keep users.business_id column for backward compatibility and as primary business reference.</task>
+    <task>Create sync triggers to maintain consistency between users.business_id and business_owners table.</task>
+    <task>Add helper functions: get_user_businesses(user_id), user_owns_business(user_id, business_id).</task>
+    <task>Create indexes for fast business-owner lookups.</task>
+  </tasks>
+  <deliverables>Migration SQL file, junction table schema, sync triggers, helper functions, rollback plan, migration verification queries.</deliverables>
+  <acceptance>Existing business_id relationships preserved in junction table. Owners can be associated with multiple businesses. Primary business properly tracked. No data loss during migration. Backward compatibility maintained.</acceptance>
+</step>
+
+<step number="7b">
+  <title>Business onboarding pipeline - Admin/YAML flow</title>
+  <tasks>
+    <task>Create automated onboarding system that accepts YAML config and owner email.</task>
+    <task>Generate secure temporary credentials (OTP-style password) for first-time owner access.</task>
+    <task>Implement email verification flow with secure tokens.</task>
+    <task>Build first-login onboarding wizard requiring immediate password change.</task>
+    <task>Ensure complete data consistency: YAML config → business DB record → owner account → services → booking page.</task>
+    <task>Handle edge cases: existing owner (associate new business using junction table), duplicate subdomain, invalid YAML, DB conflicts.</task>
+    <task>Use business_owners junction table to support multi-business per owner with proper primary business tracking.</task>
+  </tasks>
+  <deliverables>Onboarding CLI tool, admin API endpoint, admin onboarding web interface, credential generation system, welcome email templates, error handling documentation.</deliverables>
+  <acceptance>Complete business setup from YAML creates all DB records, owner can verify email and login, must change password on first access, bookings from customers appear in owner dashboard. Existing owners can add new businesses via junction table. Clear error messages for all failure modes.</acceptance>
+</step>
+
+<step number="7c">
+  <title>Self-service onboarding - Public signup flow</title>
+  <tasks>
+    <task>Build form-based public signup wizard that collects all YAML properties through UI.</task>
+    <task>Multi-step form: business info → contact details → branding → services/categories → availability → booking rules → review.</task>
+    <task>Generate YAML configuration from form data for validation and storage.</task>
+    <task>Real-time validation of each step (subdomain availability, service duration compatibility, etc).</task>
+    <task>Allow owner to create account during signup (email/password) or link to existing owner account.</task>
+    <task>Preview booking page before finalizing to ensure branding/services look correct.</task>
+    <task>Automatic subdomain suggestion based on business name with availability check.</task>
+  </tasks>
+  <deliverables>Public signup form wizard, YAML generator from form data, validation system, preview functionality, subdomain availability checker.</deliverables>
+  <acceptance>Non-technical business owners can self-onboard without YAML knowledge. Form validates in real-time. Generated config matches YAML schema. Preview accurately shows final booking page. Process completes with functional business and booking page.</acceptance>
+</step>
+
+<step number="7d">
+  <title>Password management & account recovery</title>
+  <tasks>
+    <task>Implement "forgot password" flow with secure reset tokens and email delivery.</task>
+    <task>Build password change functionality with old password verification.</task>
+    <task>Create forced password change on first login for onboarded owners.</task>
+    <task>Add password strength requirements and validation.</task>
+    <task>Implement rate limiting for password reset requests.</task>
+  </tasks>
+  <deliverables>Password reset flow, password change UI, first-login password enforcement, security policies documentation.</deliverables>
+  <acceptance>Owners can reset forgotten passwords securely. First-time login requires password change. Password policies enforced. Rate limiting prevents abuse.</acceptance>
 </step>
 
 <step number="8">
   <title>Notifications & external integrations</title>
   <tasks>
     <task>Specify notification templates, retry logic, and webhook contract for third-party integrations.</task>
+    <task>Implement welcome emails with temporary credentials for onboarded owners.</task>
+    <task>Create email verification and password reset notification templates.</task>
   </tasks>
-  <deliverables>Notification spec and integration checklist (email provider, SMS provider, webhook schemas).</deliverables>
-  <acceptance>Notifications are idempotent and logged for auditing.</acceptance>
+  <deliverables>Notification spec and integration checklist (email provider, SMS provider, webhook schemas). Welcome email system. Transactional email templates.</deliverables>
+  <acceptance>Notifications are idempotent and logged for auditing. Onboarding emails deliver credentials securely. Email verification works reliably.</acceptance>
 </step>
 
 <step number="9">
