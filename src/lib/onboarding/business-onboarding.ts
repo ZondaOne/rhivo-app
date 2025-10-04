@@ -32,6 +32,8 @@ export interface OnboardingResult {
   temporaryPassword?: string;
   verificationUrl?: string;
   bookingPageUrl?: string;
+  isExistingOwner?: boolean;      // True if owner email already existed
+  businessCount?: number;          // Total businesses owned by this owner
   errors?: string[];
   warnings?: string[];
 }
@@ -76,26 +78,37 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
 
     // Step 3: Check for existing owner email
     const existingUser = await db`
-      SELECT id FROM users
+      SELECT id, email, role FROM users
       WHERE email = ${input.ownerEmail}
       AND deleted_at IS NULL
     `;
 
-    if (existingUser.length > 0) {
-      return {
-        success: false,
-        errors: [`User with email '${input.ownerEmail}' already exists`],
-      };
+    const isExistingOwner = existingUser.length > 0;
+    let ownerUserId: string | null = null;
+
+    if (isExistingOwner) {
+      const user = existingUser[0];
+
+      // Only allow owners to own multiple businesses
+      if (user.role !== 'owner') {
+        return {
+          success: false,
+          errors: [`User with email '${input.ownerEmail}' exists but is not an owner (role: ${user.role}). Only owners can manage multiple businesses.`],
+        };
+      }
+
+      ownerUserId = user.id;
+      warnings.push(`Owner account already exists. Adding new business to existing owner: ${input.ownerEmail}`);
     }
 
-    // Step 4: Generate temporary password
-    const tempPassword = generateSecurePassword();
-    const passwordHash = await bcrypt.hash(tempPassword, 12);
+    // Step 4: Generate temporary password (only for new owners)
+    const tempPassword = isExistingOwner ? null : generateSecurePassword();
+    const passwordHash = tempPassword ? await bcrypt.hash(tempPassword, 12) : null;
 
-    // Step 5: Generate email verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenHash = await bcrypt.hash(verificationToken, 10);
-    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Step 5: Generate email verification token (only for new owners)
+    const verificationToken = isExistingOwner ? null : crypto.randomBytes(32).toString('hex');
+    const verificationTokenHash = verificationToken ? await bcrypt.hash(verificationToken, 10) : null;
+    const verificationExpiry = isExistingOwner ? null : new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Step 6: Create database records (without transaction since Neon doesn't support it)
     try {
@@ -120,30 +133,64 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
         RETURNING id, subdomain
       `;
 
-      // Create owner account
-      console.log('👤 Creating owner account...');
-      const [owner] = await db`
-        INSERT INTO users (
-          email,
-          name,
-          role,
-          business_id,
-          password_hash,
-          email_verified,
-          email_verification_token,
-          email_verification_expires_at
-        ) VALUES (
-          ${input.ownerEmail},
-          ${input.ownerName || config.business.name + ' Owner'},
-          'owner',
-          ${business.id},
-          ${passwordHash},
-          false,
-          ${verificationTokenHash},
-          ${verificationExpiry}
-        )
-        RETURNING id, email
+      // Create or link owner account
+      let owner: { id: string; email: string };
+
+      if (isExistingOwner && ownerUserId) {
+        // Use existing owner
+        console.log('🔗 Linking business to existing owner account...');
+        owner = { id: ownerUserId, email: input.ownerEmail };
+      } else {
+        // Create new owner account
+        console.log('👤 Creating new owner account...');
+        const [newOwner] = await db`
+          INSERT INTO users (
+            email,
+            name,
+            role,
+            business_id,
+            password_hash,
+            email_verified,
+            email_verification_token,
+            email_verification_expires_at
+          ) VALUES (
+            ${input.ownerEmail},
+            ${input.ownerName || config.business.name + ' Owner'},
+            'owner',
+            ${business.id},
+            ${passwordHash},
+            false,
+            ${verificationTokenHash},
+            ${verificationExpiry}
+          )
+          RETURNING id, email
+        `;
+        owner = newOwner;
+      }
+
+      // Create business-owner relationship in junction table
+      console.log('🔗 Creating business-owner relationship...');
+
+      // Check if this is the first business for this owner
+      const existingBusinesses = await db`
+        SELECT COUNT(*) as count
+        FROM business_owners
+        WHERE user_id = ${owner.id}
       `;
+      const isFirstBusiness = existingBusinesses[0].count === '0';
+
+      // Insert into junction table (is_primary = true if first business)
+      await db`
+        INSERT INTO business_owners (user_id, business_id, is_primary)
+        VALUES (${owner.id}, ${business.id}, ${isFirstBusiness})
+      `;
+
+      console.log(`✅ Business-owner relationship created (primary: ${isFirstBusiness})`);
+
+      // If this is an existing owner and not their first business, ensure they keep their existing primary
+      if (isExistingOwner && !isFirstBusiness) {
+        warnings.push(`Business added as secondary business. Owner's primary business remains unchanged.`);
+      }
 
       // Create categories and services from YAML
       console.log('📦 Creating categories and services...');
@@ -248,9 +295,17 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
       throw dbError;
     }
 
-    // Step 7: Generate URLs
+    // Step 7: Get total business count for owner
+    const businessCountResult = await db`
+      SELECT COUNT(*) as count
+      FROM business_owners
+      WHERE user_id = ${ownerUserId || (await db`SELECT id FROM users WHERE email = ${input.ownerEmail}`)[0].id}
+    `;
+    const businessCount = parseInt(businessCountResult[0].count, 10);
+
+    // Step 8: Generate URLs
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = verificationToken ? `${baseUrl}/auth/verify-email?token=${verificationToken}` : undefined;
     const bookingPageUrl = `${baseUrl}/book/${config.business.id}`;
 
     return {
@@ -258,9 +313,11 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
       businessId: config.business.id,
       ownerId: input.ownerEmail,
       subdomain: config.business.id,
-      temporaryPassword: tempPassword,
+      temporaryPassword: tempPassword || undefined,
       verificationUrl,
       bookingPageUrl,
+      isExistingOwner,
+      businessCount,
       warnings,
     };
   } catch (error) {

@@ -9,6 +9,8 @@ interface OnboardingResponse {
   temporaryPassword?: string;
   verificationUrl?: string;
   bookingPageUrl?: string;
+  isExistingOwner?: boolean;
+  businessCount?: number;
   errors?: string[];
   warnings?: string[];
 }
@@ -367,7 +369,31 @@ export default function OnboardDebugPage() {
             {/* Success Details */}
             {response.success && (
               <div className="space-y-6">
+                {/* Owner Info */}
+                {response.isExistingOwner && (
+                  <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                    <h4 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Existing Owner Account
+                    </h4>
+                    <p className="text-sm text-blue-800">
+                      This business has been added to the existing owner account: <strong>{ownerEmail}</strong>
+                    </p>
+                    {response.businessCount && (
+                      <p className="text-sm text-blue-800 mt-2">
+                        This owner now manages <strong>{response.businessCount}</strong> business{response.businessCount > 1 ? 'es' : ''}.
+                      </p>
+                    )}
+                    <p className="text-sm text-blue-700 mt-3">
+                      No new credentials were generated. The owner can login with their existing password.
+                    </p>
+                  </div>
+                )}
+
                 {/* Credentials */}
+                {!response.isExistingOwner && (
                 <div className="bg-white rounded-xl p-6 border border-green-200">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,6 +428,7 @@ export default function OnboardDebugPage() {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* Business Details */}
                 <div className="bg-white rounded-xl p-6 border border-green-200">
@@ -436,6 +463,7 @@ export default function OnboardDebugPage() {
                     Important URLs
                   </h4>
                   <div className="space-y-3">
+                    {!response.isExistingOwner && response.verificationUrl && (
                     <div>
                       <div className="text-sm font-medium text-gray-600 mb-1">Email Verification Link</div>
                       <div className="flex items-center gap-2">
@@ -455,6 +483,7 @@ export default function OnboardDebugPage() {
                         </button>
                       </div>
                     </div>
+                    )}
                     <div>
                       <div className="text-sm font-medium text-gray-600 mb-1">Booking Page</div>
                       <div className="flex items-center gap-2">
@@ -500,12 +529,24 @@ export default function OnboardDebugPage() {
                 <div className="bg-teal-50 rounded-xl p-6 border border-teal-200">
                   <h4 className="text-lg font-semibold text-teal-900 mb-3">Next Steps</h4>
                   <ol className="list-decimal list-inside space-y-2 text-sm text-teal-800">
-                    <li>Click the email verification link above</li>
-                    <li>Login with the owner email and temporary password</li>
-                    <li>Change the password immediately</li>
-                    <li>Review business settings in the dashboard</li>
-                    <li>Test the booking page</li>
-                    <li>Share the booking URL with customers</li>
+                    {response.isExistingOwner ? (
+                      <>
+                        <li>Login to your dashboard with your existing credentials</li>
+                        <li>Switch to the new business from the business selector</li>
+                        <li>Review business settings</li>
+                        <li>Test the booking page</li>
+                        <li>Share the booking URL with customers</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Click the email verification link above</li>
+                        <li>Login with the owner email and temporary password</li>
+                        <li>Change the password immediately</li>
+                        <li>Review business settings in the dashboard</li>
+                        <li>Test the booking page</li>
+                        <li>Share the booking URL with customers</li>
+                      </>
+                    )}
                   </ol>
                 </div>
 

@@ -172,6 +172,15 @@ INSERT INTO users (email, role, business_id, password_hash, email_verification_t
 VALUES ('owner@spa.it', 'owner', 'wellness-spa', 'bcrypt_hash', 'verification_token');
 ```
 
+**Business-Owner Relationship (Multi-Business Support):**
+```sql
+-- Junction table linking user to business (supports multiple businesses per owner)
+INSERT INTO business_owners (user_id, business_id, is_primary)
+VALUES ('owner-uuid', 'wellness-spa', true);
+```
+
+> **Note:** As of migration 013, owners can manage multiple businesses. The `business_owners` junction table maintains all business relationships, while `users.business_id` remains for backward compatibility and references the user's primary business.
+
 **Categories & Services:**
 ```sql
 -- From YAML categories array
@@ -269,13 +278,121 @@ UPDATE businesses SET deleted_at = NOW() WHERE subdomain = 'wellness-spa';
 ### Issue: "Owner email already exists"
 
 **Cause:** Email already registered
-**Solution:**
-```sql
--- Check user
-SELECT id, email, role FROM users WHERE email = 'owner@business.com';
 
--- Use different email or delete existing
+**Solution Option 1 - Add Business to Existing Owner (Multi-Business) - RECOMMENDED:**
+
+The onboarding system now automatically handles this! Simply run the onboarding command again with the same owner email:
+
+```bash
+npx tsx scripts/onboard-business.ts \
+  config/tenants/second-business.yaml \
+  owner@business.com
+```
+
+The system will:
+- Detect the existing owner account
+- Add the new business to their account via the `business_owners` junction table
+- Skip generating new credentials (owner uses existing password)
+- Show a warning that the business was added to an existing owner
+
+Check owner's businesses:
+```sql
+-- View all businesses for an owner
+SELECT u.email, u.role, b.name as business_name, bo.is_primary
+FROM users u
+JOIN business_owners bo ON u.id = bo.user_id
+JOIN businesses b ON bo.business_id = b.id
+WHERE u.email = 'owner@business.com'
+ORDER BY bo.is_primary DESC, b.name;
+```
+
+**Solution Option 2 - Use Different Email:**
+Use a different email address for the new business owner.
+
+**Solution Option 3 - Remove Old User (DESTRUCTIVE):**
+```sql
+-- Delete existing user (also removes junction relationships and all their businesses!)
 UPDATE users SET deleted_at = NOW() WHERE email = 'owner@business.com';
+```
+
+---
+
+## Multi-Business Ownership
+
+> **Since Migration 013:** A single owner can manage multiple businesses through the `business_owners` junction table.
+
+### How It Works
+
+1. **Automatic Detection:** When onboarding with an existing owner email, the system automatically adds the business to their account
+2. **Primary Business:** The first business is marked as `is_primary = true`. Additional businesses are secondary.
+3. **No New Credentials:** Existing owners use their current password for all businesses
+4. **Business Switching:** Owners can switch between businesses in the dashboard (feature in development)
+
+### Example: Add Second Business
+
+```bash
+# First business
+npx tsx scripts/onboard-business.ts \
+  config/tenants/salon-a.yaml \
+  maria@example.com
+
+# Second business (same owner)
+npx tsx scripts/onboard-business.ts \
+  config/tenants/salon-b.yaml \
+  maria@example.com
+```
+
+**Output for second business:**
+```
+✅ Onboarding Successful!
+
+⚠️  Warnings:
+   - Owner account already exists. Adding new business to existing owner: maria@example.com
+   - Business added as secondary business. Owner's primary business remains unchanged.
+
+🏢 Business Details:
+   ID: salon-b
+   Subdomain: salon-b
+   Owner now manages 2 businesses
+
+🔗 URLs:
+   📅 Booking Page: http://localhost:3000/book/salon-b
+   🏠 Dashboard: http://localhost:3000/auth/login (use existing credentials)
+```
+
+### Managing Multiple Businesses
+
+**View all businesses for an owner:**
+```sql
+SELECT
+  b.name,
+  b.subdomain,
+  bo.is_primary,
+  bo.created_at
+FROM business_owners bo
+JOIN businesses b ON b.id = bo.business_id
+WHERE bo.user_id = (SELECT id FROM users WHERE email = 'maria@example.com')
+ORDER BY bo.is_primary DESC, b.name;
+```
+
+**Change primary business:**
+```sql
+SELECT set_primary_business(
+  (SELECT id FROM users WHERE email = 'maria@example.com'),
+  (SELECT id FROM businesses WHERE subdomain = 'salon-b')
+);
+```
+
+**Count businesses per owner:**
+```sql
+SELECT
+  u.email,
+  COUNT(bo.business_id) as business_count
+FROM users u
+JOIN business_owners bo ON u.id = bo.user_id
+WHERE u.role = 'owner'
+GROUP BY u.id, u.email
+ORDER BY business_count DESC;
 ```
 
 ### Issue: "YAML validation failed"

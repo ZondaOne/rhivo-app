@@ -2,9 +2,9 @@
 
 This document provides a comprehensive reference for the Rivo database schema. All tables, columns, constraints, and relationships are documented here.
 
-**Generated:** 2025-09-30
+**Generated:** 2025-10-04
 **Database:** PostgreSQL 16.9 on NeonDB
-**Migrations Status:** Up to date (migrations 001-009 applied)
+**Migrations Status:** Up to date (migrations 001-013 ready)
 
 ---
 
@@ -15,6 +15,7 @@ This document provides a comprehensive reference for the Rivo database schema. A
 - [Tables](#tables)
   - [businesses](#businesses)
   - [users](#users)
+  - [business_owners](#business_owners)
   - [categories](#categories)
   - [services](#services)
   - [availability](#availability)
@@ -136,6 +137,50 @@ User accounts (owners, staff, customers).
 - `users_email_unique_idx` - Unique email for active users
 - `users_email_lower_idx` - Case-insensitive email lookup
 - `users_business_role_idx` - Query users by business and role
+
+**Notes:**
+- `business_id` column remains for backward compatibility and references primary business
+- Use `business_owners` junction table for multi-business relationships (see below)
+
+---
+
+### `business_owners`
+
+Junction table for many-to-many user-business ownership relationships.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| `id` | UUID | NO | `uuid_generate_v4()` | Primary key |
+| `user_id` | UUID | NO | - | Owner user |
+| `business_id` | UUID | NO | - | Owned business |
+| `is_primary` | BOOLEAN | NO | `false` | Default/primary business flag |
+| `created_at` | TIMESTAMPTZ | NO | `NOW()` | Relationship creation timestamp |
+
+**Constraints:**
+- PRIMARY KEY: `id`
+- FOREIGN KEY: `user_id` REFERENCES `users(id)` ON DELETE CASCADE
+- FOREIGN KEY: `business_id` REFERENCES `businesses(id)` ON DELETE CASCADE
+- UNIQUE: (`user_id`, `business_id`)
+- UNIQUE: `user_id` WHERE `is_primary = true` (one primary per user)
+
+**Indexes:**
+- `business_owners_user_id_idx` - User's businesses lookup
+- `business_owners_business_id_idx` - Business owners lookup
+- `business_owners_user_primary_idx` - Find primary business
+- `business_owners_one_primary_per_user_idx` - Enforce single primary
+
+**Helper Functions:**
+- `get_user_businesses(user_id)` - Returns all businesses for a user
+- `user_owns_business(user_id, business_id)` - Check ownership
+- `get_primary_business(user_id)` - Get primary business ID
+- `set_primary_business(user_id, business_id)` - Set primary business
+
+**Triggers:**
+- `business_owners_sync_primary` - Syncs primary changes to `users.business_id`
+- `users_sync_junction` - Syncs `users.business_id` changes to junction table
+
+**Purpose:**
+Enables multi-business ownership where a single owner can manage multiple businesses. The `is_primary` flag indicates the default business shown in the dashboard.
 
 ---
 
@@ -435,9 +480,12 @@ Rate limiting for authentication operations.
 
 ## Relationships
 
-### Business → Users (One-to-Many)
-- `users.business_id` → `businesses.id`
-- Owners and staff belong to a business
+### Business ↔ Users (Many-to-Many via business_owners)
+- `business_owners.user_id` → `users.id`
+- `business_owners.business_id` → `businesses.id`
+- A user can own/manage multiple businesses
+- A business can have multiple owners/staff
+- `users.business_id` references primary business for backward compatibility
 
 ### Business → Categories (One-to-Many)
 - `categories.business_id` → `businesses.id`
@@ -574,9 +622,13 @@ SELECT cleanup_expired_auth_data();
 | 007 | seed_data | ✅ Applied | Initial seed data |
 | 008 | auth_tables | ✅ Applied | Authentication and security tables |
 | 009 | auth_rls_policies | ✅ Applied | Auth RLS policies |
+| 010 | fix_availability_audit_schema | ✅ Applied | Fix availability audit trigger |
+| 011 | add_service_external_id | ✅ Applied | Add external_id to services |
+| 012 | backfill_service_external_ids | ✅ Applied | Backfill external_id values |
+| 013 | multi_business_ownership | 🆕 Ready | Multi-business ownership via junction table |
 
 ---
 
-**Last Updated:** 2025-09-30
+**Last Updated:** 2025-10-04
 **Maintained By:** Development Team
 **Source:** `/Users/lautaro-mac-mini/Projects/rivo-app/src/db/migrations/`

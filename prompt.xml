@@ -77,14 +77,14 @@
   <title>Multi-business ownership database migration</title>
   <tasks>
     <task>Create business_owners junction table for many-to-many business-owner relationships.</task>
-    <task>Migrate existing business_id data from users table to junction table without data loss.</task>
+    <task>Migrate existing business_id data from users table to junction table without data loss.(now its mock data so we can afford to loose data if needed)</task>
     <task>Add is_primary flag to identify default/primary business for each owner.</task>
     <task>Keep users.business_id column for backward compatibility and as primary business reference.</task>
     <task>Create sync triggers to maintain consistency between users.business_id and business_owners table.</task>
     <task>Add helper functions: get_user_businesses(user_id), user_owns_business(user_id, business_id).</task>
     <task>Create indexes for fast business-owner lookups.</task>
   </tasks>
-  <deliverables>Migration SQL file, junction table schema, sync triggers, helper functions, rollback plan, migration verification queries.</deliverables>
+  <deliverables>Migration SQL file, junction table schema, sync triggers, helper functions, rollback plan, migration verification queries.update docs. update onboarding.</deliverables>
   <acceptance>Existing business_id relationships preserved in junction table. Owners can be associated with multiple businesses. Primary business properly tracked. No data loss during migration. Backward compatibility maintained.</acceptance>
 </step>
 
@@ -149,6 +149,21 @@
   <acceptance>YAML service IDs map reliably to database records. Booking flow works with external_ids from config. No UUID exposure to public booking API. Existing services backfilled with valid external_ids. All service lookups use consistent resolution logic. API accepts both UUID (for internal/dashboard) and external_id (for public booking).</acceptance>
 </step>
 
+<step number="7f">
+  <title>Flexible service duration and time slot handling</title>
+  <tasks>
+    <task>Update YAML validation to allow service durations that don't perfectly align with timeSlotDuration.</task>
+    <task>Implement intelligent slot allocation that handles services spanning multiple time slots (e.g., 45min service in 30min slots).</task>
+    <task>Add slot calculation logic to reserve consecutive slots for services longer than base slot duration.</task>
+    <task>Update availability API to correctly show available slots for services of varying durations.</task>
+    <task>Handle edge cases: service ending mid-slot, overlapping bookings prevention, buffer time calculations.</task>
+    <task>Add validation warnings (not errors) when service duration is not a clean multiple of slot duration.</task>
+    <task>Update booking UI to clearly show time commitment for non-standard duration services.</task>
+  </tasks>
+  <deliverables>Enhanced slot calculation algorithm, updated YAML schema validation, booking flow that handles arbitrary service durations, test cases for edge scenarios (15min, 45min, 75min services with 30min slots).</deliverables>
+  <acceptance>Services with any duration (15, 45, 75, 90, 105 minutes) work correctly with any timeSlotDuration. Slot availability accurately reflects occupied time. No double-bookings occur. YAML validation provides helpful warnings but doesn't block non-multiples.</acceptance>
+</step>
+
 <step number="8">
   <title>Notifications & external integrations</title>
   <tasks>
@@ -181,11 +196,47 @@
 </step>
 
 <step number="11">
+  <title>Business Discovery Interface</title>
+  <tasks>
+    <task>Build public discovery page at /book (no subdomain) that aggregates all active businesses on the platform.</task>
+    <task>Implement interactive map view showing business locations with markers and clustering for dense areas.</task>
+    <task>Create list view with business cards showing name, services, next available slot, distance, and rating.</task>
+    <task>Design comprehensive filter system: category (salon, spa, clinic, etc.), service type, price range, opening hours, distance radius, availability (today, this week, date range).</task>
+    <task>Add search functionality with autocomplete for business name, service keywords, and location/address.</task>
+    <task>Implement geolocation to show nearby businesses and calculate distances.</task>
+    <task>Build business detail preview modal or card with summary, photos, top services, hours, and reviews.</task>
+    <task>Create seamless redirect flow: clicking a business navigates to /book/[subdomain] for the full booking experience.</task>
+    <task>Add sort options: nearest, soonest availability, highest rated, price low-to-high.</task>
+    <task>Design empty states for no results and encourage filter adjustment.</task>
+    <task>Optimize for performance with pagination or infinite scroll and lazy-loaded map tiles.</task>
+  </tasks>
+  <deliverables>Discovery page UI/UX spec, filter and search system design, map integration plan (Mapbox/Google Maps), routing logic, empty state designs, performance optimization strategy.</deliverables>
+  <acceptance>Customers can browse all businesses, filter by multiple criteria, see locations on map, and seamlessly navigate to booking flow. Page loads quickly even with hundreds of businesses. Filters work in real-time and are reflected in both map and list views.</acceptance>
+</step>
+
+<step number="12">
+  <title>Business Discovery Data Layer</title>
+  <tasks>
+    <task>Extend database schema to support discovery: add latitude/longitude, address components, business description, cover photo, featured services, operating hours summary to business table.</task>
+    <task>Create indexed queries for geospatial search (ST_Distance or equivalent) and multi-criteria filtering.</task>
+    <task>Build API endpoint /api/businesses/discover that accepts filter parameters and returns paginated results with metadata.</task>
+    <task>Implement caching layer for discovery results (Redis or in-memory) with TTL to reduce DB load.</task>
+    <task>Add business visibility toggle (active/hidden from discovery) to owner settings.</task>
+    <task>Create batch job to refresh "next available slot" metadata for each business hourly.</task>
+    <task>Build review/rating system (future) infrastructure if not present, or stub for later integration.</task>
+    <task>Ensure RLS policies allow public read access to discovery-relevant business fields while protecting private data.</task>
+  </tasks>
+  <deliverables>Database migration for discovery fields, geospatial indexes, discovery API spec and implementation, caching strategy, admin toggle for visibility.</deliverables>
+  <acceptance>Discovery API returns accurate, filtered business lists in &lt;500ms. Geolocation queries work correctly. Business owners can control discovery visibility. Next available slot data is fresh and accurate.</acceptance>
+</step>
+
+<step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>
     <task>Collect usage data to validate UX assumptions; plan A/B experiments for conversion uplift.</task>
+    <task>Track discovery page metrics: search queries, filter usage, map vs list view preference, click-through rate to booking pages.</task>
   </tasks>
-  <deliverables>Metric definitions and first 90-day measurement plan.</deliverables>
-  <acceptance>Telemetry captures booking funnel, reservation TTL expirations, and failure modes.</acceptance>
+  <deliverables>Metric definitions and first 90-day measurement plan. Discovery funnel analytics.</deliverables>
+  <acceptance>Telemetry captures booking funnel, reservation TTL expirations, failure modes, and discovery-to-booking conversion rates.</acceptance>
 </step>
 </plan> <nonFunctionalRequirements> <nfr>Accessibility: WCAG AA baseline for booking flows and owner dashboard.</nfr> <nfr>Performance: booking page first meaningful paint under 1.5s on 3G simulated (optimize assets, critical CSS).</nfr> <nfr>Security: RLS, TLS, CSP, audit logs for appointment changes.</nfr> <nfr>Scalability: design for many tenants and burst booking events; caching of tenant configs.</nfr> </nonFunctionalRequirements> <deliverableFormat> <format>For each step, return: objectives, tasks, acceptance criteria, risks and mitigations, and a short checklist of artefacts to produce next.</format> . Preserve the constraints: NO EMOJIS, NO AI BUZZWORDS, and MUST ENSURE DATA CONSISTENCY.</text> </closingInstruction> </claudePrompt>
