@@ -126,7 +126,7 @@
     <task>Implement rate limiting for password reset requests.</task>
   </tasks>
   <deliverables>Password reset flow, password change UI, first-login password enforcement, security policies documentation.</deliverables>
-  <acceptance>Owners can reset forgotten passwords securely. First-time login requires password change. Password policies enforced. Rate limiting prevents abuse.</acceptance>
+  <acceptance>Owners can reset forgotten passwords securely. First-time login requires password change. Password policies enforced.</acceptance>
 </step>
 
 <step number="7e">
@@ -298,6 +298,45 @@
   </tasks>
   <deliverables>Hover card component, cluster marker logic, zoom-level business aggregation, side panel UI (optional), keyboard navigation implementation, mobile-responsive interaction patterns.</deliverables>
   <acceptance>Hovering over marker shows business summary instantly. Clusters display on zoom out with business count. Click/tap opens detailed view. Smooth 60fps animations. Works seamlessly on desktop and mobile. Keyboard accessible.</acceptance>
+</step>
+
+<step number="7i">
+  <title>Multiple concurrent bookings visualization in calendar views</title>
+  <tasks>
+    <task>Implement stacked appointment display for same time slot: show up to 3 appointments horizontally in month, week, and day views.</task>
+    <task>Design visual differentiation system: use slightly different opacity/shade variations of service color for stacked appointments (100%, 85%, 70% opacity).</task>
+    <task>Create overflow indicator: when more than 3 appointments exist in same slot, show first 3 and display "+N more" badge.</task>
+    <task>Add hover interaction on overflow badge: show tooltip with count breakdown by service/customer.</task>
+    <task>Implement click behavior on overflow badge: redirect to list view filtered to that specific time slot.</task>
+    <task>Design compact appointment cards for stacked view: show essential info only (customer name/initials, service icon/initial, time if different).</task>
+    <task>Handle edge cases: appointments with different durations overlapping, appointments spanning multiple time slots in stacked view.</task>
+    <task>Optimize rendering: use virtualization for day/week views with many simultaneous bookings, lazy render stacked cards.</task>
+    <task>Add visual capacity indicator: show subtle progress bar or color intensity based on slot capacity (e.g., 2/3 booked = 66% filled).</task>
+    <task>Implement responsive behavior: in mobile/narrow views, stack vertically instead of horizontally, show max 2 before overflow.</task>
+    <task>Ensure accessibility: stacked appointments must be keyboard navigable, screen reader announces "3 appointments at 10:00 AM, +2 more".</task>
+  </tasks>
+  <deliverables>Stacked appointment UI component, opacity/shade variation system, overflow badge with tooltip and click handler, list view time filter integration, capacity visualization, responsive stacking logic, accessibility implementation.</deliverables>
+  <acceptance>Calendar views correctly display up to 3 appointments per slot with visual differentiation. Overflow badge accurately shows count and redirects to filtered list view. Capacity indicator reflects booking density. Stacking works responsively on mobile. Keyboard and screen reader accessible. Performance remains smooth with 50+ appointments in single day view.</acceptance>
+</step>
+
+<step number="7j">
+  <title>Overlapping and near time slot visualization (cascade layout)</title>
+  <tasks>
+    <task>Implement Apple Calendar-style cascade layout for overlapping appointments: when appointments have different start times within same time window (e.g., 10:00 and 10:05), display them in cascaded columns.</task>
+    <task>Design column allocation algorithm: analyze appointment overlaps and assign each to a column (max 3-4 columns before compressing width).</task>
+    <task>Calculate optimal column widths: distribute available horizontal space based on number of overlapping appointments (1 column = 100% width, 2 columns = 50% each, 3 columns = 33% each, 4+ = compressed with scroll hint).</task>
+    <task>Implement vertical positioning: precisely position appointment cards based on start time using minute-level granularity (5-minute grid alignment).</task>
+    <task>Add visual separation: thin borders or gaps between cascaded columns to distinguish separate appointments clearly.</task>
+    <task>Handle partial overlaps: appointments that overlap partially (e.g., 10:00-10:30 and 10:15-10:45) should show in adjacent columns with proper vertical alignment.</task>
+    <task>Design collision detection: detect when new appointment would overlap existing ones and automatically assign to available column or create new column.</task>
+    <task>Implement compress mode: when more than 4 overlapping appointments, compress column widths and show horizontal scroll indicator or "+N hidden" overlay.</task>
+    <task>Add hover expansion: on hover, expand the appointment card to full width with higher z-index, showing complete details temporarily.</task>
+    <task>Optimize for week/day views: cascade works best in week and day views where vertical space allows proper time-based positioning. In month view, fall back to stacking (step 7i).</task>
+    <task>Handle edge cases: very short appointments (15 min), all-day appointments, appointments starting at exactly same time (use step 7i stacking).</task>
+    <task>Implement smooth transitions: animate column width changes and repositioning when appointments are added/removed/rescheduled.</task>
+  </tasks>
+  <deliverables>Cascade layout algorithm, column allocation system, vertical positioning logic, hover expansion interaction, compression mode for dense schedules, month/week/day view-specific rendering strategies, transition animations.</deliverables>
+  <acceptance>Overlapping appointments display in cascaded columns with clear visual separation. Appointments starting at different times (10:00, 10:05) show vertically offset in adjacent columns. Column widths distribute proportionally up to 4 appointments, then compress. Hover expands appointment for full details. Works smoothly in week/day views with minute-level precision. Gracefully degrades to stacking in month view. Animations are smooth at 60fps.</acceptance>
 </step>
 
 <step number="13">

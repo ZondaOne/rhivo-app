@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,13 +17,23 @@ export default function LoginPage() {
     setError(null);
     setPending(true);
     try {
-      await login({ email, password });
-      router.push('/dashboard');
+      const result = await login({ email, password });
+      // User object is now updated in auth context
+      setPending(false);
     } catch (err: any) {
       setError(err?.message || 'Login failed');
-    } finally {
       setPending(false);
     }
+  }
+
+  // Redirect after successful login based on user state
+  if (isAuthenticated && user && !pending) {
+    if (user.requires_password_change) {
+      router.push('/auth/change-password');
+    } else {
+      router.push('/dashboard');
+    }
+    return null;
   }
 
   return (
@@ -46,7 +56,12 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <a href="/auth/forgot-password" className="text-sm text-teal-700 hover:underline">
+                Forgot password?
+              </a>
+            </div>
             <input
               type="password"
               value={password}

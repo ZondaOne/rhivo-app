@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
         u.business_id,
         u.password_hash,
         u.email_verified,
+        u.requires_password_change,
         u.deleted_at
       FROM users u
       WHERE u.email = ${validatedData.email}
@@ -119,6 +120,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
         business_id: user.business_id,
+        requires_password_change: user.requires_password_change,
       },
     });
 

@@ -152,7 +152,8 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
             password_hash,
             email_verified,
             email_verification_token,
-            email_verification_expires_at
+            email_verification_expires_at,
+            requires_password_change
           ) VALUES (
             ${input.ownerEmail},
             ${input.ownerName || config.business.name + ' Owner'},
@@ -161,7 +162,8 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
             ${passwordHash},
             false,
             ${verificationTokenHash},
-            ${verificationExpiry}
+            ${verificationExpiry},
+            true
           )
           RETURNING id, email
         `;

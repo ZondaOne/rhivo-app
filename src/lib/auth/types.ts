@@ -4,6 +4,7 @@ export interface User {
   name: string;
   role: 'owner' | 'staff' | 'customer';
   business_id?: string;
+  requires_password_change?: boolean;
 }
 
 export interface AuthState {

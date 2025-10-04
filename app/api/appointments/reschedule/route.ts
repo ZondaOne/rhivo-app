@@ -85,16 +85,17 @@ export async function POST(request: NextRequest) {
       });
 
       // Queue notification to customer
-      // Get customer email/phone from appointment
+      // Get customer email/phone from appointment (join with users table for registered customers)
       const updatedAppointment = await sql`
         SELECT
-          customer_email,
-          customer_phone,
-          guest_email,
-          guest_phone
-        FROM appointments
-        WHERE id = ${body.appointmentId}
-          AND deleted_at IS NULL
+          a.guest_email,
+          a.guest_phone,
+          u.email as customer_email,
+          u.phone as customer_phone
+        FROM appointments a
+        LEFT JOIN users u ON a.customer_id = u.id
+        WHERE a.id = ${body.appointmentId}
+          AND a.deleted_at IS NULL
       `;
 
       if (updatedAppointment.length > 0) {
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
         const email = apt.customer_email || apt.guest_email;
         const phone = apt.customer_phone || apt.guest_phone;
 
-        if (email) {
+        if (email && body.notifyCustomer !== false) {
           await notificationService.queueRescheduleNotification(
             body.appointmentId,
             email,
