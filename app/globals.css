@@ -33,3 +33,43 @@ body {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   }
 }
+
+/* Smooth easing for premium feel */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Will-change for smooth animations */
+.modal-container {
+  will-change: transform, opacity;
+}
+
+/* Smooth marker transitions */
+.custom-marker {
+  transition: all 0.15s ease-out;
+  pointer-events: all !important;
+  cursor: pointer;
+}
+
+.custom-marker:hover {
+  z-index: 1000 !important;
+}
+
+/* Cluster icon hover effect */
+.custom-cluster-icon {
+  transition: transform 0.2s ease;
+}
+
+.custom-cluster-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Prevent card flickering */
+.leaflet-container {
+  background: #f9fafb;
+}
+
+/* Smooth zoom transitions */
+.leaflet-zoom-anim .leaflet-zoom-animated {
+  transition: transform 0.25s cubic-bezier(0, 0, 0.25, 1);
+}
