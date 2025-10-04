@@ -26,6 +26,8 @@ export interface OnboardingFormData {
   postalCode?: string;
   country: string;
   website?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 
   // Branding
   primaryColor: string;
@@ -100,6 +102,10 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
         website: formData.website && !formData.website.startsWith('http')
           ? `https://${formData.website}`
           : formData.website,
+        ...(formData.latitude && formData.longitude ? {
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+        } : {}),
       },
 
       branding: {

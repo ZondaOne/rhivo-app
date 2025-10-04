@@ -38,6 +38,13 @@ export async function GET(request: NextRequest) {
             serviceCount: cat.services.filter(s => s.enabled).length
           }));
 
+          // Calculate price range from all enabled services
+          const allPrices = config.categories.flatMap(cat =>
+            cat.services.filter(s => s.enabled).map(s => s.price)
+          );
+          const minPrice = allPrices.length > 0 ? Math.min(...allPrices) / 100 : 0; // Convert cents to dollars
+          const maxPrice = allPrices.length > 0 ? Math.max(...allPrices) / 100 : 0;
+
           return {
             subdomain: business.subdomain,
             name: config.business.name,
@@ -54,6 +61,11 @@ export async function GET(request: NextRequest) {
             // Include geolocation from YAML if available
             latitude: config.contact.latitude,
             longitude: config.contact.longitude,
+            // Price range
+            priceRange: {
+              min: minPrice,
+              max: maxPrice
+            }
           };
         } catch (error) {
           console.error(`Failed to load config for ${business.subdomain}:`, error);
@@ -71,6 +83,10 @@ export async function GET(request: NextRequest) {
             categories: [],
             coverImageUrl: undefined,
             primaryColor: undefined,
+            priceRange: {
+              min: 0,
+              max: 0
+            }
           };
         }
       })

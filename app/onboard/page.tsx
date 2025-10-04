@@ -2,8 +2,61 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AddressAutocomplete from '@/components/geocoding/AddressAutocomplete';
+import type { GeocodingResult } from '@/lib/geocoding/nominatim';
 
 type OnboardingStep = 'auth' | 'business' | 'contact' | 'branding' | 'services' | 'availability' | 'rules' | 'details' | 'review';
+
+// Validation helpers
+const validateEmail = (email: string): string | null => {
+  if (!email) return 'Email is required';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Invalid email format';
+  return null;
+};
+
+const validatePassword = (password: string): string | null => {
+  if (!password) return 'Password is required';
+  if (password.length < 8) return 'Password must be at least 8 characters';
+  return null;
+};
+
+const validateBusinessName = (name: string): string | null => {
+  if (!name || name.trim().length === 0) return 'Business name is required';
+  if (name.length < 2) return 'Business name must be at least 2 characters';
+  if (name.length > 100) return 'Business name must be less than 100 characters';
+  return null;
+};
+
+const validateSubdomain = (subdomain: string): string | null => {
+  if (!subdomain) return 'Subdomain is required';
+  if (!/^[a-z0-9-]+$/.test(subdomain)) return 'Subdomain must contain only lowercase letters, numbers, and hyphens';
+  if (subdomain.length < 3) return 'Subdomain must be at least 3 characters';
+  if (subdomain.length > 63) return 'Subdomain must be less than 63 characters';
+  if (subdomain.startsWith('-') || subdomain.endsWith('-')) return 'Subdomain cannot start or end with a hyphen';
+  return null;
+};
+
+const validatePhone = (phone: string): string | null => {
+  if (!phone) return null; // Optional
+  if (!/^\+?[1-9]\d{1,14}$/.test(phone.replace(/[\s-]/g, ''))) return 'Invalid phone number format (use international format)';
+  return null;
+};
+
+const validateUrl = (url: string): string | null => {
+  if (!url) return null; // Optional
+  try {
+    new URL(url);
+    return null;
+  } catch {
+    return 'Invalid URL format';
+  }
+};
+
+const validateHexColor = (color: string): string | null => {
+  if (!color) return 'Color is required';
+  if (!/^#[0-9A-Fa-f]{6}$/.test(color)) return 'Invalid hex color format';
+  return null;
+};
 
 export default function OnboardBusinessPage() {
   const router = useRouter();
@@ -32,6 +85,14 @@ export default function OnboardBusinessPage() {
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('IT');
   const [website, setWebsite] = useState('');
+
+  // Geocoding
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [addressSelected, setAddressSelected] = useState(false);
+
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // Branding
   const [primaryColor, setPrimaryColor] = useState('#10b981');
@@ -80,7 +141,84 @@ export default function OnboardBusinessPage() {
 
   const steps: OnboardingStep[] = ['auth', 'business', 'contact', 'branding', 'services', 'availability', 'rules', 'details', 'review'];
 
+  const validateCurrentStep = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    switch (currentStep) {
+      case 'auth':
+        const emailError = validateEmail(email);
+        if (emailError) errors.email = emailError;
+
+        if (authMode === 'signup') {
+          const passwordError = validatePassword(password);
+          if (passwordError) errors.password = passwordError;
+          if (!ownerName.trim()) errors.ownerName = 'Name is required';
+        }
+        break;
+
+      case 'business':
+        const nameError = validateBusinessName(businessName);
+        if (nameError) errors.businessName = nameError;
+
+        const subdomainError = validateSubdomain(businessId);
+        if (subdomainError) errors.businessId = subdomainError;
+        break;
+
+      case 'contact':
+        if (!street.trim()) errors.street = 'Street address is required';
+        if (!city.trim()) errors.city = 'City is required';
+        if (!state.trim()) errors.state = 'State/Province is required';
+        if (!postalCode.trim()) errors.postalCode = 'Postal code is required';
+
+        const phoneError = validatePhone(phone);
+        if (phoneError) errors.phone = phoneError;
+
+        const websiteError = validateUrl(website);
+        if (websiteError) errors.website = websiteError;
+
+        if (!latitude || !longitude) {
+          errors.address = 'Please select an address from the autocomplete suggestions to geocode your location';
+        }
+        break;
+
+      case 'branding':
+        const primaryColorError = validateHexColor(primaryColor);
+        if (primaryColorError) errors.primaryColor = primaryColorError;
+
+        const secondaryColorError = validateHexColor(secondaryColor);
+        if (secondaryColorError) errors.secondaryColor = secondaryColorError;
+        break;
+
+      case 'availability':
+        const enabledDays = availability.filter(d => d.enabled);
+        if (enabledDays.length === 0) {
+          errors.availability = 'You must be available at least one day per week';
+        }
+        break;
+
+      case 'rules':
+        if (timeSlotDuration < 5 || timeSlotDuration > 480) {
+          errors.timeSlotDuration = 'Time slot duration must be between 5 and 480 minutes';
+        }
+        if (maxSimultaneousBookings < 1) {
+          errors.maxSimultaneousBookings = 'Must allow at least 1 booking per slot';
+        }
+        if (advanceBookingDays < 1 || advanceBookingDays > 365) {
+          errors.advanceBookingDays = 'Advance booking days must be between 1 and 365';
+        }
+        break;
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleNext = () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+
+    setValidationErrors({});
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
@@ -134,48 +272,69 @@ export default function OnboardBusinessPage() {
       {authMode === 'signup' ? (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Your name
+              {validationErrors.ownerName && <span className="text-red-600 text-xs ml-2">{validationErrors.ownerName}</span>}
+            </label>
             <input
               type="text"
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.ownerName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="John Doe"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email address
+              {validationErrors.email && <span className="text-red-600 text-xs ml-2">{validationErrors.email}</span>}
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="you@example.com"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+              {validationErrors.password && <span className="text-red-600 text-xs ml-2">{validationErrors.password}</span>}
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="Min. 8 characters"
               required
             />
+            <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
           </div>
         </div>
       ) : (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email address
+              {validationErrors.email && <span className="text-red-600 text-xs ml-2">{validationErrors.email}</span>}
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="you@example.com"
               required
             />
@@ -186,7 +345,7 @@ export default function OnboardBusinessPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               placeholder="Your password"
               required
             />
@@ -205,12 +364,17 @@ export default function OnboardBusinessPage() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Business name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Business name
+            {validationErrors.businessName && <span className="text-red-600 text-xs ml-2">{validationErrors.businessName}</span>}
+          </label>
           <input
             type="text"
             value={businessName}
             onChange={(e) => handleBusinessNameChange(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              validationErrors.businessName ? 'border-red-300 bg-red-50' : 'border-gray-300'
+            }`}
             placeholder="Bella Beauty Salon"
             required
           />
@@ -220,13 +384,16 @@ export default function OnboardBusinessPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Subdomain
             <span className="text-gray-500 font-normal ml-2">(your booking page URL)</span>
+            {validationErrors.businessId && <span className="text-red-600 text-xs ml-2">{validationErrors.businessId}</span>}
           </label>
           <div className="flex items-center gap-2">
             <input
               type="text"
               value={businessId}
               onChange={(e) => setBusinessId(e.target.value)}
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={`flex-1 px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.businessId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="bella-beauty"
               required
             />
@@ -366,6 +533,23 @@ export default function OnboardBusinessPage() {
     </div>
   );
 
+  const handleAddressSelect = (result: GeocodingResult) => {
+    setLatitude(result.latitude);
+    setLongitude(result.longitude);
+    setAddressSelected(true);
+
+    // Populate address fields from geocoding result
+    if (result.address) {
+      if (result.address.street) setStreet(result.address.street);
+      if (result.address.city) setCity(result.address.city);
+      if (result.address.state) setState(result.address.state);
+      if (result.address.postalCode) setPostalCode(result.address.postalCode);
+      // Convert full country name to code if possible
+      const countryCode = result.address.country?.toUpperCase().substring(0, 2) || 'IT';
+      setCountry(countryCode);
+    }
+  };
+
   const renderContactStep = () => (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -376,72 +560,120 @@ export default function OnboardBusinessPage() {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone number
+              {validationErrors.phone && <span className="text-red-600 text-xs ml-2">{validationErrors.phone}</span>}
+            </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              placeholder="+1 234 567 8900"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="+390552345678"
             />
+            <p className="text-xs text-gray-500 mt-1">International format recommended</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Website (optional)
+              {validationErrors.website && <span className="text-red-600 text-xs ml-2">{validationErrors.website}</span>}
+            </label>
             <input
               type="url"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.website ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="https://example.com"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Street address</label>
-          <input
-            type="text"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="123 Main Street"
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Business Address
+            {validationErrors.address && <span className="text-red-600 text-xs ml-2">{validationErrors.address}</span>}
+          </label>
+          <AddressAutocomplete
+            onAddressSelect={handleAddressSelect}
+            placeholder="Start typing your business address..."
+            showCoordinatesPreview={true}
+            className="mb-2"
           />
+          <p className="text-xs text-gray-500">
+            Select an address from the suggestions to automatically fill in your location details
+          </p>
         </div>
 
+        {/* Manual address fields (auto-populated from geocoding) */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Street
+              {validationErrors.street && <span className="text-red-600 text-xs ml-2">{validationErrors.street}</span>}
+            </label>
+            <input
+              type="text"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.street ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="Via dei Servi 45"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              City
+              {validationErrors.city && <span className="text-red-600 text-xs ml-2">{validationErrors.city}</span>}
+            </label>
             <input
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              placeholder="New York"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
-            <input
-              type="text"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              placeholder="NY"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.city ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="Firenze"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Postal code</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              State/Province
+              {validationErrors.state && <span className="text-red-600 text-xs ml-2">{validationErrors.state}</span>}
+            </label>
+            <input
+              type="text"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.state ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="Toscana"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Postal Code
+              {validationErrors.postalCode && <span className="text-red-600 text-xs ml-2">{validationErrors.postalCode}</span>}
+            </label>
             <input
               type="text"
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              placeholder="10001"
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.postalCode ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="50122"
             />
           </div>
 
@@ -452,13 +684,13 @@ export default function OnboardBusinessPage() {
               onClick={() => setCountryOpen(!countryOpen)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl bg-white text-gray-900 font-medium transition-all hover:border-gray-300 flex items-center justify-between"
             >
-              <span>
+              <span className="text-sm">
                 {{
                   IT: 'Italy',
                   FR: 'France',
                   DE: 'Germany',
                   ES: 'Spain',
-                  GB: 'United Kingdom',
+                  GB: 'UK',
                   NL: 'Netherlands',
                   BE: 'Belgium',
                   AT: 'Austria',
@@ -471,59 +703,25 @@ export default function OnboardBusinessPage() {
                   NO: 'Norway',
                   DK: 'Denmark',
                   FI: 'Finland',
-                  US: 'United States',
+                  US: 'USA',
                   CA: 'Canada',
                   MX: 'Mexico',
                 }[country]}
               </span>
-              <svg className={`w-5 h-5 text-gray-500 transition-transform ${countryOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 text-gray-500 transition-transform ${countryOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {countryOpen && (
-              <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-lg max-h-64 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-lg max-h-48 overflow-y-auto">
                 <div className="p-2">
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Europe</div>
                   {[
                     { value: 'IT', label: 'Italy' },
                     { value: 'FR', label: 'France' },
                     { value: 'DE', label: 'Germany' },
                     { value: 'ES', label: 'Spain' },
                     { value: 'GB', label: 'United Kingdom' },
-                    { value: 'NL', label: 'Netherlands' },
-                    { value: 'BE', label: 'Belgium' },
-                    { value: 'AT', label: 'Austria' },
-                    { value: 'CH', label: 'Switzerland' },
-                    { value: 'GR', label: 'Greece' },
-                    { value: 'PT', label: 'Portugal' },
-                    { value: 'IE', label: 'Ireland' },
-                    { value: 'PL', label: 'Poland' },
-                    { value: 'SE', label: 'Sweden' },
-                    { value: 'NO', label: 'Norway' },
-                    { value: 'DK', label: 'Denmark' },
-                    { value: 'FI', label: 'Finland' },
-                  ].map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => {
-                        setCountry(c.value);
-                        setCountryOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl transition-all ${
-                        country === c.value
-                          ? 'bg-teal-50 text-teal-900 font-semibold'
-                          : 'hover:bg-gray-50 text-gray-700'
-                      }`}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mt-2">Americas</div>
-                  {[
                     { value: 'US', label: 'United States' },
-                    { value: 'CA', label: 'Canada' },
-                    { value: 'MX', label: 'Mexico' },
                   ].map((c) => (
                     <button
                       key={c.value}
@@ -532,7 +730,7 @@ export default function OnboardBusinessPage() {
                         setCountry(c.value);
                         setCountryOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 rounded-xl transition-all ${
+                      className={`w-full text-left px-3 py-2 rounded-xl transition-all text-sm ${
                         country === c.value
                           ? 'bg-teal-50 text-teal-900 font-semibold'
                           : 'hover:bg-gray-50 text-gray-700'
@@ -1047,6 +1245,8 @@ export default function OnboardBusinessPage() {
         postalCode,
         country,
         website,
+        latitude,
+        longitude,
 
         // Branding
         primaryColor,
@@ -1152,6 +1352,25 @@ export default function OnboardBusinessPage() {
 
         {/* Step content */}
         <div className="bg-white border-2 border-gray-200 rounded-3xl p-8 md:p-12">
+          {/* Validation errors summary */}
+          {Object.keys(validationErrors).length > 0 && (
+            <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-red-900 mb-1">Please fix the following errors:</h3>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    {Object.entries(validationErrors).map(([field, error]) => (
+                      <li key={field}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           {renderStep()}
 
           {error && (
