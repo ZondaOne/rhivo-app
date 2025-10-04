@@ -148,8 +148,16 @@ const ServiceSchema = z.object({
   description: z.string().max(500).optional(),
   duration: z.number()
     .int('Duration must be an integer')
-    .min(1, 'Duration must be at least 1 minute')
-    .max(480, 'Duration cannot exceed 8 hours (480 minutes)'),
+    .min(5, 'Duration must be at least 5 minutes')
+    .max(480, 'Duration cannot exceed 8 hours (480 minutes)')
+    .transform((val) => {
+      // Auto-round to nearest 5-minute block
+      const rounded = Math.round(val / 5) * 5;
+      if (rounded !== val) {
+        console.info(`[YAML Config] Service duration ${val}min auto-rounded to ${rounded}min (5min grain)`);
+      }
+      return Math.max(5, rounded); // Ensure minimum 5min
+    }),
   price: z.number()
     .int('Price must be an integer (cents)')
     .min(0, 'Price cannot be negative'),
@@ -159,8 +167,24 @@ const ServiceSchema = z.object({
   requiresDeposit: z.boolean().default(false),
   depositAmount: z.number().int().min(0).optional(),
   maxAdvanceBookingDays: z.number().int().min(0).optional(), // Override global setting
-  bufferBefore: z.number().int().min(0).default(0), // Minutes of buffer before appointment
-  bufferAfter: z.number().int().min(0).default(0), // Minutes of buffer after appointment
+  bufferBefore: z.number().int().min(0).default(0)
+    .transform((val) => {
+      // Auto-round to nearest 5-minute block
+      const rounded = Math.round(val / 5) * 5;
+      if (rounded !== val && val > 0) {
+        console.info(`[YAML Config] Buffer before ${val}min auto-rounded to ${rounded}min (5min grain)`);
+      }
+      return rounded;
+    }), // Minutes of buffer before appointment
+  bufferAfter: z.number().int().min(0).default(0)
+    .transform((val) => {
+      // Auto-round to nearest 5-minute block
+      const rounded = Math.round(val / 5) * 5;
+      if (rounded !== val && val > 0) {
+        console.info(`[YAML Config] Buffer after ${val}min auto-rounded to ${rounded}min (5min grain)`);
+      }
+      return rounded;
+    }), // Minutes of buffer after appointment
 }).refine(
   (data) => {
     if (data.requiresDeposit && !data.depositAmount) {
@@ -304,10 +328,20 @@ export const TenantConfigSchema = z.object({
   branding: BrandingSchema,
 
   // Time slot configuration
+  // NOTE: timeSlotDuration is the DISPLAY interval (e.g., 30min slots shown in UI)
+  // Internally, we use 5-minute grain blocks for precise scheduling
   timeSlotDuration: z.number()
     .int('Time slot duration must be an integer')
     .min(5, 'Time slot duration must be at least 5 minutes')
-    .max(480, 'Time slot duration cannot exceed 8 hours (480 minutes)'),
+    .max(480, 'Time slot duration cannot exceed 8 hours (480 minutes)')
+    .transform((val) => {
+      // Auto-round to nearest 5-minute block
+      const rounded = Math.round(val / 5) * 5;
+      if (rounded !== val) {
+        console.info(`[YAML Config] Time slot duration ${val}min auto-rounded to ${rounded}min (5min grain)`);
+      }
+      return Math.max(5, rounded); // Ensure minimum 5min
+    }),
 
   // Availability
   availability: z.array(DailyAvailabilitySchema)
@@ -377,17 +411,28 @@ export function validateTenantConfig(config: TenantConfig): {
     categoryIds.add(category.id);
   }
 
-  // Validate service duration compatibility with time slot duration
+  // Validate service duration uses 5-minute grain blocks (warnings only)
+  // This allows flexible durations (15, 45, 75, 90, 105 min) with any timeSlotDuration
   for (const category of config.categories) {
     for (const service of category.services) {
-      if (service.duration < config.timeSlotDuration) {
+      // Check 5-minute grain alignment (enforced by Zod schema, but double-check)
+      if (service.duration % 5 !== 0) {
         errors.push(
-          `Service "${service.name}" duration (${service.duration}min) is less than time slot duration (${config.timeSlotDuration}min)`
+          `Service "${service.name}" duration (${service.duration}min) must be a multiple of 5 minutes (grain block system)`
         );
       }
+
+      // Warning: Service shorter than display slot (still valid, just might look odd in UI)
+      if (service.duration < config.timeSlotDuration) {
+        console.warn(
+          `[YAML Config Warning] Service "${service.name}" duration (${service.duration}min) is shorter than timeSlotDuration (${config.timeSlotDuration}min). This is valid but may affect UI display.`
+        );
+      }
+
+      // Info: Service not aligned to display slots (valid with 5min grain system)
       if (service.duration % config.timeSlotDuration !== 0) {
-        errors.push(
-          `Service "${service.name}" duration (${service.duration}min) must be a multiple of time slot duration (${config.timeSlotDuration}min)`
+        console.info(
+          `[YAML Config Info] Service "${service.name}" duration (${service.duration}min) spans multiple time slots (${config.timeSlotDuration}min). Using 5-minute grain blocks for precise allocation.`
         );
       }
     }

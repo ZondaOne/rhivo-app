@@ -1,0 +1,329 @@
+version: "1.0.0"
+
+business:
+  id: "blues-barber-firenze"
+  name: "Blues Barber Firenze"
+  description: "Barberia moderna dal 2014. Esperti in stili di rasatura multipli: siciliano, americano, express e whiskey experience. Consulenza personalizzata per ogni cliente."
+  timezone: "Europe/Rome"
+  locale: "it-IT"
+  currency: "EUR"
+
+contact:
+  address:
+    street: "Via Gordigiani Luigi 38"
+    city: "Firenze"
+    state: "Toscana"
+    postalCode: "50127"
+    country: "IT"
+  email: "info@bluesbarber.it"
+  phone: "+390553337616"
+  website: "https://bluesbarber.it"
+  latitude: 43.7698
+  longitude: 11.2426
+
+branding:
+  primaryColor: "#1e3a8a"
+  secondaryColor: "#3b82f6"
+  logoUrl: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=400&fit=crop"
+  coverImageUrl: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=1200&h=600&fit=crop"
+  faviconUrl: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=64&h=64&fit=crop"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "10:30"
+    close: "18:30"
+    enabled: false
+  - day: tuesday
+    open: "10:30"
+    close: "18:30"
+    enabled: true
+  - day: wednesday
+    open: "10:30"
+    close: "18:30"
+    enabled: true
+  - day: thursday
+    open: "10:30"
+    close: "19:30"
+    enabled: true
+  - day: friday
+    open: "10:30"
+    close: "19:30"
+    enabled: true
+  - day: saturday
+    open: "09:30"
+    close: "19:00"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "17:00"
+    enabled: false
+
+availabilityExceptions:
+  - date: "2025-12-25"
+    reason: "Natale"
+    closed: true
+  - date: "2025-12-26"
+    reason: "Santo Stefano"
+    closed: true
+  - date: "2026-01-01"
+    reason: "Capodanno"
+    closed: true
+  - date: "2026-01-06"
+    reason: "Epifania"
+    closed: true
+  - date: "2026-08-15"
+    reason: "Ferragosto"
+    closed: true
+
+categories:
+  - id: "taglio-uomo"
+    name: "Tagli Uomo"
+    description: "Tagli professionali per uomo con consulenza stile"
+    sortOrder: 0
+    services:
+      - id: "taglio-standard"
+        name: "Taglio Uomo Standard"
+        description: "Taglio professionale con lavaggio, asciugatura e styling"
+        duration: 45
+        price: 3000
+        color: "#0ea5e9"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "taglio-fade"
+        name: "Taglio Fade Americano"
+        description: "Fade professionale con sfumatura precisa e dettagli"
+        duration: 60
+        price: 3800
+        color: "#0284c7"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 10
+
+      - id: "restyling-completo"
+        name: "Restyling Completo"
+        description: "Consulenza stile completa con taglio personalizzato e consigli prodotti"
+        duration: 90
+        price: 5500
+        color: "#0369a1"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "rasatura"
+    name: "Rasatura e Barba"
+    description: "Esperienze di rasatura uniche con metodi tradizionali"
+    sortOrder: 1
+    services:
+      - id: "rasatura-express"
+        name: "Rasatura Express"
+        description: "Rasatura veloce con rasoio elettrico e rifinitura"
+        duration: 30
+        price: 2000
+        color: "#7c3aed"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+      - id: "rasatura-siciliana"
+        name: "Rasatura Siciliana"
+        description: "Rasatura tradizionale siciliana con rasoio a lama, asciugamani caldi e massaggio"
+        duration: 50
+        price: 3500
+        color: "#6d28d9"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "rasatura-americana"
+        name: "Rasatura Americana"
+        description: "Esperienza rasatura stile americano con prodotti premium e trattamenti pre/post"
+        duration: 55
+        price: 4000
+        color: "#5b21b6"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "whiskey-experience"
+        name: "Whiskey Shaving Experience"
+        description: "Rasatura deluxe con degustazione whiskey, asciugamani caldi, massaggio viso e prodotti esclusivi"
+        duration: 75
+        price: 6500
+        color: "#4c1d95"
+        sortOrder: 3
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 15
+        bufferAfter: 20
+
+  - id: "combo-servizi"
+    name: "Servizi Combinati"
+    description: "Pacchetti taglio e rasatura"
+    sortOrder: 2
+    services:
+      - id: "taglio-rasatura-base"
+        name: "Taglio + Rasatura Base"
+        description: "Taglio completo con rifinitura barba"
+        duration: 75
+        price: 4800
+        color: "#059669"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "gentleman-package"
+        name: "Gentleman's Package"
+        description: "Taglio fade, rasatura siciliana o americana, trattamento viso completo"
+        duration: 120
+        price: 7500
+        color: "#047857"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 15
+        bufferAfter: 20
+
+  - id: "trattamenti-extra"
+    name: "Trattamenti Extra"
+    description: "Servizi aggiuntivi e colorazione"
+    sortOrder: 3
+    services:
+      - id: "colore-capelli"
+        name: "Colorazione Capelli"
+        description: "Colorazione professionale capelli uomo"
+        duration: 60
+        price: 4500
+        color: "#991b1b"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "colore-barba"
+        name: "Colorazione Barba"
+        description: "Tinta barba per copertura brizzolature"
+        duration: 40
+        price: 3000
+        color: "#dc2626"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "trattamento-anticaduta"
+        name: "Trattamento Anticaduta"
+        description: "Trattamento professionale anticaduta con massaggio cuoio capelluto"
+        duration: 45
+        price: 3500
+        color: "#b91c1c"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "black-mask"
+        name: "Black Mask Purificante"
+        description: "Maschera viso purificante per pelle grassa e punti neri"
+        duration: 30
+        price: 2500
+        color: "#7f1d1d"
+        sortOrder: 3
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields:
+    - id: "stylist-preference"
+      label: "Preferenza Barbiere"
+      type: "select"
+      required: false
+      options:
+        - "Valerio (Titolare)"
+        - "Luca"
+        - "Simone"
+        - "Nessuna preferenza"
+    - id: "shaving-style"
+      label: "Hai già provato uno dei nostri stili di rasatura?"
+      type: "select"
+      required: false
+      options:
+        - "Prima volta"
+        - "Siciliana"
+        - "Americana"
+        - "Whiskey Experience"
+    - id: "requests"
+      label: "Richieste Particolari"
+      type: "textarea"
+      required: false
+      placeholder: "Descrivi lo stile che preferisci o eventuali allergie ai prodotti"
+      maxLength: 300
+
+bookingLimits:
+  maxSimultaneousBookings: 4
+  advanceBookingDays: 60
+  minAdvanceBookingMinutes: 180
+  maxBookingsPerCustomerPerDay: 1
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 48
+  allowRescheduling: true
+  rescheduleDeadlineHours: 24
+  refundPolicy: "partial"
+  partialRefundPercentage: 50
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 48
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: "valerio@bluesbarber.it"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: true
+  enableWaitlist: true
+  enableReviews: true
+  enableMultipleStaff: true
+
+metadata:
+  parkingAvailable: true
+  wheelchairAccessible: true
+  languages: ["it", "en"]
+  acceptsWalkIns: true
+  dresscode: "Casual - Ambiente rilassato"

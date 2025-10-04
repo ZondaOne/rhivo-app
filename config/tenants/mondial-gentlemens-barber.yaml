@@ -1,0 +1,337 @@
+version: "1.0.0"
+
+business:
+  id: "mondial-gentlemens-barber"
+  name: "Mondial 1908 Gentlemen's Barber"
+  description: "Barberia di lusso vicino a Ponte Vecchio. Master Barbers esperti in rasature esclusive, fragranze ricercate e prodotti artigianali. Un luogo magico che ridefinisce il lusso attraverso il rituale tradizionale della rasatura."
+  timezone: "Europe/Rome"
+  locale: "it-IT"
+  currency: "EUR"
+
+contact:
+  address:
+    street: "Borgo San Jacopo 38R"
+    city: "Firenze"
+    state: "Toscana"
+    postalCode: "50125"
+    country: "IT"
+  email: "gentlemensbarber@mondial1908.com"
+  phone: "+390554937421"
+  website: "https://mondial1908.com"
+  latitude: 43.7679
+  longitude: 11.2509
+
+branding:
+  primaryColor: "#8b0000"
+  secondaryColor: "#daa520"
+  logoUrl: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=400&fit=crop"
+  coverImageUrl: "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=1200&h=600&fit=crop"
+  faviconUrl: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=64&h=64&fit=crop"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "09:00"
+    close: "19:00"
+    enabled: false
+  - day: tuesday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: wednesday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: thursday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: friday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: saturday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "18:00"
+    enabled: false
+
+availabilityExceptions:
+  - date: "2025-12-25"
+    reason: "Natale"
+    closed: true
+  - date: "2025-12-26"
+    reason: "Santo Stefano"
+    closed: true
+  - date: "2026-01-01"
+    reason: "Capodanno"
+    closed: true
+  - date: "2026-04-25"
+    reason: "Festa della Liberazione"
+    closed: true
+  - date: "2026-08-15"
+    reason: "Ferragosto"
+    closed: true
+
+categories:
+  - id: "rasatura-luxury"
+    name: "Rasature Esclusive"
+    description: "Esperienze di rasatura di lusso con Master Barbers"
+    sortOrder: 0
+    services:
+      - id: "rasatura-classica"
+        name: "Rasatura Classica"
+        description: "Rasatura tradizionale con rasoio a mano libera, asciugamani caldi, pre-shave oil e aftershave di lusso"
+        duration: 60
+        price: 6000
+        color: "#8b0000"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "royal-shave"
+        name: "Royal Shave Experience"
+        description: "Esperienza completa: doppio passaggio rasoio, vapore, massaggio viso e collo, trattamenti premium Mondial 1908"
+        duration: 90
+        price: 9500
+        color: "#a52a2a"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 4000
+        bufferBefore: 15
+        bufferAfter: 20
+
+      - id: "executive-shave"
+        name: "Executive Shave & Whisky"
+        description: "Rasatura di lusso con degustazione whisky premium, lounge privata con vista terrazza, prodotti esclusivi"
+        duration: 120
+        price: 15000
+        color: "#800000"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 7500
+        bufferBefore: 20
+        bufferAfter: 30
+
+  - id: "taglio-gentleman"
+    name: "Tagli Gentleman"
+    description: "Tagli classici e contemporanei per il gentleman moderno"
+    sortOrder: 1
+    services:
+      - id: "taglio-executive"
+        name: "Taglio Executive"
+        description: "Taglio professionale con lavaggio premium, massaggio cuoio capelluto e styling"
+        duration: 60
+        price: 5500
+        color: "#b8860b"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "taglio-scultura"
+        name: "Taglio Scultura"
+        description: "Taglio artistico con forbici e rasoio, consulenza stile personalizzata"
+        duration: 75
+        price: 7000
+        color: "#daa520"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2500
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "barba-grooming"
+    name: "Barba & Grooming"
+    description: "Servizi di cura e styling barba premium"
+    sortOrder: 2
+    services:
+      - id: "rifinitura-barba-deluxe"
+        name: "Rifinitura Barba Deluxe"
+        description: "Rifinitura precisa, olio barba di lusso, styling e definizione forme"
+        duration: 45
+        price: 4500
+        color: "#cd853f"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 10
+
+      - id: "barba-sculpting"
+        name: "Beard Sculpting"
+        description: "Scultura barba artistica con rasoio, definizione linee, trattamenti nutrienti"
+        duration: 60
+        price: 6000
+        color: "#d2691e"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "pacchetti-completi"
+    name: "Pacchetti Completi"
+    description: "Esperienze complete di grooming"
+    sortOrder: 3
+    services:
+      - id: "gentleman-complete"
+        name: "Gentleman's Complete"
+        description: "Taglio Executive + Rasatura Classica + Trattamento viso"
+        duration: 135
+        price: 11000
+        color: "#8b4513"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 5000
+        bufferBefore: 15
+        bufferAfter: 25
+
+      - id: "presidential-package"
+        name: "Presidential Package"
+        description: "Taglio Scultura + Royal Shave + Trattamento cuoio capelluto + Manicure uomo + Whisky lounge"
+        duration: 180
+        price: 18000
+        color: "#654321"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 9000
+        bufferBefore: 20
+        bufferAfter: 30
+
+  - id: "trattamenti-viso"
+    name: "Trattamenti Viso e Cura"
+    description: "Trattamenti viso premium per uomo"
+    sortOrder: 4
+    services:
+      - id: "trattamento-viso-purificante"
+        name: "Trattamento Viso Purificante"
+        description: "Pulizia profonda viso con vapore, esfoliazione, maschera purificante e massaggio"
+        duration: 60
+        price: 7500
+        color: "#2f4f4f"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "trattamento-anti-age"
+        name: "Trattamento Anti-Age Uomo"
+        description: "Trattamento viso anti-età con sieri premium, massaggio lifting e contorno occhi"
+        duration: 75
+        price: 9500
+        color: "#708090"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "manicure-uomo"
+        name: "Manicure Uomo Executive"
+        description: "Cura delle mani professionale per l'uomo di affari"
+        duration: 45
+        price: 4500
+        color: "#696969"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields:
+    - id: "master-barber"
+      label: "Master Barber di Preferenza"
+      type: "select"
+      required: false
+      options:
+        - "Lorenzo (Senior Master Barber)"
+        - "Matteo (Master Barber)"
+        - "Francesco (Master Barber)"
+        - "Nessuna preferenza"
+    - id: "fragrance-preference"
+      label: "Preferenza Fragranze"
+      type: "select"
+      required: false
+      options:
+        - "Classiche legnose"
+        - "Fresche agrumate"
+        - "Orientali speziate"
+        - "Moderne aromatiche"
+        - "Nessuna preferenza"
+    - id: "whisky-choice"
+      label: "Scelta Whisky (per servizi Premium)"
+      type: "select"
+      required: false
+      options:
+        - "Single Malt Scotch"
+        - "Bourbon Americano"
+        - "Irish Whiskey"
+        - "Japanese Whisky"
+        - "A sorpresa del sommelier"
+    - id: "special-occasions"
+      label: "Occasione Speciale"
+      type: "textarea"
+      required: false
+      placeholder: "Matrimonio, evento importante, regalo? Raccontaci per personalizzare l'esperienza"
+      maxLength: 250
+
+bookingLimits:
+  maxSimultaneousBookings: 2
+  advanceBookingDays: 90
+  minAdvanceBookingMinutes: 240
+  maxBookingsPerCustomerPerDay: 1
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 72
+  allowRescheduling: true
+  rescheduleDeadlineHours: 48
+  refundPolicy: "partial"
+  partialRefundPercentage: 30
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 72
+  sendConfirmationSMS: true
+  sendReminderSMS: true
+  ownerNotificationEmail: "manager@mondial1908.com"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: true
+  enableWaitlist: true
+  enableReviews: true
+  enableMultipleStaff: true
+
+metadata:
+  parkingAvailable: false
+  wheelchairAccessible: false
+  languages: ["it", "en", "fr"]
+  acceptsWalkIns: false
+  dresscode: "Smart Casual - Ambiente di lusso"

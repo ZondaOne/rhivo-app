@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getDbClient } from '@/db/client';
 import { AppointmentManager } from '@/lib/booking';
+import { NotificationService } from '@/lib/notifications/notification-service';
 import { z } from 'zod';
 
 const sql = getDbClient();
@@ -9,6 +10,8 @@ const sql = getDbClient();
 const rescheduleSchema = z.object({
   appointmentId: z.string().uuid({ message: 'Invalid appointmentId' }),
   newStartTime: z.string().datetime({ message: 'newStartTime must be ISO datetime' }),
+  serviceId: z.string().uuid().optional(),
+  notifyCustomer: z.boolean().optional(),
   reason: z.string().max(250).optional(),
 });
 
@@ -70,6 +73,7 @@ export async function POST(request: NextRequest) {
     const newEnd = new Date(newStart.getTime() + existingDuration * 60 * 1000);
 
     const appointmentManager = new AppointmentManager(sql);
+    const notificationService = new NotificationService(sql);
 
     try {
       await appointmentManager.updateAppointment({
@@ -79,6 +83,33 @@ export async function POST(request: NextRequest) {
         actorId: payload.sub,
         expectedVersion: currentVersion,
       });
+
+      // Queue notification to customer
+      // Get customer email/phone from appointment
+      const updatedAppointment = await sql`
+        SELECT
+          customer_email,
+          customer_phone,
+          guest_email,
+          guest_phone
+        FROM appointments
+        WHERE id = ${body.appointmentId}
+          AND deleted_at IS NULL
+      `;
+
+      if (updatedAppointment.length > 0) {
+        const apt = updatedAppointment[0];
+        const email = apt.customer_email || apt.guest_email;
+        const phone = apt.customer_phone || apt.guest_phone;
+
+        if (email) {
+          await notificationService.queueRescheduleNotification(
+            body.appointmentId,
+            email,
+            phone || undefined
+          );
+        }
+      }
     } catch (error: any) {
       if (error?.code === 'CONFLICT') {
         return NextResponse.json(

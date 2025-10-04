@@ -1,0 +1,166 @@
+version: "1.0.0"
+
+business:
+  id: "test-5min-grain"
+  name: "5-Minute Grain Test Business"
+  description: "Testing flexible service durations with 5min grain blocks"
+  timezone: "America/New_York"
+  locale: "en-US"
+  currency: "USD"
+
+contact:
+  address:
+    street: "123 Test Street"
+    city: "New York"
+    state: "NY"
+    postalCode: "10001"
+    country: "US"
+  email: "test@example.com"
+  phone: "+12125551234"
+  latitude: 40.7128
+  longitude: -74.0060
+
+branding:
+  primaryColor: "#10b981"
+  secondaryColor: "#14b8a6"
+  logoUrl: "https://example.com/logo.png"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: tuesday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: wednesday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: thursday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: friday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: saturday
+    open: "10:00"
+    close: "15:00"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "15:00"
+    enabled: false
+
+availabilityExceptions: []
+
+categories:
+  - id: "flexible-services"
+    name: "Flexible Duration Services"
+    description: "Services with various durations to test 5min grain system"
+    sortOrder: 0
+    services:
+      # Short service (15min) - less than timeSlotDuration (30min)
+      - id: "quick-trim-15"
+        name: "Quick Trim (15 min)"
+        description: "Fast service shorter than display slot"
+        duration: 15
+        price: 2000
+        color: "#3b82f6"
+        sortOrder: 0
+        enabled: true
+        bufferBefore: 5
+        bufferAfter: 5
+
+      # Service that doesn't align to 30min slots (45min)
+      - id: "standard-cut-45"
+        name: "Standard Cut (45 min)"
+        description: "45min service spans 1.5 display slots"
+        duration: 45
+        price: 5000
+        color: "#8b5cf6"
+        sortOrder: 1
+        enabled: true
+        bufferBefore: 10
+        bufferAfter: 10
+
+      # Another non-aligned duration (75min = 1hr 15min)
+      - id: "deluxe-service-75"
+        name: "Deluxe Service (75 min)"
+        description: "75min service spans 2.5 display slots"
+        duration: 75
+        price: 9000
+        color: "#ec4899"
+        sortOrder: 2
+        enabled: true
+        bufferBefore: 10
+        bufferAfter: 15
+
+      # Long service (105min = 1hr 45min)
+      - id: "premium-package-105"
+        name: "Premium Package (105 min)"
+        description: "105min service spans 3.5 display slots"
+        duration: 105
+        price: 15000
+        color: "#f59e0b"
+        sortOrder: 3
+        enabled: true
+        bufferBefore: 15
+        bufferAfter: 15
+
+      # Aligned service for comparison (60min)
+      - id: "classic-service-60"
+        name: "Classic Service (60 min)"
+        description: "60min service aligns to 2 display slots"
+        duration: 60
+        price: 7500
+        color: "#10b981"
+        sortOrder: 4
+        enabled: true
+        bufferBefore: 10
+        bufferAfter: 10
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields: []
+
+bookingLimits:
+  maxSimultaneousBookings: 2
+  advanceBookingDays: 30
+  minAdvanceBookingMinutes: 60
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 24
+  allowRescheduling: true
+  rescheduleDeadlineHours: 12
+  refundPolicy: "full"
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 24
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: "owner@example.com"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: false
+  enableWaitlist: false
+  enableReviews: false
+  enableMultipleStaff: false
+
+metadata:
+  testPurpose: "5-minute grain block system validation"

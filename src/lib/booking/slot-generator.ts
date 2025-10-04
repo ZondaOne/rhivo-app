@@ -1,15 +1,25 @@
 /**
- * Time Slot Generation Algorithm
+ * Time Slot Generation Algorithm (5-Minute Grain Block System)
+ *
+ * Uses a 5-minute grain block system for universal time grid:
+ * - All calculations use 5min blocks as the base unit
+ * - timeSlotDuration determines DISPLAY interval (e.g., 30min shown in UI)
+ * - Service durations can be any multiple of 5min (15, 45, 75, 90, 105, etc.)
+ * - Buffers snap to 5min increments
+ * - Calendar drag-and-drop snaps to 5min grid
  *
  * Generates available time slots based on:
  * - Business availability (regular hours + exceptions)
- * - Service duration
- * - Time slot duration (interval)
+ * - Service duration (any 5min multiple)
+ * - Time slot duration (DISPLAY interval, also 5min multiple)
  * - Existing appointments
  * - Existing reservations (not expired)
- * - Buffer times (before/after service)
+ * - Buffer times (before/after service, 5min multiples)
  * - Max simultaneous bookings (staff capacity)
  */
+
+// Universal 5-minute grain block constant
+const GRAIN_MINUTES = 5;
 
 import { TenantConfig, Service } from '@/lib/config/tenant-schema';
 
@@ -145,36 +155,41 @@ function generateSlotsForDay(
   const minAdvanceTime = new Date(now);
   minAdvanceTime.setMinutes(minAdvanceTime.getMinutes() + config.bookingLimits.minAdvanceBookingMinutes);
 
-  // Generate slots at timeSlotDuration intervals
+  // Generate slots at timeSlotDuration intervals (DISPLAY interval)
+  // Each slot is checked for availability based on 5-minute grain blocks
   let slotStart = new Date(dayStart);
 
-  // Account for buffer before service
+  // Account for buffer before/after service (already rounded to 5min by schema)
   const bufferBefore = service.bufferBefore || 0;
   const bufferAfter = service.bufferAfter || 0;
 
   while (slotStart < dayEnd) {
+    // Slot end time is based on service duration (not display interval)
     const slotEnd = new Date(slotStart);
     slotEnd.setMinutes(slotEnd.getMinutes() + service.duration);
 
+    // Total occupied time includes buffers
     const bufferEnd = new Date(slotEnd);
     bufferEnd.setMinutes(bufferEnd.getMinutes() + bufferAfter);
 
-    // Check if service can fit in remaining time
+    // Check if service + buffer can fit in remaining time
     if (bufferEnd > dayEnd) {
       break; // Service would extend past closing time
     }
 
-    // Check if slot is in the past or too soon
+    // Effective start includes buffer before
     const effectiveStart = new Date(slotStart);
     effectiveStart.setMinutes(effectiveStart.getMinutes() - bufferBefore);
 
+    // Skip slots in the past or within minimum advance time
     if (slotStart < minAdvanceTime) {
-      // Move to next slot
+      // Move to next slot using timeSlotDuration (display interval)
       slotStart.setMinutes(slotStart.getMinutes() + config.timeSlotDuration);
       continue;
     }
 
-    // Calculate capacity for this slot
+    // Calculate capacity using 5-minute grain blocks
+    // This checks if any 5-min block in the service duration + buffers is occupied
     const capacity = calculateSlotCapacity(
       effectiveStart,
       bufferEnd,
@@ -198,7 +213,8 @@ function generateSlotsForDay(
       reason: capacity === 0 ? 'Fully booked' : undefined,
     });
 
-    // Move to next slot
+    // Move to next slot using timeSlotDuration (DISPLAY interval, e.g., 30min)
+    // This means a 45min service will be checked at 9:00, 9:30, 10:00, etc.
     slotStart.setMinutes(slotStart.getMinutes() + config.timeSlotDuration);
   }
 
@@ -206,7 +222,17 @@ function generateSlotsForDay(
 }
 
 /**
- * Calculate how many slots are available at a given time
+ * Calculate how many slots are available at a given time using 5-minute grain blocks
+ *
+ * This function checks overlap at the grain block level, ensuring that services
+ * with arbitrary durations (15, 45, 75, 90, 105 min) are properly allocated.
+ *
+ * @param slotStart - Start time of the potential booking slot (with buffer before)
+ * @param slotEnd - End time of the potential booking slot (with buffer after)
+ * @param maxCapacity - Maximum simultaneous bookings allowed
+ * @param appointments - Existing confirmed appointments
+ * @param reservations - Active reservations (not expired)
+ * @returns Number of available capacity slots (0 = fully booked)
  */
 function calculateSlotCapacity(
   slotStart: Date,
@@ -218,11 +244,12 @@ function calculateSlotCapacity(
   let usedCapacity = 0;
 
   // Check appointments that overlap with this slot
+  // Overlap check: two intervals [A1, A2) and [B1, B2) overlap if A1 < B2 AND B1 < A2
   for (const apt of appointments) {
     const aptStart = new Date(apt.slot_start);
     const aptEnd = new Date(apt.slot_end);
 
-    // Check for overlap
+    // Check for overlap (works for any duration, aligned to 5min blocks)
     if (aptStart < slotEnd && aptEnd > slotStart) {
       usedCapacity++;
     }

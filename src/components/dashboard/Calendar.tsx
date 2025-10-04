@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState, Fragment } from 'react';
-import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot } from '@/lib/calendar-utils';
+import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
+import { RescheduleConfirmationModal } from './RescheduleConfirmationModal';
+import { AppointmentEditModal } from './AppointmentEditModal';
 import { apiRequest } from '@/lib/auth/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -12,11 +14,34 @@ interface CalendarProps {
   currentDate: Date;
 }
 
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
+interface PendingReschedule {
+  appointment: Appointment;
+  originalTime: Date;
+  newTime: Date;
+}
+
 export function Calendar({ view, currentDate }: CalendarProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [pendingReschedule, setPendingReschedule] = useState<PendingReschedule | null>(null);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const showToast = (message: string, type: Toast['type'] = 'info') => {
+    const id = Math.random().toString(36).substring(7);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
+  };
 
   useEffect(() => {
     if (authLoading) {
@@ -80,27 +105,90 @@ export function Calendar({ view, currentDate }: CalendarProps) {
     }
   }
 
-  async function handleReschedule(appointmentId: string, newStartTime: Date) {
+  function requestReschedule(appointmentId: string, newStartTime: Date) {
     if (!isAuthenticated) {
-      alert('You must be signed in to reschedule appointments.');
+      showToast('You must be signed in to reschedule appointments.', 'error');
       return;
     }
 
+    const appointment = appointments.find((a) => a.id === appointmentId);
+    if (!appointment) {
+      showToast('Appointment not found', 'error');
+      return;
+    }
+
+    // Snap to 5-minute grain to ensure precision
+    const snappedTime = snapToGrain(newStartTime);
+
+    // Show confirmation modal
+    setPendingReschedule({
+      appointment,
+      originalTime: new Date(appointment.start_time),
+      newTime: snappedTime,
+    });
+  }
+
+  async function confirmReschedule() {
+    if (!pendingReschedule) return;
+
+    const { appointment, newTime } = pendingReschedule;
+
+    // Close modal
+    setPendingReschedule(null);
+
     try {
+      // Optimistic UI update
+      const duration = getAppointmentDuration(appointment);
+      const newEnd = new Date(newTime);
+      newEnd.setMinutes(newEnd.getMinutes() + duration);
+
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.id === appointment.id
+            ? { ...a, start_time: newTime.toISOString(), end_time: newEnd.toISOString() }
+            : a
+        )
+      );
+
       await apiRequest('/api/appointments/reschedule', {
         method: 'POST',
         body: JSON.stringify({
-          appointmentId,
-          newStartTime: newStartTime.toISOString(),
+          appointmentId: appointment.id,
+          newStartTime: newTime.toISOString(),
         }),
       });
 
+      showToast('Appointment rescheduled. Customer will be notified via email.', 'success');
       await loadAppointments();
     } catch (error) {
       console.error('Failed to reschedule:', error);
       const message = error instanceof Error ? error.message : 'Failed to reschedule appointment';
-      alert(message);
+      showToast(message, 'error');
+
+      // Revert optimistic update on error
+      await loadAppointments();
     }
+  }
+
+  function cancelReschedule() {
+    setPendingReschedule(null);
+  }
+
+  function handleEdit(appointmentId: string) {
+    const appointment = appointments.find((a) => a.id === appointmentId);
+    if (appointment) {
+      setEditingAppointment(appointment);
+    }
+  }
+
+  function handleEditClose() {
+    setEditingAppointment(null);
+  }
+
+  async function handleEditSave() {
+    setEditingAppointment(null);
+    showToast('Appointment updated successfully', 'success');
+    await loadAppointments();
   }
 
   if (loading) {
@@ -119,26 +207,107 @@ export function Calendar({ view, currentDate }: CalendarProps) {
     );
   }
 
-  if (view === 'month') {
-    return <MonthView currentDate={currentDate} appointments={appointments} onReschedule={handleReschedule} />;
-  }
+  return (
+    <>
+      {/* Toast notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`px-4 py-3 rounded-lg shadow-lg border text-sm font-medium animate-slide-in ${
+              toast.type === 'success'
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : toast.type === 'error'
+                ? 'bg-red-50 border-red-200 text-red-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800'
+            }`}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
 
-  if (view === 'week') {
-    return <WeekView currentDate={currentDate} appointments={appointments} onReschedule={handleReschedule} />;
-  }
+      {/* Reschedule confirmation modal */}
+      {pendingReschedule && (
+        <RescheduleConfirmationModal
+          appointment={pendingReschedule.appointment}
+          originalTime={pendingReschedule.originalTime}
+          newTime={pendingReschedule.newTime}
+          onConfirm={confirmReschedule}
+          onCancel={cancelReschedule}
+        />
+      )}
 
-  if (view === 'day') {
-    return <DayView currentDate={currentDate} appointments={appointments} onReschedule={handleReschedule} />;
-  }
+      {/* Edit appointment modal */}
+      {editingAppointment && (
+        <AppointmentEditModal
+          appointment={editingAppointment}
+          onClose={handleEditClose}
+          onSave={handleEditSave}
+        />
+      )}
 
-  if (view === 'list') {
-    return <ListView currentDate={currentDate} appointments={appointments} onReschedule={handleReschedule} />;
-  }
+      {/* Calendar views */}
+      {view === 'month' && (
+        <MonthView
+          currentDate={currentDate}
+          appointments={appointments}
+          onReschedule={requestReschedule}
+          onEdit={handleEdit}
+          draggedAppointment={draggedAppointment}
+          setDraggedAppointment={setDraggedAppointment}
+        />
+      )}
 
-  return null;
+      {view === 'week' && (
+        <WeekView
+          currentDate={currentDate}
+          appointments={appointments}
+          onReschedule={requestReschedule}
+          onEdit={handleEdit}
+          draggedAppointment={draggedAppointment}
+          setDraggedAppointment={setDraggedAppointment}
+        />
+      )}
+
+      {view === 'day' && (
+        <DayView
+          currentDate={currentDate}
+          appointments={appointments}
+          onReschedule={requestReschedule}
+          onEdit={handleEdit}
+          draggedAppointment={draggedAppointment}
+          setDraggedAppointment={setDraggedAppointment}
+        />
+      )}
+
+      {view === 'list' && (
+        <ListView
+          currentDate={currentDate}
+          appointments={appointments}
+          onReschedule={requestReschedule}
+          onEdit={handleEdit}
+        />
+      )}
+    </>
+  );
 }
 
-function MonthView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
+function MonthView({
+  currentDate,
+  appointments,
+  onReschedule,
+  onEdit,
+  draggedAppointment,
+  setDraggedAppointment,
+}: {
+  currentDate: Date;
+  appointments: Appointment[];
+  onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
+  draggedAppointment: Appointment | null;
+  setDraggedAppointment: (apt: Appointment | null) => void;
+}) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const days = generateMonthCalendar(year, month, appointments);
@@ -163,9 +332,10 @@ function MonthView({ currentDate, appointments, onReschedule }: { currentDate: D
             key={idx}
             day={day}
             isLastRow={idx >= days.length - 7}
-            onAppointmentDrop={(date) => {
-              // Handle drop
-            }}
+            draggedAppointment={draggedAppointment}
+            setDraggedAppointment={setDraggedAppointment}
+            onReschedule={onReschedule}
+            onEdit={onEdit}
           />
         ))}
       </div>
@@ -173,18 +343,45 @@ function MonthView({ currentDate, appointments, onReschedule }: { currentDate: D
   );
 }
 
-function DayCell({ day, isLastRow, onAppointmentDrop }: { day: CalendarDay; isLastRow: boolean; onAppointmentDrop: (date: Date) => void }) {
+function DayCell({
+  day,
+  isLastRow,
+  draggedAppointment,
+  setDraggedAppointment,
+  onReschedule,
+  onEdit,
+}: {
+  day: CalendarDay;
+  isLastRow: boolean;
+  draggedAppointment: Appointment | null;
+  setDraggedAppointment: (apt: Appointment | null) => void;
+  onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
+}) {
   const [isDragOver, setIsDragOver] = useState(false);
-
   const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6;
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const appointmentId = e.dataTransfer.getData('appointmentId');
+    if (appointmentId && draggedAppointment) {
+      // Set time to match original time of day, but on the new date
+      const originalTime = new Date(draggedAppointment.start_time);
+      const newTime = new Date(day.date);
+      newTime.setHours(originalTime.getHours(), originalTime.getMinutes(), 0, 0);
+
+      onReschedule(appointmentId, newTime);
+    }
+    setDraggedAppointment(null);
+  };
 
   return (
     <div
       className={`min-h-[140px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
-      } ${
-        !day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'
-      } ${
+      } ${!day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50' : ''
       } transition-colors`}
       onDragOver={(e) => {
@@ -192,14 +389,14 @@ function DayCell({ day, isLastRow, onAppointmentDrop }: { day: CalendarDay; isLa
         setIsDragOver(true);
       }}
       onDragLeave={() => setIsDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        onAppointmentDrop(day.date);
-      }}
+      onDrop={handleDrop}
     >
       {isDragOver && (
-        <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10" />
+        <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10 rounded-sm">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-sm font-semibold text-teal-700">Drop here</span>
+          </div>
+        </div>
       )}
 
       {/* Content */}
@@ -208,18 +405,14 @@ function DayCell({ day, isLastRow, onAppointmentDrop }: { day: CalendarDay; isLa
         <div className="mb-3">
           {day.isToday ? (
             <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
-              <span className="text-sm font-bold text-white">
-                {day.date.getDate()}
-              </span>
+              <span className="text-sm font-bold text-white">{day.date.getDate()}</span>
             </div>
           ) : (
-            <span className={`text-sm font-semibold ${
-              !day.isCurrentMonth
-                ? 'text-gray-400'
-                : isWeekend
-                ? 'text-gray-500'
-                : 'text-gray-900'
-            }`}>
+            <span
+              className={`text-sm font-semibold ${
+                !day.isCurrentMonth ? 'text-gray-400' : isWeekend ? 'text-gray-500' : 'text-gray-900'
+              }`}
+            >
               {day.date.getDate()}
             </span>
           )}
@@ -231,9 +424,26 @@ function DayCell({ day, isLastRow, onAppointmentDrop }: { day: CalendarDay; isLa
             <div
               key={apt.id}
               draggable
-              className="text-xs px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move truncate font-medium transition-all"
+              className="group relative text-xs px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move truncate font-medium transition-all"
+              onDragStart={(e) => {
+                e.dataTransfer.setData('appointmentId', apt.id);
+                setDraggedAppointment(apt);
+              }}
+              onDragEnd={() => setDraggedAppointment(null)}
             >
-              {formatTime(new Date(apt.start_time))}
+              <span className="pr-6">{formatTime(new Date(apt.start_time))}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(apt.id);
+                }}
+                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded"
+                title="Edit appointment"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
             </div>
           ))}
           {day.appointments.length > 3 && (
@@ -247,7 +457,21 @@ function DayCell({ day, isLastRow, onAppointmentDrop }: { day: CalendarDay; isLa
   );
 }
 
-function WeekView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
+function WeekView({
+  currentDate,
+  appointments,
+  onReschedule,
+  onEdit,
+  draggedAppointment,
+  setDraggedAppointment,
+}: {
+  currentDate: Date;
+  appointments: Appointment[];
+  onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
+  draggedAppointment: Appointment | null;
+  setDraggedAppointment: (apt: Appointment | null) => void;
+}) {
   const weekStart = new Date(currentDate);
   const dayOfWeek = weekStart.getDay();
   const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -352,6 +576,9 @@ function WeekView({ currentDate, appointments, onReschedule }: { currentDate: Da
                   })}
                   startHour={START_HOUR}
                   onReschedule={onReschedule}
+                  onEdit={onEdit}
+                  draggedAppointment={draggedAppointment}
+                  setDraggedAppointment={setDraggedAppointment}
                 />
               );
             })}
@@ -362,29 +589,35 @@ function WeekView({ currentDate, appointments, onReschedule }: { currentDate: Da
   );
 }
 
-function WeekDayCell({ 
-  day, 
-  hour, 
+function WeekDayCell({
+  day,
+  hour,
   hourIdx,
-  isLastHour, 
+  isLastHour,
   isLastDay,
   isWeekend,
-  appointments, 
+  appointments,
   startHour,
-  onReschedule
-}: { 
-  day: Date; 
-  hour: number; 
+  onReschedule,
+  onEdit,
+  draggedAppointment,
+  setDraggedAppointment,
+}: {
+  day: Date;
+  hour: number;
   hourIdx: number;
-  isLastHour: boolean; 
+  isLastHour: boolean;
   isLastDay: boolean;
   isWeekend: boolean;
-  appointments: Array<Appointment & { rowStart: number; rowSpan: number }>; 
+  appointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   startHour: number;
   onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
+  draggedAppointment: Appointment | null;
+  setDraggedAppointment: (apt: Appointment | null) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null); // 0=top half, 1=bottom half
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const CELL_HEIGHT = 80;
 
   const handleDragOver = (e: React.DragEvent, slot: number) => {
@@ -397,13 +630,17 @@ function WeekDayCell({
     e.preventDefault();
     setIsDragOver(false);
     setDragOverSlot(null);
-    
-    // Calculate the new time based on the slot (0 or 1 for half-hour increments)
-    const newTime = new Date(day);
-    newTime.setHours(hour, slot * 30, 0, 0);
-    
-    // TODO: Get appointment ID from drag data
-    // onReschedule(appointmentId, newTime);
+
+    const appointmentId = e.dataTransfer.getData('appointmentId');
+    if (appointmentId) {
+      // Calculate the new time based on the slot (0 or 1 for half-hour increments)
+      // This gives 30-minute granularity, which is a multiple of 5min
+      const newTime = new Date(day);
+      newTime.setHours(hour, slot * 30, 0, 0);
+
+      onReschedule(appointmentId, newTime);
+    }
+    setDraggedAppointment(null);
   };
 
   return (
@@ -444,31 +681,52 @@ function WeekDayCell({
       <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
 
       {/* Appointments positioned within this cell */}
-      {appointments.map(apt => {
+      {appointments.map((apt) => {
         const startMinute = new Date(apt.start_time).getMinutes();
         const offsetFromHour = startMinute / 60;
-        
+        // Snap to pixel boundaries to align with grid - use exact calculations
+        const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
+        const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 32);
+
         return (
           <div
             key={apt.id}
             draggable
-            className="absolute left-1 right-1 px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
+            className="group absolute left-1 right-1 px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
             style={{
-              top: `${offsetFromHour * CELL_HEIGHT}px`,
-              height: `${Math.max(apt.rowSpan * CELL_HEIGHT - 4, 32)}px`,
+              top: `${topPx}px`,
+              height: `${heightPx}px`,
             }}
             onDragStart={(e) => {
               e.dataTransfer.setData('appointmentId', apt.id);
+              setDraggedAppointment(apt);
             }}
+            onDragEnd={() => setDraggedAppointment(null)}
           >
-            <div className="text-xs font-medium leading-tight">
-              {formatTime(new Date(apt.start_time))}
-            </div>
-            {apt.rowSpan > 0.5 && (
-              <div className="text-xs text-gray-700 leading-tight truncate mt-0.5">
-                {apt.customer_name}
+            <div className="flex items-start justify-between gap-1">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium leading-tight">
+                  {formatTime(new Date(apt.start_time))}
+                </div>
+                {apt.rowSpan > 0.5 && (
+                  <div className="text-xs text-gray-700 leading-tight truncate mt-0.5">
+                    {apt.customer_name}
+                  </div>
+                )}
               </div>
-            )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(apt.id);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
+                title="Edit appointment"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+            </div>
           </div>
         );
       })}
@@ -476,7 +734,21 @@ function WeekDayCell({
   );
 }
 
-function DayView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
+function DayView({
+  currentDate,
+  appointments,
+  onReschedule,
+  onEdit,
+  draggedAppointment,
+  setDraggedAppointment,
+}: {
+  currentDate: Date;
+  appointments: Appointment[];
+  onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
+  draggedAppointment: Appointment | null;
+  setDraggedAppointment: (apt: Appointment | null) => void;
+}) {
   const START_HOUR = 6;
   const END_HOUR = 22;
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
@@ -558,6 +830,9 @@ function DayView({ currentDate, appointments, onReschedule }: { currentDate: Dat
               showCurrentTime={currentTimeRow === hourIdx}
               currentTimeOffset={currentTimeOffset}
               onReschedule={onReschedule}
+              onEdit={onEdit}
+              draggedAppointment={draggedAppointment}
+              setDraggedAppointment={setDraggedAppointment}
             />
           </div>
         ))}
@@ -576,6 +851,9 @@ function DayHourCell({
   showCurrentTime,
   currentTimeOffset,
   onReschedule,
+  onEdit,
+  draggedAppointment,
+  setDraggedAppointment,
 }: {
   date: Date;
   hour: number;
@@ -586,10 +864,13 @@ function DayHourCell({
   showCurrentTime: boolean;
   currentTimeOffset: number;
   onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
+  draggedAppointment: Appointment | null;
+  setDraggedAppointment: (apt: Appointment | null) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-  const CELL_HEIGHT = 120; // Increased from 80 to 120 for better visibility
+  const CELL_HEIGHT = 120;
 
   const handleDragOver = (e: React.DragEvent, slot: number) => {
     e.preventDefault();
@@ -601,15 +882,17 @@ function DayHourCell({
     e.preventDefault();
     setIsDragOver(false);
     setDragOverSlot(null);
-    
-    // Calculate the new time based on the slot
-    const newTime = new Date(date);
-    newTime.setHours(hour, slot * 30, 0, 0);
-    
+
     const appointmentId = e.dataTransfer.getData('appointmentId');
     if (appointmentId) {
+      // slot=0 is top half (XX:00), slot=1 is bottom half (XX:30)
+      // This already aligns to 5-min grain (30min is a multiple of 5)
+      const newTime = new Date(date);
+      newTime.setHours(hour, slot * 30, 0, 0);
+
       onReschedule(appointmentId, newTime);
     }
+    setDraggedAppointment(null);
   };
 
   return (
@@ -659,36 +942,56 @@ function DayHourCell({
       )}
 
       {/* Appointments positioned within this cell */}
-      {appointments.map(apt => {
-        // Get just the minutes to position within this specific hour cell
+      {appointments.map((apt) => {
         const start = new Date(apt.start_time);
         const startMinute = start.getMinutes();
-        const offsetFromHour = startMinute / 60; // 0 to 1 representing position within the hour
-        
+        const offsetFromHour = startMinute / 60;
+        // Snap to pixel boundaries to align with grid
+        const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
+        const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 48);
+
         return (
           <div
             key={apt.id}
             draggable
-            className="absolute left-2 right-2 px-3 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
+            className="group absolute left-2 right-2 px-3 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
             style={{
-              top: `${offsetFromHour * CELL_HEIGHT}px`,
-              height: `${Math.max(apt.rowSpan * CELL_HEIGHT - 4, 48)}px`,
+              top: `${topPx}px`,
+              height: `${heightPx}px`,
             }}
             onDragStart={(e) => {
               e.dataTransfer.setData('appointmentId', apt.id);
+              setDraggedAppointment(apt);
             }}
+            onDragEnd={() => setDraggedAppointment(null)}
           >
-            <div className="text-sm font-semibold text-gray-900 leading-tight">
-              {formatTime(new Date(apt.start_time))}
-            </div>
-            <div className="text-sm text-gray-700 leading-tight truncate mt-0.5">
-              {apt.customer_name}
-            </div>
-            {apt.notes && apt.rowSpan > 1 && (
-              <div className="text-xs text-gray-600 leading-tight truncate mt-1">
-                {apt.notes}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-900 leading-tight">
+                  {formatTime(new Date(apt.start_time))}
+                </div>
+                <div className="text-sm text-gray-700 leading-tight truncate mt-0.5">
+                  {apt.customer_name}
+                </div>
+                {apt.notes && apt.rowSpan > 1 && (
+                  <div className="text-xs text-gray-600 leading-tight truncate mt-1">
+                    {apt.notes}
+                  </div>
+                )}
               </div>
-            )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(apt.id);
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-teal-200 rounded flex-shrink-0"
+                title="Edit appointment"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+            </div>
           </div>
         );
       })}
@@ -696,7 +999,7 @@ function DayHourCell({
   );
 }
 
-function ListView({ currentDate, appointments, onReschedule }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void }) {
+function ListView({ currentDate, appointments, onReschedule, onEdit }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void; onEdit: (id: string) => void }) {
   // Group appointments by date
   const appointmentsByDate = appointments.reduce((acc, apt) => {
     const dateKey = new Date(apt.start_time).toDateString();
@@ -775,6 +1078,7 @@ function ListView({ currentDate, appointments, onReschedule }: { currentDate: Da
                       isFirst={idx === 0}
                       isLast={idx === dayAppointments.length - 1}
                       onReschedule={onReschedule}
+                      onEdit={onEdit}
                     />
                   ))}
                 </div>
@@ -787,16 +1091,18 @@ function ListView({ currentDate, appointments, onReschedule }: { currentDate: Da
   );
 }
 
-function ListAppointmentCard({ 
-  appointment, 
-  isFirst, 
-  isLast, 
-  onReschedule 
-}: { 
-  appointment: Appointment; 
-  isFirst: boolean; 
-  isLast: boolean; 
+function ListAppointmentCard({
+  appointment,
+  isFirst,
+  isLast,
+  onReschedule,
+  onEdit
+}: {
+  appointment: Appointment;
+  isFirst: boolean;
+  isLast: boolean;
   onReschedule: (id: string, date: Date) => void;
+  onEdit: (id: string) => void;
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const startTime = new Date(appointment.start_time);
@@ -816,15 +1122,10 @@ function ListAppointmentCard({
 
   return (
     <div
-      draggable
-      className={`group px-6 py-4 hover:bg-gray-50/50 transition-all ${
+      className={`group px-6 py-4 hover:bg-gray-50/50 transition-all cursor-pointer ${
         isDragging ? 'opacity-50' : ''
       } ${isLast ? '' : ''}`}
-      onDragStart={(e) => {
-        setIsDragging(true);
-        e.dataTransfer.setData('appointmentId', appointment.id);
-      }}
-      onDragEnd={() => setIsDragging(false)}
+      onClick={() => onEdit(appointment.id)}
     >
       <div className="flex items-start gap-4">
         {/* Time Badge */}
@@ -855,7 +1156,7 @@ function ListAppointmentCard({
                 </div>
               )}
             </div>
-            
+
             {/* Status Badge */}
             <div className={`px-3 py-1 rounded-lg border text-xs font-semibold uppercase tracking-wider ${statusColor}`}>
               {appointment.status}
@@ -872,10 +1173,10 @@ function ListAppointmentCard({
           )}
         </div>
 
-        {/* Drag Handle */}
-        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
+        {/* Edit Icon */}
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </div>
       </div>

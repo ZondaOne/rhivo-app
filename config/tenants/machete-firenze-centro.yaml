@@ -1,0 +1,289 @@
+version: "1.0.0"
+
+business:
+  id: "machete-firenze-centro"
+  name: "Machete Barber Shop - Firenze Centro"
+  description: "Barbiere tradizionale italiano specializzato in tagli personalizzati e rituali barba. Stile vintage con metodi internazionali nel cuore di Firenze."
+  timezone: "Europe/Rome"
+  locale: "it-IT"
+  currency: "EUR"
+
+contact:
+  address:
+    street: "Via dei Fossi 8R"
+    city: "Firenze"
+    state: "Toscana"
+    postalCode: "50123"
+    country: "IT"
+  email: "firenze.centro@macheteshop.it"
+  phone: "+390555123456"
+  website: "https://www.macheteshop.it"
+  latitude: 43.7737
+  longitude: 11.2501
+
+branding:
+  primaryColor: "#1a1a1a"
+  secondaryColor: "#b8860b"
+  logoUrl: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&h=400&fit=crop"
+  coverImageUrl: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&h=600&fit=crop"
+  faviconUrl: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=64&h=64&fit=crop"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+  - day: tuesday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+  - day: wednesday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+  - day: thursday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+  - day: friday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+  - day: saturday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "18:00"
+    enabled: false
+
+availabilityExceptions:
+  - date: "2025-12-25"
+    reason: "Natale"
+    closed: true
+  - date: "2026-01-01"
+    reason: "Capodanno"
+    closed: true
+  - date: "2026-08-15"
+    reason: "Ferragosto"
+    closed: true
+
+categories:
+  - id: "taglio-capelli"
+    name: "Taglio Capelli"
+    description: "Tagli su misura con forbici e rasoio"
+    sortOrder: 0
+    services:
+      - id: "taglio-classico"
+        name: "Taglio Classico"
+        description: "Taglio tradizionale con forbici, lavaggio e styling"
+        duration: 45
+        price: 2800
+        color: "#4a5568"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "taglio-moderno"
+        name: "Taglio Moderno"
+        description: "Taglio contemporaneo con tecnica fade o sfumatura"
+        duration: 60
+        price: 3500
+        color: "#2d3748"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "taglio-bambini"
+        name: "Taglio Bambini"
+        description: "Taglio per bambini fino a 12 anni"
+        duration: 30
+        price: 2000
+        color: "#718096"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+  - id: "barba"
+    name: "Servizi Barba"
+    description: "Rituali barba tradizionali e contemporanei"
+    sortOrder: 1
+    services:
+      - id: "rifinitura-barba"
+        name: "Rifinitura Barba"
+        description: "Rifinitura e styling della barba con rasoio elettrico"
+        duration: 30
+        price: 2000
+        color: "#8b4513"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "barba-rasoio"
+        name: "Barba con Rasoio"
+        description: "Rasatura tradizionale con rasoio a mano libera e asciugamani caldi"
+        duration: 45
+        price: 3000
+        color: "#654321"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "barba-completa"
+        name: "Barba Completa Premium"
+        description: "Trattamento completo barba: rasatura, trattamenti, massaggio viso e prodotti premium"
+        duration: 60
+        price: 4500
+        color: "#a0522d"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 1500
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "pacchetti"
+    name: "Pacchetti Combo"
+    description: "Taglio e barba combinati"
+    sortOrder: 2
+    services:
+      - id: "taglio-barba-express"
+        name: "Taglio + Barba Express"
+        description: "Taglio capelli e rifinitura barba"
+        duration: 75
+        price: 4500
+        color: "#b8860b"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "taglio-barba-premium"
+        name: "Taglio + Barba Premium"
+        description: "Taglio moderno e barba con rasoio, asciugamani caldi e trattamenti"
+        duration: 105
+        price: 6000
+        color: "#daa520"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 20
+
+  - id: "trattamenti"
+    name: "Trattamenti Speciali"
+    description: "Servizi aggiuntivi e trattamenti"
+    sortOrder: 3
+    services:
+      - id: "colorazione-capelli"
+        name: "Colorazione Capelli Uomo"
+        description: "Tinta per capelli con prodotti professionali"
+        duration: 60
+        price: 4000
+        color: "#696969"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 1500
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "colorazione-barba"
+        name: "Colorazione Barba"
+        description: "Tinta per barba e baffi"
+        duration: 45
+        price: 3000
+        color: "#808080"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "trattamento-cuoio-capelluto"
+        name: "Trattamento Cuoio Capelluto"
+        description: "Massaggio e trattamento rigenerante del cuoio capelluto"
+        duration: 30
+        price: 2500
+        color: "#a9a9a9"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields:
+    - id: "barber-preference"
+      label: "Preferenza Barbiere"
+      type: "select"
+      required: false
+      options:
+        - "Nessuna preferenza"
+        - "Marco"
+        - "Alessandro"
+        - "Davide"
+    - id: "special-notes"
+      label: "Note Speciali"
+      type: "textarea"
+      required: false
+      placeholder: "Eventuali richieste particolari o stile desiderato"
+      maxLength: 200
+
+bookingLimits:
+  maxSimultaneousBookings: 3
+  advanceBookingDays: 45
+  minAdvanceBookingMinutes: 120
+  maxBookingsPerCustomerPerDay: 1
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 24
+  allowRescheduling: true
+  rescheduleDeadlineHours: 12
+  refundPolicy: "partial"
+  partialRefundPercentage: 50
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 24
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: "manager@macheteshop.it"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: true
+  enableWaitlist: true
+  enableReviews: true
+  enableMultipleStaff: true
+
+metadata:
+  parkingAvailable: false
+  wheelchairAccessible: false
+  languages: ["it", "en"]
+  acceptsWalkIns: true
+  dresscode: "Casual"

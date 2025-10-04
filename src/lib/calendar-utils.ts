@@ -2,6 +2,17 @@ import { Appointment } from '@/db/types';
 
 export type CalendarView = 'month' | 'week' | 'day' | 'list';
 
+/**
+ * 5-Minute Grain Block System
+ *
+ * All time calculations snap to 5-minute increments for:
+ * - Drag-and-drop precision
+ * - Service duration flexibility
+ * - Buffer time alignment
+ * - Visual grid consistency
+ */
+export const GRAIN_MINUTES = 5;
+
 export interface CalendarDay {
   date: Date;
   isCurrentMonth: boolean;
@@ -294,7 +305,40 @@ export function formatDate(date: Date, format: 'short' | 'long' = 'short'): stri
 }
 
 /**
+ * Snap a time to the nearest 5-minute grain block
+ *
+ * Examples:
+ * - 9:03 -> 9:05
+ * - 9:07 -> 9:05
+ * - 9:08 -> 9:10
+ *
+ * @param time - The time to snap
+ * @returns New Date snapped to 5-minute grain
+ */
+export function snapToGrain(time: Date): Date {
+  const snapped = new Date(time);
+  const minutes = snapped.getMinutes();
+  const remainder = minutes % GRAIN_MINUTES;
+
+  if (remainder === 0) {
+    return snapped; // Already aligned
+  }
+
+  // Round to nearest 5-minute block
+  const adjustment = remainder >= GRAIN_MINUTES / 2
+    ? GRAIN_MINUTES - remainder
+    : -remainder;
+
+  snapped.setMinutes(minutes + adjustment);
+  snapped.setSeconds(0);
+  snapped.setMilliseconds(0);
+
+  return snapped;
+}
+
+/**
  * Check if drag-and-drop reschedule is valid
+ * Automatically snaps to 5-minute grain blocks
  */
 export function validateReschedule(
   appointment: Appointment,
@@ -302,16 +346,19 @@ export function validateReschedule(
   duration: number,
   existingAppointments: Appointment[],
   maxSimultaneous: number = 1
-): { valid: boolean; reason?: string } {
-  const newEndTime = new Date(newStartTime);
+): { valid: boolean; reason?: string; snappedStartTime?: Date } {
+  // Snap to 5-minute grain
+  const snappedStart = snapToGrain(newStartTime);
+
+  const newEndTime = new Date(snappedStart);
   newEndTime.setMinutes(newEndTime.getMinutes() + duration);
 
   // Check if new time is in the past
-  if (newStartTime < new Date()) {
+  if (snappedStart < new Date()) {
     return { valid: false, reason: 'Cannot schedule in the past' };
   }
 
-  // Check for conflicts
+  // Check for conflicts (using 5min grain block overlap detection)
   const conflicts = existingAppointments.filter((apt) => {
     if (apt.id === appointment.id) return false; // Exclude current appointment
     if (apt.status === 'cancelled') return false;
@@ -319,14 +366,15 @@ export function validateReschedule(
     const aptStart = new Date(apt.start_time);
     const aptEnd = new Date(apt.end_time);
 
-    return newStartTime < aptEnd && newEndTime > aptStart;
+    // Overlap check: two intervals overlap if start1 < end2 AND start2 < end1
+    return snappedStart < aptEnd && newEndTime > aptStart;
   });
 
   if (conflicts.length >= maxSimultaneous) {
     return { valid: false, reason: 'Time slot is fully booked' };
   }
 
-  return { valid: true };
+  return { valid: true, snappedStartTime: snappedStart };
 }
 
 /**

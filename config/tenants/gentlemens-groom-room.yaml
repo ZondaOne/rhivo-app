@@ -1,0 +1,375 @@
+version: "1.0.0"
+
+business:
+  id: "gentlemens-groom-room"
+  name: "Gentlemen's Groom Room"
+  description: "Barbershop contemporaneo specializzato in tagli moderni, cura barba e styling. Ambiente accogliente con attenzione ai dettagli per il gentleman di oggi."
+  timezone: "Europe/Rome"
+  locale: "it-IT"
+  currency: "EUR"
+
+contact:
+  address:
+    street: "Via Maragliano 37 A/B"
+    city: "Firenze"
+    state: "Toscana"
+    postalCode: "50144"
+    country: "IT"
+  email: "gentlemensgroomroom@gmail.com"
+  phone: "+393317315255"
+  website: "https://www.gentlemensgroomroom.it"
+  latitude: 43.7639
+  longitude: 11.2358
+
+branding:
+  primaryColor: "#0f172a"
+  secondaryColor: "#f59e0b"
+  logoUrl: "https://images.unsplash.com/photo-1598516777874-e41703d58b79?w=400&h=400&fit=crop"
+  coverImageUrl: "https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=1200&h=600&fit=crop"
+  faviconUrl: "https://images.unsplash.com/photo-1598516777874-e41703d58b79?w=64&h=64&fit=crop"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "09:30"
+    close: "20:30"
+    enabled: true
+  - day: tuesday
+    open: "09:30"
+    close: "20:30"
+    enabled: true
+  - day: wednesday
+    open: "09:30"
+    close: "20:30"
+    enabled: false
+  - day: thursday
+    open: "09:30"
+    close: "20:30"
+    enabled: true
+  - day: friday
+    open: "09:30"
+    close: "20:30"
+    enabled: true
+  - day: saturday
+    open: "09:30"
+    close: "20:30"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "20:00"
+    enabled: true
+
+availabilityExceptions:
+  - date: "2025-12-25"
+    reason: "Natale"
+    closed: true
+  - date: "2026-01-01"
+    reason: "Capodanno"
+    closed: true
+  - date: "2026-08-15"
+    reason: "Ferragosto"
+    closed: true
+
+categories:
+  - id: "tagli-moderni"
+    name: "Tagli Moderni"
+    description: "Haircuts contemporanei con tecniche innovative"
+    sortOrder: 0
+    services:
+      - id: "haircut-classic"
+        name: "Haircut Classico"
+        description: "Taglio classico con forbici e macchinetta, lavaggio e styling finale"
+        duration: 45
+        price: 2800
+        color: "#334155"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "modern-fade"
+        name: "Modern Fade"
+        description: "Fade contemporaneo con sfumature precise e linee definite"
+        duration: 60
+        price: 3500
+        color: "#475569"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 10
+
+      - id: "skin-fade"
+        name: "Skin Fade"
+        description: "Sfumatura a zero con gradazioni perfette e dettagli al rasoio"
+        duration: 60
+        price: 3800
+        color: "#64748b"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 10
+
+      - id: "pompadour-styling"
+        name: "Pompadour & Styling Creativo"
+        description: "Taglio moderno con volume, texture e styling elaborato"
+        duration: 75
+        price: 4200
+        color: "#94a3b8"
+        sortOrder: 3
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "beard-trim"
+    name: "Cura Barba"
+    description: "Servizi specializzati per la barba"
+    sortOrder: 1
+    services:
+      - id: "beard-trim-basic"
+        name: "Beard Trim"
+        description: "Rifinitura barba con macchinetta e definizione contorni"
+        duration: 30
+        price: 2000
+        color: "#ea580c"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+      - id: "beard-sculpting"
+        name: "Beard Sculpting"
+        description: "Scultura barba con rasoio, shaping preciso e trattamento oli"
+        duration: 45
+        price: 3000
+        color: "#f97316"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "hot-towel-shave"
+        name: "Hot Towel Shave"
+        description: "Rasatura completa con asciugamani caldi, rasoio tradizionale e aftershave"
+        duration: 50
+        price: 3500
+        color: "#fb923c"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+  - id: "combo-packages"
+    name: "Pacchetti Combo"
+    description: "Combinazioni haircut e beard"
+    sortOrder: 2
+    services:
+      - id: "haircut-beard"
+        name: "Haircut + Beard Trim"
+        description: "Taglio capelli completo e rifinitura barba"
+        duration: 75
+        price: 4500
+        color: "#f59e0b"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "complete-grooming"
+        name: "Complete Grooming"
+        description: "Taglio fade moderno, beard sculpting e trattamento styling"
+        duration: 105
+        price: 6000
+        color: "#fbbf24"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 20
+
+      - id: "vip-treatment"
+        name: "VIP Treatment"
+        description: "Pacchetto completo: taglio premium, hot towel shave, massaggio cuoio capelluto, styling prodotti inclusi"
+        duration: 135
+        price: 7500
+        color: "#fcd34d"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 15
+        bufferAfter: 20
+
+  - id: "styling-services"
+    name: "Styling e Trattamenti"
+    description: "Servizi extra per look perfetto"
+    sortOrder: 3
+    services:
+      - id: "styling-session"
+        name: "Styling Session"
+        description: "Styling professionale per eventi speciali (senza taglio)"
+        duration: 30
+        price: 2000
+        color: "#22c55e"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+      - id: "hair-coloring"
+        name: "Colorazione Capelli"
+        description: "Colore o colpi di sole per capelli uomo"
+        duration: 75
+        price: 4500
+        color: "#16a34a"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 10
+        bufferAfter: 15
+
+      - id: "beard-coloring"
+        name: "Colorazione Barba"
+        description: "Copertura brizzolature o colorazione barba completa"
+        duration: 45
+        price: 3200
+        color: "#15803d"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "scalp-treatment"
+        name: "Trattamento Cuoio Capelluto"
+        description: "Massaggio e trattamento rigenerante anticaduta"
+        duration: 40
+        price: 3000
+        color: "#166534"
+        sortOrder: 3
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+      - id: "eyebrow-grooming"
+        name: "Grooming Sopracciglia"
+        description: "Definizione e cura sopracciglia uomo"
+        duration: 20
+        price: 1500
+        color: "#14532d"
+        sortOrder: 4
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+  - id: "kids-services"
+    name: "Servizi Bambini"
+    description: "Tagli per i più piccoli"
+    sortOrder: 4
+    services:
+      - id: "kids-haircut"
+        name: "Taglio Bambini (0-12 anni)"
+        description: "Taglio per bambini con attenzione e pazienza"
+        duration: 30
+        price: 2000
+        color: "#06b6d4"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+      - id: "kids-special-styling"
+        name: "Taglio Bambini con Styling"
+        description: "Taglio moderno per bambini con disegni o styling particolare"
+        duration: 45
+        price: 2800
+        color: "#0891b2"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 10
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields:
+    - id: "barber-choice"
+      label: "Preferenza Barber"
+      type: "select"
+      required: false
+      options:
+        - "Qualsiasi barber disponibile"
+        - "Andrea"
+        - "Giacomo"
+        - "Stefano"
+    - id: "hair-type"
+      label: "Tipo di Capelli"
+      type: "select"
+      required: false
+      options:
+        - "Lisci"
+        - "Mossi"
+        - "Ricci"
+        - "Afro"
+    - id: "style-notes"
+      label: "Note sullo Stile Desiderato"
+      type: "textarea"
+      required: false
+      placeholder: "Descrivi il look che vuoi ottenere o porta una foto di riferimento"
+      maxLength: 250
+
+bookingLimits:
+  maxSimultaneousBookings: 3
+  advanceBookingDays: 30
+  minAdvanceBookingMinutes: 90
+  maxBookingsPerCustomerPerDay: 1
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 12
+  allowRescheduling: true
+  rescheduleDeadlineHours: 6
+  refundPolicy: "full"
+  partialRefundPercentage: 100
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 12
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: "gentlemensgroomroom@gmail.com"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: true
+  enableWaitlist: true
+  enableReviews: true
+  enableMultipleStaff: true
+
+metadata:
+  parkingAvailable: true
+  wheelchairAccessible: true
+  languages: ["it", "en"]
+  acceptsWalkIns: true
+  dresscode: "Casual"

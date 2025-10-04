@@ -132,3 +132,19 @@ input[type="range"].slider-thumb:focus::-webkit-slider-thumb {
 input[type="range"].slider-thumb:focus::-moz-range-thumb {
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
 }
+
+/* Toast notification animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}

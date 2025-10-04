@@ -148,18 +148,56 @@
 </step>
 
 <step number="7f">
-  <title>Flexible service duration and time slot handling</title>
+  <title>Flexible service duration and time slot handling (5-minute grain block system)</title>
   <tasks>
-    <task>Update YAML validation to allow service durations that don't perfectly align with timeSlotDuration.</task>
-    <task>Implement intelligent slot allocation that handles services spanning multiple time slots (e.g., 45min service in 30min slots).</task>
-    <task>Add slot calculation logic to reserve consecutive slots for services longer than base slot duration.</task>
-    <task>Update availability API to correctly show available slots for services of varying durations.</task>
-    <task>Handle edge cases: service ending mid-slot, overlapping bookings prevention, buffer time calculations.</task>
-    <task>Add validation warnings (not errors) when service duration is not a clean multiple of slot duration.</task>
-    <task>Update booking UI to clearly show time commitment for non-standard duration services.</task>
+    <task>Implement 5-minute grain block system as universal time grid for all scheduling operations.</task>
+    <task>Update YAML validation to auto-round durations, buffers, and timeSlotDuration to nearest 5min multiple (with console info logs).</task>
+    <task>Refactor slot-generator to use 5min grain blocks: timeSlotDuration becomes DISPLAY interval, services can be any 5min multiple.</task>
+    <task>Implement intelligent slot allocation that handles services spanning multiple time slots (e.g., 45min service in 30min display slots).</task>
+    <task>Add overlap detection using grain block precision: check if intervals [start1, end1) and [start2, end2) conflict.</task>
+    <task>Update availability API to correctly show available slots for services of varying durations (15, 45, 75, 90, 105 min).</task>
+    <task>Handle edge cases: service ending mid-slot, overlapping bookings prevention, buffer time calculations at 5min granularity.</task>
+    <task>Export snapToGrain() utility function for use across codebase (calendar drag-and-drop, manual entry, etc).</task>
   </tasks>
-  <deliverables>Enhanced slot calculation algorithm, updated YAML schema validation, booking flow that handles arbitrary service durations, test cases for edge scenarios (15min, 45min, 75min services with 30min slots).</deliverables>
-  <acceptance>Services with any duration (15, 45, 75, 90, 105 minutes) work correctly with any timeSlotDuration. Slot availability accurately reflects occupied time. No double-bookings occur. YAML validation provides helpful warnings but doesn't block non-multiples.</acceptance>
+  <deliverables>5-minute grain block system implementation, updated tenant-schema.ts with auto-rounding transforms, refactored slot-generator.ts, snapToGrain() utility in calendar-utils.ts, test YAML config with edge case durations (15, 45, 75, 105 min).</deliverables>
+  <acceptance>Services with any 5min-multiple duration work correctly with any timeSlotDuration. Slot availability accurately reflects occupied time using grain block overlap detection. No double-bookings occur. YAML auto-rounds non-multiples of 5 with info logs. Drag-and-drop snaps to 5min grid.</acceptance>
+</step>
+
+<step number="7g">
+  <title>Appointment drag-and-drop rescheduling with validation</title>
+  <tasks>
+    <task>Implement drag-and-drop rescheduling in month, week, and day calendar views with 5-minute grain snap.</task>
+    <task>Create API endpoint POST /api/appointments/reschedule that validates new time slot availability before committing.</task>
+    <task>Run same validation checks as booking flow: slot availability, capacity limits, business hours, advance booking limits, overlaps.</task>
+    <task>Check slot capacity using existing slot-generator logic: verify new time has available capacity considering service duration + buffers.</task>
+    <task>Implement optimistic locking: check appointment.updated_at hasn't changed since drag started to prevent concurrent modification conflicts.</task>
+    <task>Show confirmation alert after successful reschedule: "Appointment rescheduled. Customer will be notified via email."</task>
+    <task>Send notification email to customer with updated appointment time, cancellation link, and calendar attachment (.ics).</task>
+    <task>Add audit log entry recording who rescheduled, old time, new time, and timestamp.</task>
+    <task>Handle drag validation failures gracefully: show error toast with specific reason (fully booked, outside business hours, etc).</task>
+    <task>Implement visual feedback during drag: highlight valid drop zones in green, invalid in red, show capacity indicator.</task>
+  </tasks>
+  <deliverables>Drag-and-drop UI implementation in Calendar.tsx (month/week/day views), POST /api/appointments/reschedule endpoint, slot availability validation logic, customer notification email template, audit logging, error handling with user-friendly messages.</deliverables>
+  <acceptance>Owner can drag appointments to new time slots. System validates availability using same logic as booking flow. Invalid drops are rejected with clear error messages. Customer receives email notification on successful reschedule. Audit log captures all reschedule operations. No double-bookings or capacity violations occur.</acceptance>
+</step>
+
+<step number="7h">
+  <title>Appointment edit modal for detailed modifications</title>
+  <tasks>
+    <task>Add edit button (pencil icon) on appointment hover in all calendar views (month, week, day, list).</task>
+    <task>Create AppointmentEditModal component with form fields: date, start time (5min grain dropdown), service selector, customer info, notes, status.</task>
+    <task>In list view, clicking appointment or edit button opens modal instead of inline edit.</task>
+    <task>Implement time picker with 5-minute grain increments (9:00, 9:05, 9:10, etc) respecting business hours from YAML config.</task>
+    <task>Add service selector dropdown that updates duration and end time preview automatically.</task>
+    <task>Show real-time availability check: display capacity indicator and conflicts warning as user changes date/time.</task>
+    <task>Validate form before submission: check slot availability, business hours, capacity, customer required fields.</task>
+    <task>Support status changes (confirmed, cancelled, completed, no_show) with confirmation prompts for cancellations.</task>
+    <task>Add "Notify customer" checkbox (default checked) to control whether customer receives update email.</task>
+    <task>Implement optimistic UI updates: update calendar immediately on save, revert on error with toast notification.</task>
+    <task>Add delete/cancel appointment action with confirmation dialog: "Cancel this appointment? Customer will be notified."</task>
+  </tasks>
+  <deliverables>AppointmentEditModal.tsx component, edit button overlay on hover, 5min-grain time picker, service selector with duration preview, real-time availability validation, status change controls, customer notification toggle, delete/cancel action, optimistic UI updates.</deliverables>
+  <acceptance>Edit button appears on appointment hover in all views. Modal opens with pre-filled appointment data. Time picker shows 5-minute increments within business hours. Service changes update duration and availability in real-time. Slot validation prevents overbooking. Customer receives email when "Notify customer" is checked. Status changes and cancellations work correctly. UI updates optimistically with error rollback.</acceptance>
 </step>
 
 <step number="8">
