@@ -10,6 +10,8 @@ interface TimeSlot {
   end: string;
   available: boolean;
   capacity: number;
+  totalCapacity: number;
+  capacityPercentage: number;
   reason?: string;
 }
 
@@ -71,6 +73,68 @@ export default function BookingPage() {
       .finally(() => setLoading(false));
   }, [subdomain]);
 
+  // State for date capacity data
+  const [dateCapacityMap, setDateCapacityMap] = useState<Map<string, { available: number; total: number; percentage: number; hasAvailableSlots: boolean }>>(new Map());
+  const [loadingDateCapacity, setLoadingDateCapacity] = useState(false);
+
+  // Load capacity data for all visible dates when service is selected
+  useEffect(() => {
+    if (!selectedService || !subdomain || !config) {
+      setDateCapacityMap(new Map());
+      return;
+    }
+
+    setLoadingDateCapacity(true);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDateStr = formatDateYYYYMMDD(today);
+
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + Math.min(config.bookingLimits.advanceBookingDays, 30));
+    const endDateStr = formatDateYYYYMMDD(endDate);
+
+    fetch(`/api/booking/slots?subdomain=${subdomain}&serviceId=${selectedService.id}&startDate=${startDateStr}&endDate=${endDateStr}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.slots) {
+          // Calculate capacity per day, filtering out past slots
+          const now = new Date();
+          const capacityByDate = new Map<string, { available: number; total: number; hasAvailableSlots: boolean }>();
+
+          data.slots.forEach((slot: TimeSlot) => {
+            const slotTime = new Date(slot.start);
+            const dateKey = formatDateYYYYMMDD(slotTime);
+
+            if (!capacityByDate.has(dateKey)) {
+              capacityByDate.set(dateKey, { available: 0, total: 0, hasAvailableSlots: false });
+            }
+            const dayData = capacityByDate.get(dateKey)!;
+            dayData.total += slot.totalCapacity;
+            dayData.available += slot.capacity;
+
+            // Check if this slot is in the future and available
+            if (slotTime > now && slot.available) {
+              dayData.hasAvailableSlots = true;
+            }
+          });
+
+          // Calculate percentages
+          const capacityMap = new Map<string, { available: number; total: number; percentage: number; hasAvailableSlots: boolean }>();
+          capacityByDate.forEach((value, key) => {
+            const usedCapacity = value.total - value.available;
+            const percentage = value.total > 0 ? Math.round((usedCapacity / value.total) * 100) : 0;
+            capacityMap.set(key, { ...value, percentage });
+          });
+
+          setDateCapacityMap(capacityMap);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load date capacity:', err);
+      })
+      .finally(() => setLoadingDateCapacity(false));
+  }, [selectedService, subdomain, config]);
+
   // Load available slots when service and date are selected
   useEffect(() => {
     if (!selectedService || !selectedDate || !subdomain) {
@@ -88,7 +152,25 @@ export default function BookingPage() {
       .then(res => res.json())
       .then(data => {
         if (data.success && data.slots) {
-          setAvailableSlots(data.slots.filter((s: TimeSlot) => s.available));
+          // Filter slots: only show available ones
+          // Also filter out past time slots if the selected date is today
+          const now = new Date();
+          const isToday = selectedDate && formatDateYYYYMMDD(selectedDate) === formatDateYYYYMMDD(now);
+
+          const filteredSlots = data.slots.filter((s: TimeSlot) => {
+            // Always filter out fully booked slots
+            if (!s.available) return false;
+
+            // If today, filter out past time slots
+            if (isToday) {
+              const slotTime = new Date(s.start);
+              return slotTime > now;
+            }
+
+            return true;
+          });
+
+          setAvailableSlots(filteredSlots);
         } else {
           setError(data.error || 'Failed to load available slots');
         }
@@ -249,11 +331,12 @@ export default function BookingPage() {
 
   if (!config) return null;
 
-  // Generate available dates (next 30 days)
+  // Generate available dates (next 30 days, excluding past dates)
   const availableDates: Date[] = [];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Start from today (not past dates)
   for (let i = 0; i < Math.min(config.bookingLimits.advanceBookingDays, 30); i++) {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
@@ -570,37 +653,105 @@ export default function BookingPage() {
 
                   {/* Date Selection */}
                   <div className="mb-4 sm:mb-6">
-                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 sm:mb-3">Choose a Date</h3>
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">Choose a Date</h3>
+                      <div className="flex items-center gap-2 text-xs">
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 rounded bg-green-100 border border-green-300"></div>
+                          <span className="text-gray-600">Low</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 rounded bg-yellow-100 border border-yellow-300"></div>
+                          <span className="text-gray-600">Mid</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 rounded bg-orange-100 border border-orange-300"></div>
+                          <span className="text-gray-600">High</span>
+                        </div>
+                      </div>
+                    </div>
                     <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-1.5 sm:gap-2">
                       {availableDates.map((date, idx) => {
                         const dayOfWeek = getDayOfWeek(date);
                         const dayAvail = config.availability.find(a => a.day === dayOfWeek);
-                        const isAvailable = dayAvail?.enabled || false;
+
+                        // Check for exceptions
+                        const dateString = formatDateYYYYMMDD(date);
+                        const exception = config.availabilityExceptions.find(e => e.date === dateString);
+                        const isClosed = exception?.closed || false;
+
+                        // Get capacity data for this date
+                        const capacityData = dateCapacityMap.get(dateString);
+                        const capacityPct = capacityData?.percentage || 0;
+
+                        // Date is available if: day is enabled, not closed, and has future available slots
+                        const isAvailable = (dayAvail?.enabled || false) && !isClosed && (capacityData?.hasAvailableSlots !== false);
                         const isSelected = selectedDate && formatDateYYYYMMDD(date) === formatDateYYYYMMDD(selectedDate);
+
+                        // Determine background color based on capacity
+                        const getCapacityBgStyle = () => {
+                          if (!isAvailable) return 'bg-gray-100';
+                          if (!selectedService) return 'bg-white'; // No service selected yet
+                          if (!capacityData) return 'bg-gray-50'; // Loading or no data
+
+                          if (isSelected) return 'bg-teal-50';
+
+                          if (capacityPct <= 30) {
+                            return 'bg-green-50 hover:bg-green-100';
+                          } else if (capacityPct <= 60) {
+                            return 'bg-yellow-50 hover:bg-yellow-100';
+                          } else {
+                            return 'bg-orange-50 hover:bg-orange-100';
+                          }
+                        };
+
+                        const getBorderStyle = () => {
+                          if (!isAvailable) return 'border-gray-100';
+                          if (!selectedService) return 'border-gray-200';
+                          if (!capacityData) return 'border-gray-200';
+
+                          if (isSelected) return 'border-teal-600';
+
+                          if (capacityPct <= 30) {
+                            return 'border-green-200 hover:border-green-400';
+                          } else if (capacityPct <= 60) {
+                            return 'border-yellow-200 hover:border-yellow-400';
+                          } else {
+                            return 'border-orange-200 hover:border-orange-400';
+                          }
+                        };
 
                         return (
                           <button
                             key={idx}
                             onClick={() => isAvailable && setSelectedDate(date)}
                             disabled={!isAvailable}
-                            className={`p-2 sm:p-3 rounded-xl border-2 transition-all text-center ${
-                              isSelected
-                                ? 'border-teal-600 bg-gray-50'
-                                : isAvailable
-                                ? 'border-gray-200 bg-white hover:border-gray-300'
-                                : 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                            className={`p-2 sm:p-3 rounded-xl border-2 transition-all text-center ${getCapacityBgStyle()} ${getBorderStyle()} ${
+                              !isAvailable ? 'opacity-40 cursor-not-allowed' : ''
                             }`}
+                            title={
+                              !isAvailable
+                                ? (isClosed ? 'Closed' : 'Unavailable')
+                                : capacityData
+                                ? `${Math.round((capacityData.available / capacityData.total) * 100)}% available`
+                                : undefined
+                            }
                           >
                             <div className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wide ${
-                              isSelected ? 'text-teal-600' : 'text-gray-500'
+                              isSelected ? 'text-teal-600' : isAvailable ? 'text-gray-500' : 'text-gray-400'
                             }`}>
                               {formatDayShort(date).slice(0, 3)}
                             </div>
                             <div className={`text-base sm:text-lg font-bold mt-0.5 sm:mt-1 ${
-                              isSelected ? 'text-gray-900' : 'text-gray-900'
+                              isSelected ? 'text-gray-900' : isAvailable ? 'text-gray-900' : 'text-gray-400'
                             }`}>
                               {date.getDate()}
                             </div>
+                            {!isAvailable && (
+                              <div className="text-[10px] text-gray-400 mt-0.5">
+                                {isClosed ? 'Closed' : 'N/A'}
+                              </div>
+                            )}
                           </button>
                         );
                       })}
@@ -624,16 +775,93 @@ export default function BookingPage() {
                           <p className="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">Please select another date</p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-2 max-h-64 sm:max-h-96 overflow-y-auto">
-                          {availableSlots.map((slot, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => handleSlotSelect(slot)}
-                              className="px-2 sm:px-4 py-2 sm:py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-gray-50 transition-all text-center text-xs sm:text-sm font-semibold text-gray-900"
-                            >
-                              {formatTime(new Date(slot.start))}
-                            </button>
-                          ))}
+                        <div className="space-y-4">
+                          {/* Group slots by time of day for better UX */}
+                          {(() => {
+                            // Group slots: Morning (6-12), Afternoon (12-17), Evening (17-22)
+                            const morning = availableSlots.filter(s => {
+                              const hour = new Date(s.start).getHours();
+                              return hour >= 6 && hour < 12;
+                            });
+                            const afternoon = availableSlots.filter(s => {
+                              const hour = new Date(s.start).getHours();
+                              return hour >= 12 && hour < 17;
+                            });
+                            const evening = availableSlots.filter(s => {
+                              const hour = new Date(s.start).getHours();
+                              return hour >= 17 && hour < 22;
+                            });
+
+                            return (
+                              <>
+                                {morning.length > 0 && (
+                                  <div>
+                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                      </svg>
+                                      Morning
+                                    </div>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                      {morning.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSlotSelect(slot)}
+                                          className="px-3 py-2.5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900"
+                                        >
+                                          {formatTime(new Date(slot.start))}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {afternoon.length > 0 && (
+                                  <div>
+                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                      </svg>
+                                      Afternoon
+                                    </div>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                      {afternoon.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSlotSelect(slot)}
+                                          className="px-3 py-2.5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900"
+                                        >
+                                          {formatTime(new Date(slot.start))}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {evening.length > 0 && (
+                                  <div>
+                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                      </svg>
+                                      Evening
+                                    </div>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                      {evening.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSlotSelect(slot)}
+                                          className="px-3 py-2.5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900"
+                                        >
+                                          {formatTime(new Date(slot.start))}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

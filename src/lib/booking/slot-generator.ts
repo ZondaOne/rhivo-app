@@ -11,13 +11,15 @@
  * - Max simultaneous bookings (staff capacity)
  */
 
-import { TenantConfig, DailyAvailability, Service } from '@/lib/config/tenant-schema';
+import { TenantConfig, Service } from '@/lib/config/tenant-schema';
 
 export interface TimeSlot {
   start: string; // ISO datetime string
   end: string; // ISO datetime string
   available: boolean;
   capacity: number; // How many slots available at this time
+  totalCapacity: number; // Maximum capacity for this slot
+  capacityPercentage: number; // % of capacity used (0-100)
   reason?: string; // If unavailable, why?
 }
 
@@ -28,6 +30,12 @@ export interface SlotGeneratorOptions {
   endDate: Date;
   existingAppointments?: Array<{ slot_start: string; slot_end: string }>;
   existingReservations?: Array<{ slot_start: string; slot_end: string; expires_at: string }>;
+}
+
+interface Reservation {
+  slot_start: string;
+  slot_end: string;
+  expires_at: string;
 }
 
 /**
@@ -84,7 +92,7 @@ function generateSlotsForDay(
   config: TenantConfig,
   service: Service,
   appointments: Array<{ slot_start: string; slot_end: string }>,
-  reservations: Array<{ slot_start: string; expires_at: string }>,
+  reservations: Array<Reservation>,
   now: Date
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
@@ -175,11 +183,18 @@ function generateSlotsForDay(
       reservations
     );
 
+    const totalCapacity = config.bookingLimits.maxSimultaneousBookings;
+    const availableCapacity = capacity;
+    const usedCapacity = totalCapacity - availableCapacity;
+    const capacityPercentage = totalCapacity > 0 ? Math.round((usedCapacity / totalCapacity) * 100) : 0;
+
     slots.push({
       start: slotStart.toISOString(),
       end: slotEnd.toISOString(),
       available: capacity > 0,
       capacity,
+      totalCapacity,
+      capacityPercentage,
       reason: capacity === 0 ? 'Fully booked' : undefined,
     });
 
@@ -198,7 +213,7 @@ function calculateSlotCapacity(
   slotEnd: Date,
   maxCapacity: number,
   appointments: Array<{ slot_start: string; slot_end: string }>,
-  reservations: Array<{ slot_start: string; expires_at: string }>
+  reservations: Array<Reservation>
 ): number {
   let usedCapacity = 0;
 
