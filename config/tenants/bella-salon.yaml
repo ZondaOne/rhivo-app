@@ -18,6 +18,8 @@ contact:
   email: "info@bellasalon.it"
   phone: "+390552456789"
   website: "https://bellasalon.it"
+  latitude: 43.7710
+  longitude: 11.2526
 
 branding:
   primaryColor: "#ec4899"

@@ -157,10 +157,10 @@ export default function Home() {
               Don't have an account yet?
             </p>
             <Link
-              href="/auth/signup"
+              href="/onboard"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all text-sm md:text-base"
             >
-              <span>Start your free business account</span>
+              <span>Register your business</span>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>

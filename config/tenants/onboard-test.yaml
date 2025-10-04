@@ -1,0 +1,108 @@
+version: 1.0.0
+business:
+  id: onboard-test
+  name: onboard-test
+  description: ""
+  timezone: America/Chicago
+  locale: en-US
+  currency: EUR
+contact:
+  address:
+    street: 11 wrr
+    city: rwq
+    state: qwr
+    postalCode: "2233"
+    country: IT
+  email: test2@test.com
+  phone: "112233445566"
+  website: https://onboard.com
+branding:
+  primaryColor: "#ffc4ab"
+  secondaryColor: "#fecb3e"
+  logoUrl: https://placehold.co/200x200
+  coverImageUrl: https://placehold.co/1200x400
+  faviconUrl: https://placehold.co/32x32
+timeSlotDuration: 30
+availability:
+  - day: monday
+    open: 09:00
+    close: 17:00
+    enabled: true
+  - day: tuesday
+    open: 09:00
+    close: 17:00
+    enabled: true
+  - day: wednesday
+    open: 09:00
+    close: 17:00
+    enabled: true
+  - day: thursday
+    open: 09:00
+    close: 17:00
+    enabled: true
+  - day: friday
+    open: 09:00
+    close: 17:00
+    enabled: true
+  - day: saturday
+    open: 10:00
+    close: 14:00
+    enabled: false
+  - day: sunday
+    open: 10:00
+    close: 14:00
+    enabled: false
+availabilityExceptions: []
+categories:
+  - id: general
+    name: General Services
+    description: Add your services in the dashboard
+    sortOrder: 0
+    services:
+      - id: consultation
+        name: Consultation
+        description: General consultation service
+        duration: 30
+        price: 0
+        color: "#ffc4ab"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 0
+        bufferAfter: 0
+bookingRequirements:
+  requireEmail: true
+  requirePhone: false
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields: []
+bookingLimits:
+  maxSimultaneousBookings: 1
+  advanceBookingDays: 30
+  minAdvanceBookingMinutes: 60
+  maxBookingsPerCustomerPerDay: 3
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 24
+  allowRescheduling: true
+  rescheduleDeadlineHours: 12
+  refundPolicy: full
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 24
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: test2@test.com
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+features:
+  enableOnlinePayments: false
+  enableWaitlist: false
+  enableReviews: false
+  enableMultipleStaff: false
+metadata:
+  createdVia: self-service-onboarding
+  createdAt: 2025-10-04T08:46:44.227Z

@@ -58,6 +58,15 @@ const ContactSchema = z.object({
   email: EmailString,
   phone: PhoneString,
   website: UrlString.optional(),
+  // Geolocation coordinates for map display
+  latitude: z.number()
+    .min(-90, 'Latitude must be between -90 and 90')
+    .max(90, 'Latitude must be between -90 and 90')
+    .optional(),
+  longitude: z.number()
+    .min(-180, 'Longitude must be between -180 and 180')
+    .max(180, 'Longitude must be between -180 and 180')
+    .optional(),
 });
 
 /**

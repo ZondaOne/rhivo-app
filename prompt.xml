@@ -111,11 +111,9 @@
     <task>Generate YAML configuration from form data for validation and storage.</task>
     <task>Real-time validation of each step (subdomain availability, service duration compatibility, etc).</task>
     <task>Allow owner to create account during signup (email/password) or link to existing owner account.</task>
-    <task>Preview booking page before finalizing to ensure branding/services look correct.</task>
-    <task>Automatic subdomain suggestion based on business name with availability check.</task>
   </tasks>
   <deliverables>Public signup form wizard, YAML generator from form data, validation system, preview functionality, subdomain availability checker.</deliverables>
-  <acceptance>Non-technical business owners can self-onboard without YAML knowledge. Form validates in real-time. Generated config matches YAML schema. Preview accurately shows final booking page. Process completes with functional business and booking page.</acceptance>
+  <acceptance>Non-technical business owners can self-onboard without YAML knowledge. Form validates in real-time. Generated config matches YAML schema.Process completes with functional business and booking page.</acceptance>
 </step>
 
 <step number="7d">
@@ -228,6 +226,40 @@
   </tasks>
   <deliverables>Database migration for discovery fields, geospatial indexes, discovery API spec and implementation, caching strategy, admin toggle for visibility.</deliverables>
   <acceptance>Discovery API returns accurate, filtered business lists in &lt;500ms. Geolocation queries work correctly. Business owners can control discovery visibility. Next available slot data is fresh and accurate.</acceptance>
+</step>
+
+<step number="11a">
+  <title>Geocoding Integration for Business Onboarding</title>
+  <tasks>
+    <task>Extend YAML schema to include geolocation fields: latitude (DECIMAL 10,8) and longitude (DECIMAL 11,8).</task>
+    <task>Update tenant-schema.ts Zod validators to accept and validate latitude/longitude fields.</task>
+    <task>Add address geocoding to onboarding flow: accept full address input and convert to lat/long coordinates.</task>
+    <task>Implement geocoding service using free Nominatim API (OpenStreetMap) or similar geocoding service.</task>
+    <task>Create address autocomplete/validation component that suggests addresses and shows coordinates preview.</task>
+    <task>Store geocoded coordinates in YAML config alongside address for discovery map display.</task>
+    <task>Add fallback geocoding: if coordinates not in YAML, geocode from address on-the-fly and cache result.</task>
+    <task>Update existing YAML configs (wellness-spa, bella-salon) with geocoded coordinates for Italian addresses.</task>
+    <task>Modify discovery API to prioritize YAML coordinates over hardcoded city lookups.</task>
+  </tasks>
+  <deliverables>Updated YAML schema with lat/long fields, geocoding service implementation, address input component with preview, backfilled YAML configs with coordinates, updated discovery API.</deliverables>
+  <acceptance>Onboarding flow captures address and automatically geocodes to lat/long. Coordinates stored in YAML. Discovery map displays businesses at accurate locations. No hardcoded city coordinates needed.</acceptance>
+</step>
+
+<step number="11b">
+  <title>Map Business Overview Cards - Hover and Zoom Interactions</title>
+  <tasks>
+    <task>Implement hover interaction on map markers: show compact business card overlay when mouse hovers over marker.</task>
+    <task>Design minimal business overview card with: business name, primary service category, next available slot, distance from user, and thumbnail image.</task>
+    <task>Add zoom-based clustering: when zoomed out, group nearby businesses into cluster markers showing count.</task>
+    <task>On cluster click or hover, display aggregated overview: "X businesses in this area" with preview of top 3 businesses.</task>
+    <task>Implement smooth transitions: fade in/out animations for cards, scale markers on hover, highlight active business.</task>
+    <task>Create side panel (optional): when marker is clicked, slide in detailed panel from side with full business info and quick book CTA.</task>
+    <task>Add keyboard navigation: allow tab through markers, space/enter to open card, escape to close.</task>
+    <task>Optimize performance: debounce hover events, lazy load business images, virtual rendering for large cluster counts.</task>
+    <task>Mobile UX: convert hover to tap interaction, show bottom sheet instead of overlay on mobile screens.</task>
+  </tasks>
+  <deliverables>Hover card component, cluster marker logic, zoom-level business aggregation, side panel UI (optional), keyboard navigation implementation, mobile-responsive interaction patterns.</deliverables>
+  <acceptance>Hovering over marker shows business summary instantly. Clusters display on zoom out with business count. Click/tap opens detailed view. Smooth 60fps animations. Works seamlessly on desktop and mobile. Keyboard accessible.</acceptance>
 </step>
 
 <step number="13">

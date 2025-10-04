@@ -18,6 +18,8 @@ contact:
   email: "prenotazioni@tranquillospa.it"
   phone: "+390552345678"
   website: "https://tranquillospa.it"
+  latitude: 43.7751
+  longitude: 11.2600
 
 branding:
   primaryColor: "#10b981"
