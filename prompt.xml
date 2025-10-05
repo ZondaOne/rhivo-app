@@ -339,6 +339,23 @@
   <acceptance>Overlapping appointments display in cascaded columns with clear visual separation. Appointments starting at different times (10:00, 10:05) show vertically offset in adjacent columns. Column widths distribute proportionally up to 4 appointments, then compress. Hover expands appointment for full details. Works smoothly in week/day views with minute-level precision. Gracefully degrades to stacking in month view. Animations are smooth at 60fps.</acceptance>
 </step>
 
+<step number="7k">
+  <title>Calendar navigation and interaction refinements</title>
+  <tasks>
+    <task>Prevent unnecessary reschedule confirmations: detect when appointment is dragged and dropped to the exact same time slot (no change) and skip confirmation modal entirely.</task>
+    <task>Implement same-position detection: compare original start time with new start time at minute-level precision using 5-minute grain alignment.</task>
+    <task>Make month view calendar cells clickable: clicking an empty area of a day cell navigates to day view for that specific date.</task>
+    <task>Implement appointment-specific navigation: clicking directly on an appointment card navigates to day view for that date AND scrolls/centers the view on that specific appointment.</task>
+    <task>Design scroll-to-appointment animation: when navigating from month view to day view via appointment click, smoothly scroll the day view timeline to center the appointment in the viewport.</task>
+    <task>Add visual highlight animation: briefly highlight the target appointment with a subtle pulse or glow effect after navigation to draw user attention.</task>
+    <task>Handle edge cases: appointment at very early hour (6 AM) or very late hour (10 PM) should still center properly without scrolling beyond timeline bounds.</task>
+    <task>Implement URL state management: update URL parameters when navigating to day view so browser back button works correctly (e.g., /dashboard?view=day&date=2025-01-07&appointment=abc123).</task>
+    <task>Preserve context on navigation: maintain selected business, filters, and other dashboard state when switching between views.</task>
+  </tasks>
+  <deliverables>Drag-drop same-position detection logic, clickable calendar cell handlers, appointment-specific navigation with scroll animation, highlight pulse effect, URL state management for deep linking, browser history integration.</deliverables>
+  <acceptance>Dragging appointment to same position does not show confirmation modal. Clicking empty day cell navigates to day view for that date. Clicking appointment navigates to day view and smoothly scrolls to center that appointment with brief highlight animation. URL updates reflect current view state. Browser back/forward buttons work correctly. All transitions are smooth at 60fps.</acceptance>
+</step>
+
 <step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>

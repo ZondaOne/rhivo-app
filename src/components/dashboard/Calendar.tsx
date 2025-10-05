@@ -8,10 +8,14 @@ import { RescheduleConfirmationModal } from './RescheduleConfirmationModal';
 import { AppointmentEditModal } from './AppointmentEditModal';
 import { apiRequest } from '@/lib/auth/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { addStackingMetadata, StackedAppointment, groupByStartTime, allocateCascadeColumns, getCascadePositionStyles } from '@/lib/appointment-stacking';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface CalendarProps {
   view: CalendarView;
   currentDate: Date;
+  onViewChange?: (view: CalendarView) => void;
+  onDateChange?: (date: Date) => void;
 }
 
 interface Toast {
@@ -26,7 +30,7 @@ interface PendingReschedule {
   newTime: Date;
 }
 
-export function Calendar({ view, currentDate }: CalendarProps) {
+export function Calendar({ view, currentDate, onViewChange, onDateChange }: CalendarProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
@@ -256,6 +260,8 @@ export function Calendar({ view, currentDate }: CalendarProps) {
           onEdit={handleEdit}
           draggedAppointment={draggedAppointment}
           setDraggedAppointment={setDraggedAppointment}
+          onViewChange={onViewChange}
+          onDateChange={onDateChange}
         />
       )}
 
@@ -300,6 +306,8 @@ function MonthView({
   onEdit,
   draggedAppointment,
   setDraggedAppointment,
+  onViewChange,
+  onDateChange,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -307,6 +315,8 @@ function MonthView({
   onEdit: (id: string) => void;
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
+  onViewChange?: (view: CalendarView) => void;
+  onDateChange?: (date: Date) => void;
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -336,6 +346,8 @@ function MonthView({
             setDraggedAppointment={setDraggedAppointment}
             onReschedule={onReschedule}
             onEdit={onEdit}
+            onViewChange={onViewChange}
+            onDateChange={onDateChange}
           />
         ))}
       </div>
@@ -350,6 +362,8 @@ function DayCell({
   setDraggedAppointment,
   onReschedule,
   onEdit,
+  onViewChange,
+  onDateChange,
 }: {
   day: CalendarDay;
   isLastRow: boolean;
@@ -357,9 +371,19 @@ function DayCell({
   setDraggedAppointment: (apt: Appointment | null) => void;
   onReschedule: (id: string, date: Date) => void;
   onEdit: (id: string) => void;
+  onViewChange?: (view: CalendarView) => void;
+  onDateChange?: (date: Date) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6;
+
+  // Calculate capacity indicator (assuming max 10 appointments per day as "full")
+  const maxDayCapacity = 10;
+  const capacityPercent = Math.min((day.appointments.length / maxDayCapacity) * 100, 100);
+  const capacityColor =
+    capacityPercent >= 80 ? 'bg-red-500' :
+    capacityPercent >= 50 ? 'bg-yellow-500' :
+    'bg-teal-500';
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -379,7 +403,7 @@ function DayCell({
 
   return (
     <div
-      className={`min-h-[140px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
+      className={`h-[140px] min-h-[140px] max-h-[140px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
       } ${!day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50' : ''
@@ -400,7 +424,18 @@ function DayCell({
       )}
 
       {/* Content */}
-      <div className="p-3 h-full flex flex-col">
+      <div className="p-3 h-full flex flex-col overflow-hidden">
+        {/* Capacity indicator bar */}
+        {day.appointments.length > 0 && (
+          <div className="absolute top-0 left-0 right-0 h-1">
+            <div
+              className={`h-full ${capacityColor} transition-all`}
+              style={{ width: `${capacityPercent}%` }}
+              title={`${day.appointments.length} appointments (${Math.round(capacityPercent)}% capacity)`}
+            />
+          </div>
+        )}
+
         {/* Day Number */}
         <div className="mb-3">
           {day.isToday ? (
@@ -418,39 +453,92 @@ function DayCell({
           )}
         </div>
 
-        {/* Appointments */}
-        <div className="flex-1 space-y-1">
-          {day.appointments.slice(0, 3).map((apt) => (
-            <div
-              key={apt.id}
-              draggable
-              className="group relative text-xs px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move truncate font-medium transition-all"
-              onDragStart={(e) => {
-                e.dataTransfer.setData('appointmentId', apt.id);
-                setDraggedAppointment(apt);
-              }}
-              onDragEnd={() => setDraggedAppointment(null)}
-            >
-              <span className="pr-6">{formatTime(new Date(apt.start_time))}</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(apt.id);
-                }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded"
-                title="Edit appointment"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-            </div>
-          ))}
-          {day.appointments.length > 3 && (
-            <div className="text-xs text-gray-500 font-semibold px-2 py-1">
-              +{day.appointments.length - 3} more
-            </div>
-          )}
+        {/* Appointments - VERTICAL stacking, max 3 visible */}
+        <div className="flex-1 space-y-1 overflow-hidden">
+          {(() => {
+            const maxVisible = 3;
+            const visibleAppointments = day.appointments.slice(0, maxVisible);
+            const overflow = Math.max(day.appointments.length - maxVisible, 0);
+
+            return (
+              <>
+                {/* Vertically stacked appointments */}
+                {visibleAppointments.map((apt, idx) => (
+                  <div
+                    key={apt.id}
+                    draggable
+                    className="group relative text-xs px-1.5 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move font-medium transition-colors overflow-hidden"
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('appointmentId', apt.id);
+                      setDraggedAppointment(apt);
+                    }}
+                    onDragEnd={() => setDraggedAppointment(null)}
+                  >
+                    <span className="truncate block pr-4">{formatTime(new Date(apt.start_time))}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(apt.id);
+                      }}
+                      className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded"
+                      title="Edit appointment"
+                    >
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+
+                {/* Overflow indicator */}
+                {overflow > 0 && (
+                  <div className="relative">
+                    <Tooltip
+                      content={
+                        <div className="text-xs">
+                          <div className="font-semibold mb-1">
+                            {overflow} more appointment{overflow > 1 ? 's' : ''}
+                          </div>
+                          {day.appointments.slice(maxVisible).map((apt) => (
+                            <div key={apt.id} className="text-gray-300">
+                              • {formatTime(new Date(apt.start_time))} - {apt.customer_name || 'Guest'}
+                            </div>
+                          ))}
+                        </div>
+                      }
+                      position="bottom"
+                    >
+                      <div
+                        className="px-2 py-1 rounded-lg bg-teal-600/10 border border-teal-200 text-teal-700 text-xs font-semibold cursor-pointer hover:bg-teal-600/20 transition-colors text-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Navigate to list view filtered to this date
+                          if (onDateChange && onViewChange) {
+                            onDateChange(day.date);
+                            onViewChange('list');
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            if (onDateChange && onViewChange) {
+                              onDateChange(day.date);
+                              onViewChange('list');
+                            }
+                          }
+                        }}
+                        aria-label={`View ${overflow} more appointments`}
+                      >
+                        +{overflow} more
+                      </div>
+                    </Tooltip>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -551,7 +639,7 @@ function WeekView({
         {hours.map((hour, hourIdx) => (
           <div key={hour} className="grid grid-cols-[64px_repeat(7,1fr)]">
             {/* Time Label */}
-            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[80px]`}>
+            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[96px]`}>
               <span className="text-xs text-gray-500 font-medium">
                 {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
               </span>
@@ -618,7 +706,7 @@ function WeekDayCell({
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-  const CELL_HEIGHT = 80;
+  const CELL_HEIGHT = 69;
 
   const handleDragOver = (e: React.DragEvent, slot: number) => {
     e.preventDefault();
@@ -645,7 +733,7 @@ function WeekDayCell({
 
   return (
     <div
-      className={`relative min-h-[80px] border-r border-b border-gray-200/60 ${
+      className={`relative min-h-[96px] border-r border-b border-gray-200/60 ${
         isLastDay ? 'border-r-0' : ''
       } ${
         isLastHour ? 'border-b-0' : ''
@@ -680,56 +768,71 @@ function WeekDayCell({
       {/* Half-hour divider line */}
       <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
 
-      {/* Appointments positioned within this cell */}
-      {appointments.map((apt) => {
-        const startMinute = new Date(apt.start_time).getMinutes();
-        const offsetFromHour = startMinute / 60;
-        // Snap to pixel boundaries to align with grid - use exact calculations
-        const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
-        const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 32);
+      {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) */}
+      {(() => {
+        // Use cascade layout for overlapping appointments
+        const cascadedApts = allocateCascadeColumns(appointments);
+        const maxVisibleColumns = 4;
+        const needsCompression = cascadedApts.some(apt => apt.totalColumns > maxVisibleColumns);
 
-        return (
-          <div
-            key={apt.id}
-            draggable
-            className="group absolute left-1 right-1 px-2 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
-            style={{
-              top: `${topPx}px`,
-              height: `${heightPx}px`,
-            }}
-            onDragStart={(e) => {
-              e.dataTransfer.setData('appointmentId', apt.id);
-              setDraggedAppointment(apt);
-            }}
-            onDragEnd={() => setDraggedAppointment(null)}
-          >
-            <div className="flex items-start justify-between gap-1">
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium leading-tight">
-                  {formatTime(new Date(apt.start_time))}
-                </div>
-                {apt.rowSpan > 0.5 && (
-                  <div className="text-xs text-gray-700 leading-tight truncate mt-0.5">
-                    {apt.customer_name}
+        return cascadedApts.map((apt) => {
+          const startMinute = new Date(apt.start_time).getMinutes();
+          const offsetFromHour = startMinute / 60;
+          const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
+          const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 32);
+
+          // Calculate position using cascade algorithm
+          const positionStyles = getCascadePositionStyles(
+            apt.columnIndex,
+            apt.totalColumns,
+            topPx,
+            heightPx
+          );
+
+          return (
+            <div
+              key={apt.id}
+              draggable
+              className="group px-1.5 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 hover:z-30 cursor-move overflow-hidden transition-all"
+              style={{
+                ...positionStyles,
+                left: `calc(${positionStyles.left} + 4px)`,
+                width: `calc(${positionStyles.width} - ${apt.columnIndex < apt.totalColumns - 1 ? '6px' : '4px'})`,
+              }}
+              onDragStart={(e) => {
+                e.dataTransfer.setData('appointmentId', apt.id);
+                setDraggedAppointment(apt);
+              }}
+              onDragEnd={() => setDraggedAppointment(null)}
+            >
+              <div className="flex items-start justify-between gap-1 h-full">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium leading-tight truncate">
+                    {formatTime(new Date(apt.start_time))}
                   </div>
-                )}
+                  {heightPx > 40 && apt.totalColumns <= 3 && (
+                    <div className="text-xs text-gray-700 leading-tight truncate mt-0.5">
+                      {apt.customer_name}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(apt.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
+                  title="Edit appointment"
+                >
+                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(apt.id);
-                }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
-                title="Edit appointment"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
             </div>
-          </div>
-        );
-      })}
+          );
+        });
+      })()}
     </div>
   );
 }
@@ -813,7 +916,7 @@ function DayView({
         {hours.map((hour, hourIdx) => (
           <div key={hour} className="grid grid-cols-[64px_1fr]">
             {/* Time Label */}
-            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[120px]`}>
+            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[140px]`}>
               <span className="text-xs text-gray-500 font-medium">
                 {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
               </span>
@@ -870,7 +973,7 @@ function DayHourCell({
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-  const CELL_HEIGHT = 120;
+  const CELL_HEIGHT = 96;
 
   const handleDragOver = (e: React.DragEvent, slot: number) => {
     e.preventDefault();
@@ -897,7 +1000,7 @@ function DayHourCell({
 
   return (
     <div
-      className={`relative min-h-[120px] border-b border-gray-200/60 ${
+      className={`relative min-h-[140px] border-b border-gray-200/60 ${
         isLastHour ? 'border-b-0' : ''
       } bg-white transition-colors`}
     >
@@ -941,60 +1044,77 @@ function DayHourCell({
         </div>
       )}
 
-      {/* Appointments positioned within this cell */}
-      {appointments.map((apt) => {
-        const start = new Date(apt.start_time);
-        const startMinute = start.getMinutes();
-        const offsetFromHour = startMinute / 60;
-        // Snap to pixel boundaries to align with grid
-        const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
-        const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 48);
+      {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) */}
+      {(() => {
+        // Use cascade layout for overlapping appointments
+        const cascadedApts = allocateCascadeColumns(appointments);
+        const maxVisibleColumns = 4;
+        const needsCompression = cascadedApts.some(apt => apt.totalColumns > maxVisibleColumns);
 
-        return (
-          <div
-            key={apt.id}
-            draggable
-            className="group absolute left-2 right-2 px-3 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden transition-all z-10"
-            style={{
-              top: `${topPx}px`,
-              height: `${heightPx}px`,
-            }}
-            onDragStart={(e) => {
-              e.dataTransfer.setData('appointmentId', apt.id);
-              setDraggedAppointment(apt);
-            }}
-            onDragEnd={() => setDraggedAppointment(null)}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-gray-900 leading-tight">
-                  {formatTime(new Date(apt.start_time))}
-                </div>
-                <div className="text-sm text-gray-700 leading-tight truncate mt-0.5">
-                  {apt.customer_name}
-                </div>
-                {apt.notes && apt.rowSpan > 1 && (
-                  <div className="text-xs text-gray-600 leading-tight truncate mt-1">
-                    {apt.notes}
+        return cascadedApts.map((apt) => {
+          const start = new Date(apt.start_time);
+          const startMinute = start.getMinutes();
+          const offsetFromHour = startMinute / 60;
+          const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
+          const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 48);
+
+          // Calculate position using cascade algorithm
+          const positionStyles = getCascadePositionStyles(
+            apt.columnIndex,
+            apt.totalColumns,
+            topPx,
+            heightPx
+          );
+
+          return (
+            <div
+              key={apt.id}
+              draggable
+              className="group px-2 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 hover:z-30 hover:shadow-md cursor-move overflow-hidden transition-all"
+              style={{
+                ...positionStyles,
+                left: `calc(${positionStyles.left} + 8px)`,
+                width: `calc(${positionStyles.width} - ${apt.columnIndex < apt.totalColumns - 1 ? '10px' : '8px'})`,
+              }}
+              onDragStart={(e) => {
+                e.dataTransfer.setData('appointmentId', apt.id);
+                setDraggedAppointment(apt);
+              }}
+              onDragEnd={() => setDraggedAppointment(null)}
+            >
+              <div className="flex items-start justify-between gap-1 h-full">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-gray-900 leading-tight truncate">
+                    {formatTime(new Date(apt.start_time))}
                   </div>
-                )}
+                  {heightPx > 50 && apt.totalColumns <= 3 && (
+                    <div className="text-sm text-gray-700 leading-tight truncate mt-0.5">
+                      {apt.customer_name}
+                    </div>
+                  )}
+                  {apt.notes && heightPx > 80 && apt.totalColumns <= 2 && (
+                    <div className="text-xs text-gray-600 leading-tight truncate mt-1">
+                      {apt.notes}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(apt.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
+                  title="Edit appointment"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(apt.id);
-                }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-teal-200 rounded flex-shrink-0"
-                title="Edit appointment"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
             </div>
-          </div>
-        );
-      })}
+          );
+        });
+      })()}
     </div>
   );
 }

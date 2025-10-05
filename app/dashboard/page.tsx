@@ -241,7 +241,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Calendar View */}
-          <Calendar key={refreshKey} view={view} currentDate={currentDate} />
+          <Calendar
+            key={refreshKey}
+            view={view}
+            currentDate={currentDate}
+            onViewChange={setView}
+            onDateChange={setCurrentDate}
+          />
         </div>
       </main>
 
