@@ -32,8 +32,15 @@ interface PendingReschedule {
   newTime: Date;
 }
 
+interface AppointmentCache {
+  appointments: Appointment[];
+  start: Date;
+  end: Date;
+}
+
 export function Calendar({ view, currentDate, onViewChange, onDateChange }: CalendarProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -41,6 +48,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [highlightedAppointmentId, setHighlightedAppointmentId] = useState<string | null>(null);
   const [previousView, setPreviousView] = useState<CalendarView>(view);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Track view changes for transitions
@@ -79,6 +87,54 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
     window.history.replaceState({}, '', newUrl);
   }, [view, currentDate, highlightedAppointmentId]);
 
+  // Calculate required date range for current view
+  function getDateRange(viewType: CalendarView, date: Date): { start: Date; end: Date } {
+    const start = new Date(date);
+    const end = new Date(date);
+
+    if (viewType === 'month') {
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      end.setMonth(end.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+    } else if (viewType === 'week') {
+      const day = start.getDay();
+      start.setDate(start.getDate() - day);
+      start.setHours(0, 0, 0, 0);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+    } else if (viewType === 'day') {
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    } else if (viewType === 'list') {
+      start.setHours(0, 0, 0, 0);
+      end.setDate(end.getDate() + 30);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    return { start, end };
+  }
+
+  // Check if cache covers required range
+  function cacheCoversRange(cache: AppointmentCache | null, start: Date, end: Date): boolean {
+    if (!cache) return false;
+    return cache.start.getTime() <= start.getTime() && cache.end.getTime() >= end.getTime();
+  }
+
+  // Filter appointments to match current view's visible range (defensive data validation)
+  function filterAppointmentsForView(
+    allAppointments: Appointment[],
+    viewType: CalendarView,
+    date: Date
+  ): Appointment[] {
+    const { start, end } = getDateRange(viewType, date);
+
+    return allAppointments.filter(apt => {
+      const aptStart = new Date(apt.start_time);
+      return aptStart >= start && aptStart <= end;
+    });
+  }
+
   useEffect(() => {
     if (authLoading) {
       return;
@@ -86,12 +142,42 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
 
     if (!isAuthenticated) {
       setAppointments([]);
+      setAppointmentCache(null);
       setLoading(false);
       return;
     }
 
     loadAppointments();
-  }, [currentDate, isAuthenticated, authLoading]); // Removed 'view' - don't reload when just switching views
+
+    // Cleanup: abort in-flight requests when view/date changes
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, [currentDate, view, isAuthenticated, authLoading]);
+
+  // Update displayed appointments when cache or view changes (defensive filtering)
+  useEffect(() => {
+    if (appointmentCache) {
+      const filtered = filterAppointmentsForView(appointmentCache.appointments, view, currentDate);
+      setAppointments(filtered);
+
+      // Invariant check in development: verify no appointments outside visible range
+      if (process.env.NODE_ENV === 'development') {
+        const { start, end } = getDateRange(view, currentDate);
+        filtered.forEach(apt => {
+          const aptStart = new Date(apt.start_time);
+          if (aptStart < start || aptStart > end) {
+            console.error(
+              `[Calendar] Invariant violation: Appointment ${apt.id} at ${apt.start_time} is outside visible range [${start.toISOString()}, ${end.toISOString()}]`,
+              { appointment: apt, view, currentDate, visibleRange: { start, end } }
+            );
+          }
+        });
+      }
+    }
+  }, [appointmentCache, view, currentDate]);
 
   async function loadAppointments() {
     if (!isAuthenticated) {
@@ -100,44 +186,52 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
       return;
     }
 
+    const { start, end } = getDateRange(view, currentDate);
+
+    // Check if cache already covers this range
+    if (cacheCoversRange(appointmentCache, start, end)) {
+      // Use cached data - just filter and display
+      const filtered = filterAppointmentsForView(appointmentCache.appointments, view, currentDate);
+      setAppointments(filtered);
+      setLoading(false);
+      return;
+    }
+
+    // Cancel any in-flight request
+    if (abortController) {
+      abortController.abort();
+    }
+
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
+
     setLoading(true);
     try {
-      // Calculate date range based on view
-      const start = new Date(currentDate);
-      const end = new Date(currentDate);
-
-      if (view === 'month') {
-        start.setDate(1);
-        start.setHours(0, 0, 0, 0);
-        end.setMonth(end.getMonth() + 1, 0);
-        end.setHours(23, 59, 59, 999);
-      } else if (view === 'week') {
-        const day = start.getDay();
-        start.setDate(start.getDate() - day);
-        start.setHours(0, 0, 0, 0);
-        end.setDate(start.getDate() + 6);
-        end.setHours(23, 59, 59, 999);
-      } else if (view === 'day') {
-        start.setHours(0, 0, 0, 0);
-        end.setHours(23, 59, 59, 999);
-      } else if (view === 'list') {
-        // For list view, show 30 days starting from current date
-        start.setHours(0, 0, 0, 0);
-        end.setDate(end.getDate() + 30);
-        end.setHours(23, 59, 59, 999);
-      }
-
       const params = new URLSearchParams({
         start: start.toISOString(),
         end: end.toISOString(),
       });
 
-      const data = await apiRequest<Appointment[]>(`/api/appointments?${params.toString()}`);
-      setAppointments(data);
-    } catch (error) {
+      const data = await apiRequest<Appointment[]>(
+        `/api/appointments?${params.toString()}`,
+        { signal: newAbortController.signal }
+      );
+
+      // Update cache
+      setAppointmentCache({ appointments: data, start, end });
+
+      // Filter for current view
+      const filtered = filterAppointmentsForView(data, view, currentDate);
+      setAppointments(filtered);
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        // Request was cancelled, this is expected
+        return;
+      }
       console.error('Failed to load appointments:', error);
     } finally {
       setLoading(false);
+      setAbortController(null);
     }
   }
 
@@ -202,13 +296,17 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
       });
 
       showToast('Appointment rescheduled. Customer will be notified via email.', 'success');
+
+      // Invalidate cache to force fresh data
+      setAppointmentCache(null);
       await loadAppointments();
     } catch (error) {
       console.error('Failed to reschedule:', error);
       const message = error instanceof Error ? error.message : 'Failed to reschedule appointment';
       showToast(message, 'error');
 
-      // Revert optimistic update on error
+      // Revert optimistic update on error - invalidate cache
+      setAppointmentCache(null);
       await loadAppointments();
     }
   }
@@ -231,6 +329,9 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
   async function handleEditSave() {
     setEditingAppointment(null);
     showToast('Appointment updated successfully', 'success');
+
+    // Invalidate cache to force fresh data
+    setAppointmentCache(null);
     await loadAppointments();
   }
 

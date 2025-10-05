@@ -1,17 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointmentModal';
 import { CalendarView } from '@/lib/calendar-utils';
 
 export default function DashboardPage() {
+  // Initialize from URL params on mount, then use state
   const [view, setView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+
+  // Read URL params on mount to restore calendar state
+  useEffect(() => {
+    if (typeof window === 'undefined' || isInitialized) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const urlView = params.get('view') as CalendarView | null;
+    const urlDate = params.get('date');
+
+    if (urlView && ['month', 'week', 'day', 'list'].includes(urlView)) {
+      setView(urlView);
+    }
+
+    if (urlDate) {
+      const parsedDate = new Date(urlDate);
+      if (!isNaN(parsedDate.getTime())) {
+        setCurrentDate(parsedDate);
+      }
+    }
+
+    setIsInitialized(true);
+  }, [isInitialized]);
 
   const businessName = user?.email?.split('@')[0] || "My Business";
 

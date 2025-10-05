@@ -397,15 +397,13 @@
 </step>
 
 <step number="7n">
-  <title>Appointment block height alignment in cascade layout</title>
+  <title>Appointment block height alignment in layout</title>
   <tasks>
     <task>Fix appointment block vertical alignment in week and day views: when multiple appointments are horizontally split (cascade columns), ensure each block correctly spans its full duration height.</task>
     <task>Debug vertical overflow issue: when appointment is alone in its time slot (no horizontal splitting), block overflows cell vertically instead of aligning to cell boundaries.</task>
     <task>Implement consistent height calculation: appointment block height should be (duration_minutes / 60) * CELL_HEIGHT regardless of whether it shares the slot with other appointments.</task>
     <task>Fix cascade column width calculation to prevent height compression: when dividing slot width into multiple columns, preserve vertical height independently of horizontal position.</task>
     <task>Ensure appointment blocks align to 5-minute grain boundaries: top position and height must snap to grain grid to prevent half-pixel misalignments.</task>
-    <task>Add visual debugging mode (dev only): overlay grid lines showing hour boundaries and 5-minute grain marks to verify alignment accuracy.</task>
-    <task>Test edge cases: 15-minute appointment alone vs. with 2 other appointments, 90-minute appointment spanning multiple hours in cascade layout, appointments starting at :05, :15, :45 offsets.</task>
     <task>Fix any CSS conflicts between cascade positioning (absolute with left/width) and height calculation (should use height style, not constrained by parent).</task>
   </tasks>
   <deliverables>Fixed appointment block height calculations, corrected cascade layout positioning styles, grain-aligned rendering, visual debugging helpers, test cases with varied durations and slot densities.</deliverables>
