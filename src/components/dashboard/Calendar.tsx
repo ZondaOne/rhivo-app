@@ -842,7 +842,7 @@ function WeekView({
         {hours.map((hour, hourIdx) => (
           <div key={hour} className="grid grid-cols-[64px_repeat(7,1fr)]">
             {/* Time Label */}
-            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[96px]`}>
+            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[120px]`}>
               <span className="text-xs text-gray-500 font-medium">
                 {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
               </span>
@@ -909,25 +909,27 @@ function WeekDayCell({
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-  const CELL_HEIGHT = 69;
+  const CELL_HEIGHT = 120; // Total height for one hour (increased for better visibility)
+  const GRAIN_SIZE_MINUTES = 5; // 5-minute grain
+  const GRAINS_PER_HOUR = 60 / GRAIN_SIZE_MINUTES; // 12 grains per hour
+  const GRAIN_HEIGHT = CELL_HEIGHT / GRAINS_PER_HOUR; // 10px per 5-minute grain
 
-  const handleDragOver = (e: React.DragEvent, slot: number) => {
+  const handleDragOver = (e: React.DragEvent, grainSlot: number) => {
     e.preventDefault();
     setIsDragOver(true);
-    setDragOverSlot(slot);
+    setDragOverSlot(grainSlot);
   };
 
-  const handleDrop = (e: React.DragEvent, slot: number) => {
+  const handleDrop = (e: React.DragEvent, grainSlot: number) => {
     e.preventDefault();
     setIsDragOver(false);
     setDragOverSlot(null);
 
     const appointmentId = e.dataTransfer.getData('appointmentId');
     if (appointmentId) {
-      // Calculate the new time based on the slot (0 or 1 for half-hour increments)
-      // This gives 30-minute granularity, which is a multiple of 5min
+      // Calculate the new time based on the 5-minute grain slot (0-11 for each 5-min increment)
       const newTime = new Date(day);
-      newTime.setHours(hour, slot * 30, 0, 0);
+      newTime.setHours(hour, grainSlot * GRAIN_SIZE_MINUTES, 0, 0);
 
       onReschedule(appointmentId, newTime);
     }
@@ -936,7 +938,7 @@ function WeekDayCell({
 
   return (
     <div
-      className={`relative min-h-[96px] border-r border-b border-gray-200/60 ${
+      className={`relative min-h-[120px] border-r border-b border-gray-200/60 ${
         isLastDay ? 'border-r-0' : ''
       } ${
         isLastHour ? 'border-b-0' : ''
@@ -944,32 +946,35 @@ function WeekDayCell({
         isWeekend ? 'bg-gray-50/30' : 'bg-white'
       } transition-colors`}
     >
-      {/* Sub-hour drop zones */}
-      <div
-        className={`absolute inset-x-0 top-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
-          isDragOver && dragOverSlot === 0 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
-        }`}
-        onDragOver={(e) => handleDragOver(e, 0)}
-        onDragLeave={() => {
-          setIsDragOver(false);
-          setDragOverSlot(null);
-        }}
-        onDrop={(e) => handleDrop(e, 0)}
-      />
-      <div
-        className={`absolute inset-x-0 bottom-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
-          isDragOver && dragOverSlot === 1 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
-        }`}
-        onDragOver={(e) => handleDragOver(e, 1)}
-        onDragLeave={() => {
-          setIsDragOver(false);
-          setDragOverSlot(null);
-        }}
-        onDrop={(e) => handleDrop(e, 1)}
-      />
+      {/* 5-minute grain drop zones (12 zones per hour) */}
+      {Array.from({ length: GRAINS_PER_HOUR }).map((_, grainIndex) => {
+        const topPercent = (grainIndex / GRAINS_PER_HOUR) * 100;
+        const heightPercent = (1 / GRAINS_PER_HOUR) * 100;
 
-      {/* Half-hour divider line */}
+        return (
+          <div
+            key={grainIndex}
+            className={`absolute inset-x-0 hover:bg-gray-50/50 transition-colors ${
+              isDragOver && dragOverSlot === grainIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+            }`}
+            style={{
+              top: `${topPercent}%`,
+              height: `${heightPercent}%`,
+            }}
+            onDragOver={(e) => handleDragOver(e, grainIndex)}
+            onDragLeave={() => {
+              setIsDragOver(false);
+              setDragOverSlot(null);
+            }}
+            onDrop={(e) => handleDrop(e, grainIndex)}
+          />
+        );
+      })}
+
+      {/* 15-minute divider lines */}
+      <div className="absolute inset-x-0 top-1/4 border-t border-dashed border-gray-100 pointer-events-none" />
       <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
+      <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-100 pointer-events-none" />
 
       {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) */}
       {(() => {
@@ -979,10 +984,29 @@ function WeekDayCell({
         const needsCompression = cascadedApts.some(apt => apt.totalColumns > maxVisibleColumns);
 
         return cascadedApts.map((apt) => {
-          const startMinute = new Date(apt.start_time).getMinutes();
-          const offsetFromHour = startMinute / 60;
-          const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
-          const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 32);
+          const start = new Date(apt.start_time);
+          const end = new Date(apt.end_time);
+          const startMinute = start.getMinutes();
+          const endHour = end.getHours();
+          const endMinute = end.getMinutes();
+
+          // Snap to 5-minute grain boundaries
+          const startGrain = Math.floor(startMinute / GRAIN_SIZE_MINUTES);
+          const topPx = startGrain * GRAIN_HEIGHT;
+
+          // Calculate end grain position
+          let endGrain;
+          if (endHour > hour) {
+            // Appointment extends beyond this hour - fill to end of cell
+            endGrain = GRAINS_PER_HOUR;
+          } else {
+            // Appointment ends in this hour - snap to grain
+            endGrain = Math.ceil(endMinute / GRAIN_SIZE_MINUTES);
+          }
+
+          // Height in grains, then convert to pixels
+          const grainSpan = endGrain - startGrain;
+          const heightPx = Math.max(grainSpan * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
 
           // Calculate position using cascade algorithm
           const positionStyles = getCascadePositionStyles(
@@ -1084,8 +1108,8 @@ function DayView({
 
         // Wait a tick for the DOM to render
         setTimeout(() => {
-          // Calculate scroll position - each hour cell is approximately 140px (min-h-[140px])
-          const HOUR_HEIGHT = 140;
+          // Calculate scroll position - each hour cell is 120px (min-h-[120px])
+          const HOUR_HEIGHT = 120;
           const hourIndex = hour - START_HOUR;
           const scrollPosition = hourIndex * HOUR_HEIGHT;
 
@@ -1240,7 +1264,7 @@ function DayView({
         {hours.map((hour, hourIdx) => (
           <div key={hour} className="grid grid-cols-[64px_1fr]">
             {/* Time Label */}
-            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[140px]`}>
+            <div className={`flex items-start justify-end pr-3 pt-2 border-r border-b border-gray-200/60 ${hourIdx === hours.length - 1 ? 'border-b-0' : ''} min-h-[120px]`}>
               <span className="text-xs text-gray-500 font-medium">
                 {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
               </span>
@@ -1300,25 +1324,27 @@ function DayHourCell({
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-  const CELL_HEIGHT = 96;
+  const CELL_HEIGHT = 120; // Total height for one hour (increased for better visibility)
+  const GRAIN_SIZE_MINUTES = 5; // 5-minute grain
+  const GRAINS_PER_HOUR = 60 / GRAIN_SIZE_MINUTES; // 12 grains per hour
+  const GRAIN_HEIGHT = CELL_HEIGHT / GRAINS_PER_HOUR; // 10px per 5-minute grain
 
-  const handleDragOver = (e: React.DragEvent, slot: number) => {
+  const handleDragOver = (e: React.DragEvent, grainSlot: number) => {
     e.preventDefault();
     setIsDragOver(true);
-    setDragOverSlot(slot);
+    setDragOverSlot(grainSlot);
   };
 
-  const handleDrop = (e: React.DragEvent, slot: number) => {
+  const handleDrop = (e: React.DragEvent, grainSlot: number) => {
     e.preventDefault();
     setIsDragOver(false);
     setDragOverSlot(null);
 
     const appointmentId = e.dataTransfer.getData('appointmentId');
     if (appointmentId) {
-      // slot=0 is top half (XX:00), slot=1 is bottom half (XX:30)
-      // This already aligns to 5-min grain (30min is a multiple of 5)
+      // Calculate the new time based on the 5-minute grain slot (0-11 for each 5-min increment)
       const newTime = new Date(date);
-      newTime.setHours(hour, slot * 30, 0, 0);
+      newTime.setHours(hour, grainSlot * GRAIN_SIZE_MINUTES, 0, 0);
 
       onReschedule(appointmentId, newTime);
     }
@@ -1327,36 +1353,39 @@ function DayHourCell({
 
   return (
     <div
-      className={`relative min-h-[140px] border-b border-gray-200/60 ${
+      className={`relative min-h-[120px] border-b border-gray-200/60 ${
         isLastHour ? 'border-b-0' : ''
       } bg-white transition-colors`}
     >
-      {/* Sub-hour drop zones */}
-      <div
-        className={`absolute inset-x-0 top-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
-          isDragOver && dragOverSlot === 0 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
-        }`}
-        onDragOver={(e) => handleDragOver(e, 0)}
-        onDragLeave={() => {
-          setIsDragOver(false);
-          setDragOverSlot(null);
-        }}
-        onDrop={(e) => handleDrop(e, 0)}
-      />
-      <div
-        className={`absolute inset-x-0 bottom-0 h-1/2 hover:bg-gray-50/50 transition-colors ${
-          isDragOver && dragOverSlot === 1 ? 'bg-teal-50/80 border-2 border-teal-500' : ''
-        }`}
-        onDragOver={(e) => handleDragOver(e, 1)}
-        onDragLeave={() => {
-          setIsDragOver(false);
-          setDragOverSlot(null);
-        }}
-        onDrop={(e) => handleDrop(e, 1)}
-      />
+      {/* 5-minute grain drop zones (12 zones per hour) */}
+      {Array.from({ length: GRAINS_PER_HOUR }).map((_, grainIndex) => {
+        const topPercent = (grainIndex / GRAINS_PER_HOUR) * 100;
+        const heightPercent = (1 / GRAINS_PER_HOUR) * 100;
 
-      {/* Half-hour divider line */}
+        return (
+          <div
+            key={grainIndex}
+            className={`absolute inset-x-0 hover:bg-gray-50/50 transition-colors ${
+              isDragOver && dragOverSlot === grainIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+            }`}
+            style={{
+              top: `${topPercent}%`,
+              height: `${heightPercent}%`,
+            }}
+            onDragOver={(e) => handleDragOver(e, grainIndex)}
+            onDragLeave={() => {
+              setIsDragOver(false);
+              setDragOverSlot(null);
+            }}
+            onDrop={(e) => handleDrop(e, grainIndex)}
+          />
+        );
+      })}
+
+      {/* 15-minute divider lines */}
+      <div className="absolute inset-x-0 top-1/4 border-t border-dashed border-gray-100 pointer-events-none" />
       <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
+      <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-100 pointer-events-none" />
 
       {/* Current time indicator */}
       {showCurrentTime && (
@@ -1380,10 +1409,28 @@ function DayHourCell({
 
         return cascadedApts.map((apt) => {
           const start = new Date(apt.start_time);
+          const end = new Date(apt.end_time);
           const startMinute = start.getMinutes();
-          const offsetFromHour = startMinute / 60;
-          const topPx = Math.round(offsetFromHour * CELL_HEIGHT);
-          const heightPx = Math.max(Math.round(apt.rowSpan * CELL_HEIGHT) - 2, 48);
+          const endHour = end.getHours();
+          const endMinute = end.getMinutes();
+
+          // Snap to 5-minute grain boundaries
+          const startGrain = Math.floor(startMinute / GRAIN_SIZE_MINUTES);
+          const topPx = startGrain * GRAIN_HEIGHT;
+
+          // Calculate end grain position
+          let endGrain;
+          if (endHour > hour) {
+            // Appointment extends beyond this hour - fill to end of cell
+            endGrain = GRAINS_PER_HOUR;
+          } else {
+            // Appointment ends in this hour - snap to grain
+            endGrain = Math.ceil(endMinute / GRAIN_SIZE_MINUTES);
+          }
+
+          // Height in grains, then convert to pixels
+          const grainSpan = endGrain - startGrain;
+          const heightPx = Math.max(grainSpan * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
 
           // Calculate position using cascade algorithm
           const positionStyles = getCascadePositionStyles(
