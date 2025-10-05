@@ -27,7 +27,11 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
       {children}
       {isVisible && (
         <div
-          className={`absolute z-50 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap ${positionClasses[position]} pointer-events-none`}
+          className={`fixed z-[9999] px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap ${positionClasses[position]} pointer-events-none`}
+          style={{
+            position: 'fixed',
+            zIndex: 9999
+          }}
         >
           {content}
           {/* Arrow */}

@@ -630,7 +630,7 @@ function DayCell({
 
   return (
     <div
-      className={`h-[140px] min-h-[140px] max-h-[140px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
+      className={`min-h-[100px] sm:min-h-[120px] max-h-[200px] sm:max-h-[240px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
       } ${!day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50 cursor-pointer' : ''
@@ -658,28 +658,28 @@ function DayCell({
         </div>
       )}
 
-      {/* Content */}
-      <div className="day-cell-content p-3 h-full flex flex-col overflow-hidden">
-        {/* Capacity indicator bar */}
-        {day.appointments.length > 0 && (
-          <div className="absolute top-0 left-0 right-0 h-1">
-            <div
-              className={`h-full ${capacityColor} transition-all`}
-              style={{ width: `${capacityPercent}%` }}
-              title={`${day.appointments.length} appointments (${Math.round(capacityPercent)}% capacity)`}
-            />
-          </div>
-        )}
+      {/* Capacity indicator bar */}
+      {day.appointments.length > 0 && (
+        <div className="absolute top-0 left-0 right-0 h-1 z-10">
+          <div
+            className={`h-full ${capacityColor} transition-all`}
+            style={{ width: `${capacityPercent}%` }}
+            title={`${day.appointments.length} appointments (${Math.round(capacityPercent)}% capacity)`}
+          />
+        </div>
+      )}
 
+      {/* Content */}
+      <div className="day-cell-content p-2 sm:p-3 flex flex-col gap-1.5 sm:gap-2">
         {/* Day Number */}
-        <div className="day-cell-content mb-3">
+        <div className="day-cell-content flex-shrink-0">
           {day.isToday ? (
-            <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
-              <span className="text-sm font-bold text-white">{day.date.getDate()}</span>
+            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
+              <span className="text-xs sm:text-sm font-bold text-white">{day.date.getDate()}</span>
             </div>
           ) : (
             <span
-              className={`text-sm font-semibold ${
+              className={`text-xs sm:text-sm font-semibold ${
                 !day.isCurrentMonth ? 'text-gray-400' : isWeekend ? 'text-gray-500' : 'text-gray-900'
               }`}
             >
@@ -688,10 +688,10 @@ function DayCell({
           )}
         </div>
 
-        {/* Appointments - VERTICAL stacking, max 3 visible */}
-        <div className="flex-1 space-y-1 overflow-hidden">
+        {/* Appointments - VERTICAL stacking, max 2 visible */}
+        <div className="flex flex-col gap-1">
           {(() => {
-            const maxVisible = 3;
+            const maxVisible = 2;
             const visibleAppointments = day.appointments.slice(0, maxVisible);
             const overflow = Math.max(day.appointments.length - maxVisible, 0);
 
@@ -702,7 +702,7 @@ function DayCell({
                   <div
                     key={apt.id}
                     draggable
-                    className="group relative text-xs px-1.5 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer font-medium transition-colors overflow-hidden"
+                    className="text-[10px] sm:text-xs px-1.5 h-[22px] sm:h-[26px] box-border flex items-center rounded-md sm:rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer font-medium overflow-hidden flex-shrink-0"
                     onDragStart={(e) => {
                       e.dataTransfer.setData('appointmentId', apt.id);
                       setDraggedAppointment(apt);
@@ -715,66 +715,39 @@ function DayCell({
                       }
                     }}
                   >
-                    <span className="truncate block pr-4">{formatTime(new Date(apt.start_time))}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(apt.id);
-                      }}
-                      className="absolute right-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded"
-                      title="Edit appointment"
-                    >
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
+                    <span className="truncate block flex-1 leading-none">{formatTime(new Date(apt.start_time))}</span>
                   </div>
                 ))}
 
                 {/* Overflow indicator */}
                 {overflow > 0 && (
-                  <div className="relative">
-                    <Tooltip
-                      content={
-                        <div className="text-xs">
-                          <div className="font-semibold mb-1">
-                            {overflow} more appointment{overflow > 1 ? 's' : ''}
-                          </div>
-                          {day.appointments.slice(maxVisible).map((apt) => (
-                            <div key={apt.id} className="text-gray-300">
-                              • {formatTime(new Date(apt.start_time))} - {apt.customer_name || 'Guest'}
-                            </div>
-                          ))}
-                        </div>
-                      }
-                      position="bottom"
-                    >
-                      <div
-                        className="px-2 py-1 rounded-lg bg-teal-600/10 border border-teal-200 text-teal-700 text-xs font-semibold cursor-pointer hover:bg-teal-600/20 transition-colors text-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Navigate to list view filtered to this date
+                  <div className="flex-shrink-0">
+                    <div
+                      className="px-1.5 sm:px-2 h-[22px] sm:h-[26px] box-border flex items-center justify-center rounded-md sm:rounded-lg bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 text-[10px] sm:text-xs font-semibold cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Navigate to list view filtered to this date
+                        if (onDateChange && onViewChange) {
+                          onDateChange(day.date);
+                          onViewChange('list');
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
                           if (onDateChange && onViewChange) {
                             onDateChange(day.date);
                             onViewChange('list');
                           }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            if (onDateChange && onViewChange) {
-                              onDateChange(day.date);
-                              onViewChange('list');
-                            }
-                          }
-                        }}
-                        aria-label={`View ${overflow} more appointments`}
-                      >
-                        +{overflow} more
-                      </div>
-                    </Tooltip>
+                        }
+                      }}
+                      aria-label={`View ${overflow} more appointments`}
+                      title={`${overflow} more appointment${overflow > 1 ? 's' : ''}`}
+                    >
+                      +{overflow} more
+                    </div>
                   </div>
                 )}
               </>
@@ -1016,7 +989,7 @@ function WeekDayCell({
       <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-gray-100 pointer-events-none" />
       <div className="absolute inset-x-0 top-3/4 border-t border-dashed border-gray-100 pointer-events-none" />
 
-      {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) */}
+      {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) + MULTI-HOUR SPANNING (Step 7o) */}
       {(() => {
         // Use cascade layout for overlapping appointments
         const cascadedApts = allocateCascadeColumns(appointments);
@@ -1026,6 +999,7 @@ function WeekDayCell({
         return cascadedApts.map((apt) => {
           const start = new Date(apt.start_time);
           const end = new Date(apt.end_time);
+          const startHour = start.getHours();
           const startMinute = start.getMinutes();
           const endHour = end.getHours();
           const endMinute = end.getMinutes();
@@ -1034,19 +1008,23 @@ function WeekDayCell({
           const startGrain = Math.floor(startMinute / GRAIN_SIZE_MINUTES);
           const topPx = startGrain * GRAIN_HEIGHT;
 
-          // Calculate end grain position
-          let endGrain;
-          if (endHour > hour) {
-            // Appointment extends beyond this hour - fill to end of cell
-            endGrain = GRAINS_PER_HOUR;
-          } else {
-            // Appointment ends in this hour - snap to grain
-            endGrain = Math.ceil(endMinute / GRAIN_SIZE_MINUTES);
-          }
+          // Calculate full height spanning multiple hours (Step 7o - Multi-hour appointment rendering)
+          let heightPx: number;
 
-          // Height in grains, then convert to pixels
-          const grainSpan = endGrain - startGrain;
-          const heightPx = Math.max(grainSpan * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
+          if (endHour > hour) {
+            // Multi-hour appointment: calculate total span across hours
+            // Total minutes from start to end
+            const totalMinutes = (endHour - startHour) * 60 + (endMinute - startMinute);
+
+            // Convert to grains and then pixels
+            const totalGrains = Math.ceil(totalMinutes / GRAIN_SIZE_MINUTES);
+            heightPx = Math.max(totalGrains * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
+          } else {
+            // Single-hour appointment: calculate within this hour only
+            const endGrain = Math.ceil(endMinute / GRAIN_SIZE_MINUTES);
+            const grainSpan = endGrain - startGrain;
+            heightPx = Math.max(grainSpan * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
+          }
 
           // Calculate position using cascade algorithm
           const positionStyles = getCascadePositionStyles(
@@ -1065,6 +1043,7 @@ function WeekDayCell({
                 ...positionStyles,
                 left: `calc(${positionStyles.left} + 4px)`,
                 width: `calc(${positionStyles.width} - ${apt.columnIndex < apt.totalColumns - 1 ? '6px' : '4px'})`,
+                zIndex: 20, // Ensure multi-hour appointments appear above subsequent hour cells
               }}
               onDragStart={(e) => {
                 e.dataTransfer.setData('appointmentId', apt.id);
@@ -1442,7 +1421,7 @@ function DayHourCell({
         </div>
       )}
 
-      {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) */}
+      {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) + MULTI-HOUR SPANNING (Step 7o) */}
       {(() => {
         // Use cascade layout for overlapping appointments
         const cascadedApts = allocateCascadeColumns(appointments);
@@ -1452,6 +1431,7 @@ function DayHourCell({
         return cascadedApts.map((apt) => {
           const start = new Date(apt.start_time);
           const end = new Date(apt.end_time);
+          const startHour = start.getHours();
           const startMinute = start.getMinutes();
           const endHour = end.getHours();
           const endMinute = end.getMinutes();
@@ -1460,19 +1440,23 @@ function DayHourCell({
           const startGrain = Math.floor(startMinute / GRAIN_SIZE_MINUTES);
           const topPx = startGrain * GRAIN_HEIGHT;
 
-          // Calculate end grain position
-          let endGrain;
-          if (endHour > hour) {
-            // Appointment extends beyond this hour - fill to end of cell
-            endGrain = GRAINS_PER_HOUR;
-          } else {
-            // Appointment ends in this hour - snap to grain
-            endGrain = Math.ceil(endMinute / GRAIN_SIZE_MINUTES);
-          }
+          // Calculate full height spanning multiple hours (Step 7o - Multi-hour appointment rendering)
+          let heightPx: number;
 
-          // Height in grains, then convert to pixels
-          const grainSpan = endGrain - startGrain;
-          const heightPx = Math.max(grainSpan * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
+          if (endHour > hour) {
+            // Multi-hour appointment: calculate total span across hours
+            // Total minutes from start to end
+            const totalMinutes = (endHour - startHour) * 60 + (endMinute - startMinute);
+
+            // Convert to grains and then pixels
+            const totalGrains = Math.ceil(totalMinutes / GRAIN_SIZE_MINUTES);
+            heightPx = Math.max(totalGrains * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
+          } else {
+            // Single-hour appointment: calculate within this hour only
+            const endGrain = Math.ceil(endMinute / GRAIN_SIZE_MINUTES);
+            const grainSpan = endGrain - startGrain;
+            heightPx = Math.max(grainSpan * GRAIN_HEIGHT - 2, GRAIN_HEIGHT);
+          }
 
           // Calculate position using cascade algorithm
           const positionStyles = getCascadePositionStyles(
@@ -1497,6 +1481,7 @@ function DayHourCell({
                 ...positionStyles,
                 left: `calc(${positionStyles.left} + 8px)`,
                 width: `calc(${positionStyles.width} - ${apt.columnIndex < apt.totalColumns - 1 ? '10px' : '8px'})`,
+                zIndex: 20, // Ensure multi-hour appointments appear above subsequent hour cells
               }}
               onDragStart={(e) => {
                 e.dataTransfer.setData('appointmentId', apt.id);

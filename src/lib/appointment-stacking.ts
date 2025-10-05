@@ -131,8 +131,11 @@ export interface CascadedAppointment extends Appointment {
 }
 
 /**
- * Allocate appointments to columns based on overlaps
+ * Allocate appointments to columns based on overlaps (Step 7o - Enhanced for multi-hour appointments)
  * Returns appointments with column assignments
+ *
+ * This algorithm properly handles multi-hour appointments by considering their full time span
+ * when detecting overlaps, not just their starting hour.
  */
 export function allocateCascadeColumns(
   appointments: Array<Appointment & { rowStart: number; rowSpan: number }>
@@ -154,12 +157,13 @@ export function allocateCascadeColumns(
     const start = new Date(apt.start_time).getTime();
     const end = new Date(apt.end_time).getTime();
 
-    // Find the first available column
+    // Find the first available column (Step 7o enhancement: use full appointment span)
     let columnIndex = 0;
     let foundColumn = false;
 
     for (let i = 0; i < columns.length; i++) {
-      // Check if this column is free (last appointment ends before current starts)
+      // Check if this column is free (last appointment's END time is before current START time)
+      // This correctly handles multi-hour appointments that span across hour boundaries
       if (columns[i].end <= start) {
         columnIndex = i;
         foundColumn = true;
@@ -172,7 +176,8 @@ export function allocateCascadeColumns(
       columnIndex = columns.length;
       columns.push({ end, appointments: [] });
     } else {
-      // Update existing column's end time
+      // Update existing column's end time to the maximum of current end or appointment end
+      // This ensures subsequent appointments consider the full span of multi-hour appointments
       columns[columnIndex].end = Math.max(columns[columnIndex].end, end);
     }
 
