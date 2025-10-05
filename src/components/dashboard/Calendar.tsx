@@ -91,7 +91,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
     }
 
     loadAppointments();
-  }, [currentDate, view, isAuthenticated, authLoading]);
+  }, [currentDate, isAuthenticated, authLoading]); // Removed 'view' - don't reload when just switching views
 
   async function loadAppointments() {
     if (!isAuthenticated) {

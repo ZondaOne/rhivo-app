@@ -378,6 +378,40 @@
   <acceptance>All view transitions are smooth and subtle (200-300ms duration). No jarring cuts or layout shifts during navigation. Loading states accurately represent final layout structure. Skeleton loaders appear immediately, real data cross-fades in when ready. Month and day changes slide smoothly in correct direction. Rapid clicking does not cause animation conflicts or visual glitches. Scroll positions are intelligently preserved between related views. Reduced motion preference is respected. All transitions maintain 60fps performance on mid-range devices. Loading spinner only appears for genuinely slow loads (300ms+ delay).</acceptance>
 </step>
 
+<step number="7m">
+  <title>Calendar data consistency and view synchronization</title>
+  <tasks>
+    <task>Debug and fix date/view state consistency issues: when navigating from month view to day view (e.g., day 7), then reloading page, ensure day view returns to correct date (day 7) not today's date (day 5).</task>
+    <task>Fix appointment data disappearing when switching between views: ensure appointments remain visible and correctly filtered when rapidly switching month/week/day/list views.</task>
+    <task>Implement proper appointment data caching strategy: cache appointments by date range to avoid unnecessary refetches when switching views with overlapping date ranges.</task>
+    <task>Fix stale data display bug: prevent showing day 7 appointments in day 5 cells after navigation - ensure appointment filtering matches currently displayed date in all views.</task>
+    <task>Synchronize currentDate state with URL parameters on page load: read date from URL query params and initialize calendar to that date instead of defaulting to today.</task>
+    <task>Add defensive data validation: verify appointment start_time matches currently displayed date before rendering in day/week views to prevent misalignment.</task>
+    <task>Implement appointment data reconciliation on view change: when switching views, verify cached data matches new view's date range requirements, refetch if necessary.</task>
+    <task>Fix race condition where rapid view switching causes data to disappear: debounce or cancel in-flight API requests when user changes view before previous request completes.</task>
+    <task>Add invariant checks: throw errors in development if appointments array contains dates outside currently displayed range to catch bugs early.</task>
+    <task>Test data consistency across all view transition paths: month to day, day to week, week to month, list to day, with date changes and page reloads.</task>
+  </tasks>
+  <deliverables>Debugged and bulletproof calendar data synchronization, URL state restoration on page load, appointment caching strategy, data validation guards, race condition fixes, comprehensive test scenarios documenting expected behavior.</deliverables>
+  <acceptance>Navigating between views preserves correct date and shows correct appointments. Page reload restores exact calendar state (view + date) from URL. No stale or misaligned appointment data appears in any view. Rapid view switching never causes data loss or blank screens. Cached data intelligently reuses when appropriate, refetches when necessary. All edge cases tested and documented.</acceptance>
+</step>
+
+<step number="7n">
+  <title>Appointment block height alignment in cascade layout</title>
+  <tasks>
+    <task>Fix appointment block vertical alignment in week and day views: when multiple appointments are horizontally split (cascade columns), ensure each block correctly spans its full duration height.</task>
+    <task>Debug vertical overflow issue: when appointment is alone in its time slot (no horizontal splitting), block overflows cell vertically instead of aligning to cell boundaries.</task>
+    <task>Implement consistent height calculation: appointment block height should be (duration_minutes / 60) * CELL_HEIGHT regardless of whether it shares the slot with other appointments.</task>
+    <task>Fix cascade column width calculation to prevent height compression: when dividing slot width into multiple columns, preserve vertical height independently of horizontal position.</task>
+    <task>Ensure appointment blocks align to 5-minute grain boundaries: top position and height must snap to grain grid to prevent half-pixel misalignments.</task>
+    <task>Add visual debugging mode (dev only): overlay grid lines showing hour boundaries and 5-minute grain marks to verify alignment accuracy.</task>
+    <task>Test edge cases: 15-minute appointment alone vs. with 2 other appointments, 90-minute appointment spanning multiple hours in cascade layout, appointments starting at :05, :15, :45 offsets.</task>
+    <task>Fix any CSS conflicts between cascade positioning (absolute with left/width) and height calculation (should use height style, not constrained by parent).</task>
+  </tasks>
+  <deliverables>Fixed appointment block height calculations, corrected cascade layout positioning styles, grain-aligned rendering, visual debugging helpers, test cases with varied durations and slot densities.</deliverables>
+  <acceptance>Appointment blocks in week and day views correctly span their full duration vertically whether alone or in cascade columns. No vertical overflow outside hour cells. Height remains accurate when horizontally split across 2-4 columns. All appointments align precisely to 5-minute grain boundaries. Visual debugging confirms pixel-perfect alignment to grid.</acceptance>
+</step>
+
 <step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>

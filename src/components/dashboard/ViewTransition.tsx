@@ -30,57 +30,67 @@ export function ViewTransition({
   direction = 'fade',
   className = ''
 }: ViewTransitionProps) {
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [phase, setPhase] = useState<'idle' | 'exiting' | 'entering'>('idle');
   const [currentKey, setCurrentKey] = useState(transitionKey);
   const [displayContent, setDisplayContent] = useState(children);
 
   useEffect(() => {
     // Trigger transition when key changes
     if (transitionKey !== currentKey) {
-      setIsTransitioning(true);
+      // Start exit phase
+      setPhase('exiting');
 
-      // Wait for exit animation to complete before updating content
-      const exitTimeout = setTimeout(() => {
+      // After exit animation completes, swap content and start enter phase
+      const swapTimeout = setTimeout(() => {
         setCurrentKey(transitionKey);
         setDisplayContent(children);
+        setPhase('entering');
 
-        // Trigger enter animation
+        // After a brief moment, trigger enter animation
         const enterTimeout = setTimeout(() => {
-          setIsTransitioning(false);
-        }, 10); // Small delay to ensure DOM update before enter animation
+          setPhase('idle');
+        }, 50); // Small delay to ensure DOM update triggers transition
 
         return () => clearTimeout(enterTimeout);
       }, 250); // Match CSS transition duration
 
-      return () => clearTimeout(exitTimeout);
+      return () => clearTimeout(swapTimeout);
     } else {
       // Update content immediately if key hasn't changed
       setDisplayContent(children);
     }
   }, [transitionKey, children, currentKey]);
 
-  // Animation style based on direction
+  // Animation style based on direction and phase
   const getTransitionStyle = (): string => {
-    // 250ms = duration-[250ms] in Tailwind v4
-    // motion-safe: prefix respects prefers-reduced-motion
+    // Base transition properties - always applied
     const baseClasses = 'transition-opacity duration-[250ms] ease-out motion-safe:transition-all';
 
-    if (isTransitioning) {
-      // Exit state - fade out with directional motion
+    // Apply different styles based on transition phase
+    if (phase === 'exiting') {
+      // Exiting state - fade out with directional motion
       switch (direction) {
         case 'expand':
-          // Reduced motion: fade only. Full motion: fade + slide
           return `${baseClasses} opacity-0 motion-safe:-translate-y-2`;
         case 'focus':
-          // Reduced motion: fade only. Full motion: fade + scale
           return `${baseClasses} opacity-0 motion-safe:scale-[0.98]`;
         case 'fade':
         default:
-          // Always just fade (accessible for all users)
+          return `${baseClasses} opacity-0`;
+      }
+    } else if (phase === 'entering') {
+      // Entering state - prepare for animation (opposite direction)
+      switch (direction) {
+        case 'expand':
+          return `${baseClasses} opacity-0 motion-safe:translate-y-2`;
+        case 'focus':
+          return `${baseClasses} opacity-0 motion-safe:scale-[1.02]`;
+        case 'fade':
+        default:
           return `${baseClasses} opacity-0`;
       }
     } else {
-      // Enter state - fade in from directional motion
+      // Idle state - fully visible, neutral position
       return `${baseClasses} opacity-100 motion-safe:translate-y-0 motion-safe:scale-100`;
     }
   };
