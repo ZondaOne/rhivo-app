@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Fragment } from 'react';
+import { useEffect, useState, Fragment, useRef } from 'react';
 import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
@@ -37,6 +37,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [pendingReschedule, setPendingReschedule] = useState<PendingReschedule | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [highlightedAppointmentId, setHighlightedAppointmentId] = useState<string | null>(null);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const showToast = (message: string, type: Toast['type'] = 'info') => {
@@ -46,6 +47,27 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 5000);
   };
+
+  // URL state management
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const urlView = params.get('view');
+    const urlDate = params.get('date');
+    const urlAppointment = params.get('appointment');
+
+    // Update URL when view or date changes
+    const newParams = new URLSearchParams();
+    newParams.set('view', view);
+    newParams.set('date', currentDate.toISOString().split('T')[0]);
+    if (highlightedAppointmentId) {
+      newParams.set('appointment', highlightedAppointmentId);
+    }
+
+    const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [view, currentDate, highlightedAppointmentId]);
 
   useEffect(() => {
     if (authLoading) {
@@ -123,11 +145,18 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
 
     // Snap to 5-minute grain to ensure precision
     const snappedTime = snapToGrain(newStartTime);
+    const originalTime = new Date(appointment.start_time);
+
+    // Detect same-position drop: compare timestamps at minute-level precision
+    if (snappedTime.getTime() === snapToGrain(originalTime).getTime()) {
+      // No change - skip confirmation modal entirely
+      return;
+    }
 
     // Show confirmation modal
     setPendingReschedule({
       appointment,
-      originalTime: new Date(appointment.start_time),
+      originalTime,
       newTime: snappedTime,
     });
   }
@@ -193,6 +222,27 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
     setEditingAppointment(null);
     showToast('Appointment updated successfully', 'success');
     await loadAppointments();
+  }
+
+  function handleDayCellClick(date: Date) {
+    if (onDateChange && onViewChange) {
+      onDateChange(date);
+      onViewChange('day');
+      setHighlightedAppointmentId(null); // Clear highlight when navigating via empty cell
+    }
+  }
+
+  function handleAppointmentClick(appointmentId: string, appointmentDate: Date) {
+    if (onDateChange && onViewChange) {
+      onDateChange(appointmentDate);
+      onViewChange('day');
+      setHighlightedAppointmentId(appointmentId);
+
+      // Auto-clear highlight after animation
+      setTimeout(() => {
+        setHighlightedAppointmentId(null);
+      }, 2000);
+    }
   }
 
   if (loading) {
@@ -262,6 +312,8 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
           setDraggedAppointment={setDraggedAppointment}
           onViewChange={onViewChange}
           onDateChange={onDateChange}
+          onDayCellClick={handleDayCellClick}
+          onAppointmentClick={handleAppointmentClick}
         />
       )}
 
@@ -284,6 +336,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
           onEdit={handleEdit}
           draggedAppointment={draggedAppointment}
           setDraggedAppointment={setDraggedAppointment}
+          highlightedAppointmentId={highlightedAppointmentId}
         />
       )}
 
@@ -308,6 +361,8 @@ function MonthView({
   setDraggedAppointment,
   onViewChange,
   onDateChange,
+  onDayCellClick,
+  onAppointmentClick,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -317,6 +372,8 @@ function MonthView({
   setDraggedAppointment: (apt: Appointment | null) => void;
   onViewChange?: (view: CalendarView) => void;
   onDateChange?: (date: Date) => void;
+  onDayCellClick?: (date: Date) => void;
+  onAppointmentClick?: (appointmentId: string, appointmentDate: Date) => void;
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -348,6 +405,8 @@ function MonthView({
             onEdit={onEdit}
             onViewChange={onViewChange}
             onDateChange={onDateChange}
+            onDayCellClick={onDayCellClick}
+            onAppointmentClick={onAppointmentClick}
           />
         ))}
       </div>
@@ -364,6 +423,8 @@ function DayCell({
   onEdit,
   onViewChange,
   onDateChange,
+  onDayCellClick,
+  onAppointmentClick,
 }: {
   day: CalendarDay;
   isLastRow: boolean;
@@ -373,6 +434,8 @@ function DayCell({
   onEdit: (id: string) => void;
   onViewChange?: (view: CalendarView) => void;
   onDateChange?: (date: Date) => void;
+  onDayCellClick?: (date: Date) => void;
+  onAppointmentClick?: (appointmentId: string, appointmentDate: Date) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6;
@@ -406,7 +469,7 @@ function DayCell({
       className={`h-[140px] min-h-[140px] max-h-[140px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
       } ${!day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'} ${
-        day.isCurrentMonth ? 'hover:bg-gray-50/50' : ''
+        day.isCurrentMonth ? 'hover:bg-gray-50/50 cursor-pointer' : ''
       } transition-colors`}
       onDragOver={(e) => {
         e.preventDefault();
@@ -414,6 +477,14 @@ function DayCell({
       }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
+      onClick={(e) => {
+        // Only handle clicks on the cell itself, not on appointments
+        if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.day-cell-content')) {
+          if (day.isCurrentMonth && onDayCellClick) {
+            onDayCellClick(day.date);
+          }
+        }
+      }}
     >
       {isDragOver && (
         <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10 rounded-sm">
@@ -424,7 +495,7 @@ function DayCell({
       )}
 
       {/* Content */}
-      <div className="p-3 h-full flex flex-col overflow-hidden">
+      <div className="day-cell-content p-3 h-full flex flex-col overflow-hidden">
         {/* Capacity indicator bar */}
         {day.appointments.length > 0 && (
           <div className="absolute top-0 left-0 right-0 h-1">
@@ -437,7 +508,7 @@ function DayCell({
         )}
 
         {/* Day Number */}
-        <div className="mb-3">
+        <div className="day-cell-content mb-3">
           {day.isToday ? (
             <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
               <span className="text-sm font-bold text-white">{day.date.getDate()}</span>
@@ -467,12 +538,18 @@ function DayCell({
                   <div
                     key={apt.id}
                     draggable
-                    className="group relative text-xs px-1.5 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-move font-medium transition-colors overflow-hidden"
+                    className="group relative text-xs px-1.5 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer font-medium transition-colors overflow-hidden"
                     onDragStart={(e) => {
                       e.dataTransfer.setData('appointmentId', apt.id);
                       setDraggedAppointment(apt);
                     }}
                     onDragEnd={() => setDraggedAppointment(null)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onAppointmentClick) {
+                        onAppointmentClick(apt.id, new Date(apt.start_time));
+                      }
+                    }}
                   >
                     <span className="truncate block pr-4">{formatTime(new Date(apt.start_time))}</span>
                     <button
@@ -844,6 +921,7 @@ function DayView({
   onEdit,
   draggedAppointment,
   setDraggedAppointment,
+  highlightedAppointmentId,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -851,12 +929,14 @@ function DayView({
   onEdit: (id: string) => void;
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
+  highlightedAppointmentId?: string | null;
 }) {
   const START_HOUR = 6;
   const END_HOUR = 22;
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
   const now = new Date();
   const isToday = currentDate.toDateString() === now.toDateString();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculate current time indicator position
   const currentHour = now.getHours();
@@ -864,6 +944,37 @@ function DayView({
   const showCurrentTime = isToday && currentHour >= START_HOUR && currentHour < END_HOUR;
   const currentTimeRow = showCurrentTime ? currentHour - START_HOUR : null;
   const currentTimeOffset = showCurrentTime ? (currentMinute / 60) : 0;
+
+  // Scroll to highlighted appointment
+  useEffect(() => {
+    if (highlightedAppointmentId && scrollContainerRef.current) {
+      // Find the highlighted appointment to get its time
+      const highlightedApt = appointments.find(apt => apt.id === highlightedAppointmentId);
+      if (highlightedApt) {
+        const startTime = new Date(highlightedApt.start_time);
+        const hour = startTime.getHours();
+
+        // Wait a tick for the DOM to render
+        setTimeout(() => {
+          // Calculate scroll position - each hour cell is approximately 140px (min-h-[140px])
+          const HOUR_HEIGHT = 140;
+          const hourIndex = hour - START_HOUR;
+          const scrollPosition = hourIndex * HOUR_HEIGHT;
+
+          // Scroll smoothly to center the appointment
+          if (scrollContainerRef.current) {
+            const containerHeight = scrollContainerRef.current.clientHeight;
+            const targetScroll = Math.max(0, scrollPosition - containerHeight / 3);
+
+            scrollContainerRef.current.scrollTo({
+              top: targetScroll,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
+      }
+    }
+  }, [highlightedAppointmentId, appointments, START_HOUR]);
 
   // Calculate position for each appointment
   const appointmentsByHour = hours.map(hour => {
@@ -912,7 +1023,7 @@ function DayView({
       </div>
 
       {/* Time Grid */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {hours.map((hour, hourIdx) => (
           <div key={hour} className="grid grid-cols-[64px_1fr]">
             {/* Time Label */}
@@ -936,6 +1047,7 @@ function DayView({
               onEdit={onEdit}
               draggedAppointment={draggedAppointment}
               setDraggedAppointment={setDraggedAppointment}
+              highlightedAppointmentId={highlightedAppointmentId}
             />
           </div>
         ))}
@@ -957,6 +1069,7 @@ function DayHourCell({
   onEdit,
   draggedAppointment,
   setDraggedAppointment,
+  highlightedAppointmentId,
 }: {
   date: Date;
   hour: number;
@@ -970,6 +1083,7 @@ function DayHourCell({
   onEdit: (id: string) => void;
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
+  highlightedAppointmentId?: string | null;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
@@ -1066,11 +1180,17 @@ function DayHourCell({
             heightPx
           );
 
+          const isHighlighted = highlightedAppointmentId === apt.id;
+
           return (
             <div
               key={apt.id}
               draggable
-              className="group px-2 py-2 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 hover:z-30 hover:shadow-md cursor-move overflow-hidden transition-all"
+              className={`group px-2 py-2 rounded-lg bg-teal-50 border text-teal-900 hover:bg-teal-100 hover:z-30 hover:shadow-md cursor-move overflow-hidden transition-all ${
+                isHighlighted
+                  ? 'border-teal-400 border-2 bg-teal-100 animate-highlight-pulse z-40'
+                  : 'border-teal-100'
+              }`}
               style={{
                 ...positionStyles,
                 left: `calc(${positionStyles.left} + 8px)`,
