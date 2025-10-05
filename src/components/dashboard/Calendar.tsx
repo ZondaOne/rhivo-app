@@ -337,6 +337,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
           draggedAppointment={draggedAppointment}
           setDraggedAppointment={setDraggedAppointment}
           highlightedAppointmentId={highlightedAppointmentId}
+          onDateChange={onDateChange}
         />
       )}
 
@@ -922,6 +923,7 @@ function DayView({
   draggedAppointment,
   setDraggedAppointment,
   highlightedAppointmentId,
+  onDateChange,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -930,6 +932,7 @@ function DayView({
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
   highlightedAppointmentId?: string | null;
+  onDateChange?: (date: Date) => void;
 }) {
   const START_HOUR = 6;
   const END_HOUR = 22;
@@ -1000,25 +1003,110 @@ function DayView({
       });
   });
 
+  // Generate array of dates: 3 days before, current day, 3 days after
+  const dateRange = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(currentDate);
+    date.setDate(date.getDate() + (i - 3));
+    return date;
+  });
+
+  const handlePreviousDay = () => {
+    const prevDay = new Date(currentDate);
+    prevDay.setDate(prevDay.getDate() - 1);
+    onDateChange?.(prevDay);
+  };
+
+  const handleNextDay = () => {
+    const nextDay = new Date(currentDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    onDateChange?.(nextDay);
+  };
+
   return (
     <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
-      {/* Day Header */}
-      <div className="py-4 px-6 border-b border-gray-200/60 flex-shrink-0">
-        <div className="text-center">
-          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
-            {currentDate.toLocaleDateString('en-US', { weekday: 'long' })}
+      {/* Day Header - Horizontal Date Picker */}
+      <div className="py-5 px-4 sm:px-6 border-b border-gray-200/60 flex-shrink-0">
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
+          {/* Previous Day Button */}
+          <button
+            onClick={handlePreviousDay}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 transition-all flex-shrink-0 text-gray-400 hover:text-gray-900"
+            title="Previous day"
+            aria-label="Previous day"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Date Tiles */}
+          <div className="flex items-center gap-1 sm:gap-2 overflow-hidden flex-1 justify-center max-w-2xl">
+            {dateRange.map((date, idx) => {
+              const isCurrent = date.toDateString() === currentDate.toDateString();
+              const isCurrentDay = date.toDateString() === now.toDateString();
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+              return (
+                <button
+                  key={date.toISOString()}
+                  onClick={() => onDateChange?.(date)}
+                  className={`flex flex-col items-center justify-center rounded-xl transition-all ${
+                    isCurrent
+                      ? 'bg-gray-50 text-gray-900 px-4 sm:px-5 py-3 sm:py-4 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50 px-2 sm:px-3 py-2'
+                  } ${
+                    !isCurrent ? 'opacity-30 hover:opacity-100' : ''
+                  }`}
+                  title={date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                >
+                  {/* Weekday */}
+                  <div className={`font-semibold uppercase tracking-wider mb-1 ${
+                    isCurrent ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs'
+                  }`}>
+                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </div>
+
+                  {/* Day Number */}
+                  {isCurrentDay ? (
+                    <div className={`rounded-full flex items-center justify-center ${
+                      isCurrent
+                        ? 'w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-500 to-green-500 text-white'
+                        : 'w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-teal-500 to-green-500 text-white'
+                    }`}>
+                      <span className={`font-bold ${isCurrent ? 'text-lg sm:text-xl' : 'text-xs sm:text-sm'}`}>
+                        {date.getDate()}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className={`font-bold ${
+                      isCurrent ? 'text-xl sm:text-2xl' : 'text-sm sm:text-base'
+                    }`}>
+                      {date.getDate()}
+                    </span>
+                  )}
+
+                  {/* Month indicator for first day of month (only on non-current) */}
+                  {!isCurrent && date.getDate() === 1 && (
+                    <div className="text-[9px] sm:text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">
+                      {date.toLocaleDateString('en-US', { month: 'short' })}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          {isToday ? (
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
-              <span className="text-lg font-bold text-white">
-                {currentDate.getDate()}
-              </span>
-            </div>
-          ) : (
-            <span className="text-2xl font-bold text-gray-900">
-              {currentDate.getDate()}
-            </span>
-          )}
+
+          {/* Next Day Button */}
+          <button
+            onClick={handleNextDay}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 transition-all flex-shrink-0 text-gray-400 hover:text-gray-900"
+            title="Next day"
+            aria-label="Next day"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
 
