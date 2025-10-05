@@ -287,7 +287,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
         )
       );
 
-      await apiRequest('/api/appointments/reschedule', {
+      const response = await apiRequest<{ success: boolean; appointment?: Appointment }>('/api/appointments/reschedule', {
         method: 'POST',
         body: JSON.stringify({
           appointmentId: appointment.id,
@@ -297,9 +297,26 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
 
       showToast('Appointment rescheduled. Customer will be notified via email.', 'success');
 
-      // Invalidate cache to force fresh data
-      setAppointmentCache(null);
-      await loadAppointments();
+      // Update cache with the server-returned appointment data
+      if (response.appointment) {
+        setAppointmentCache((prevCache) => {
+          if (!prevCache) return prevCache;
+
+          const updatedAppointments = prevCache.appointments.map((a) =>
+            a.id === response.appointment!.id ? response.appointment! : a
+          );
+
+          return {
+            ...prevCache,
+            appointments: updatedAppointments,
+          };
+        });
+
+        // Update displayed appointments with correct data from server
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === response.appointment!.id ? response.appointment! : a))
+        );
+      }
     } catch (error) {
       console.error('Failed to reschedule:', error);
       const message = error instanceof Error ? error.message : 'Failed to reschedule appointment';
@@ -326,13 +343,34 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
     setEditingAppointment(null);
   }
 
-  async function handleEditSave() {
+  async function handleEditSave(updatedAppointment?: Appointment) {
     setEditingAppointment(null);
     showToast('Appointment updated successfully', 'success');
 
-    // Invalidate cache to force fresh data
-    setAppointmentCache(null);
-    await loadAppointments();
+    // Update cache with the server-returned appointment data
+    if (updatedAppointment) {
+      setAppointmentCache((prevCache) => {
+        if (!prevCache) return prevCache;
+
+        const updatedAppointments = prevCache.appointments.map((a) =>
+          a.id === updatedAppointment.id ? updatedAppointment : a
+        );
+
+        return {
+          ...prevCache,
+          appointments: updatedAppointments,
+        };
+      });
+
+      // Update displayed appointments with correct data from server
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === updatedAppointment.id ? updatedAppointment : a))
+      );
+    } else {
+      // No changes made or no appointment returned - invalidate cache to be safe
+      setAppointmentCache(null);
+      await loadAppointments();
+    }
   }
 
   function handleDayCellClick(date: Date) {
@@ -910,26 +948,28 @@ function WeekDayCell({
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const CELL_HEIGHT = 120; // Total height for one hour (increased for better visibility)
-  const GRAIN_SIZE_MINUTES = 5; // 5-minute grain
+  const GRAIN_SIZE_MINUTES = 5; // 5-minute grain for rendering
   const GRAINS_PER_HOUR = 60 / GRAIN_SIZE_MINUTES; // 12 grains per hour
   const GRAIN_HEIGHT = CELL_HEIGHT / GRAINS_PER_HOUR; // 10px per 5-minute grain
+  const DROP_ZONE_MINUTES = 15; // 15-minute increments for drag-and-drop
+  const DROP_ZONES_PER_HOUR = 60 / DROP_ZONE_MINUTES; // 4 drop zones per hour
 
-  const handleDragOver = (e: React.DragEvent, grainSlot: number) => {
+  const handleDragOver = (e: React.DragEvent, dropZoneIndex: number) => {
     e.preventDefault();
     setIsDragOver(true);
-    setDragOverSlot(grainSlot);
+    setDragOverSlot(dropZoneIndex);
   };
 
-  const handleDrop = (e: React.DragEvent, grainSlot: number) => {
+  const handleDrop = (e: React.DragEvent, dropZoneIndex: number) => {
     e.preventDefault();
     setIsDragOver(false);
     setDragOverSlot(null);
 
     const appointmentId = e.dataTransfer.getData('appointmentId');
     if (appointmentId) {
-      // Calculate the new time based on the 5-minute grain slot (0-11 for each 5-min increment)
+      // Calculate the new time based on 15-minute drop zones (0-3 for 0, 15, 30, 45 min)
       const newTime = new Date(day);
-      newTime.setHours(hour, grainSlot * GRAIN_SIZE_MINUTES, 0, 0);
+      newTime.setHours(hour, dropZoneIndex * DROP_ZONE_MINUTES, 0, 0);
 
       onReschedule(appointmentId, newTime);
     }
@@ -946,27 +986,27 @@ function WeekDayCell({
         isWeekend ? 'bg-gray-50/30' : 'bg-white'
       } transition-colors`}
     >
-      {/* 5-minute grain drop zones (12 zones per hour) */}
-      {Array.from({ length: GRAINS_PER_HOUR }).map((_, grainIndex) => {
-        const topPercent = (grainIndex / GRAINS_PER_HOUR) * 100;
-        const heightPercent = (1 / GRAINS_PER_HOUR) * 100;
+      {/* 15-minute drop zones (4 zones per hour: 0, 15, 30, 45) */}
+      {Array.from({ length: DROP_ZONES_PER_HOUR }).map((_, dropZoneIndex) => {
+        const topPercent = (dropZoneIndex / DROP_ZONES_PER_HOUR) * 100;
+        const heightPercent = (1 / DROP_ZONES_PER_HOUR) * 100;
 
         return (
           <div
-            key={grainIndex}
+            key={dropZoneIndex}
             className={`absolute inset-x-0 hover:bg-gray-50/50 transition-colors ${
-              isDragOver && dragOverSlot === grainIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+              isDragOver && dragOverSlot === dropZoneIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
             }`}
             style={{
               top: `${topPercent}%`,
               height: `${heightPercent}%`,
             }}
-            onDragOver={(e) => handleDragOver(e, grainIndex)}
+            onDragOver={(e) => handleDragOver(e, dropZoneIndex)}
             onDragLeave={() => {
               setIsDragOver(false);
               setDragOverSlot(null);
             }}
-            onDrop={(e) => handleDrop(e, grainIndex)}
+            onDrop={(e) => handleDrop(e, dropZoneIndex)}
           />
         );
       })}
@@ -1325,26 +1365,28 @@ function DayHourCell({
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const CELL_HEIGHT = 120; // Total height for one hour (increased for better visibility)
-  const GRAIN_SIZE_MINUTES = 5; // 5-minute grain
+  const GRAIN_SIZE_MINUTES = 5; // 5-minute grain for rendering
   const GRAINS_PER_HOUR = 60 / GRAIN_SIZE_MINUTES; // 12 grains per hour
   const GRAIN_HEIGHT = CELL_HEIGHT / GRAINS_PER_HOUR; // 10px per 5-minute grain
+  const DROP_ZONE_MINUTES = 15; // 15-minute increments for drag-and-drop
+  const DROP_ZONES_PER_HOUR = 60 / DROP_ZONE_MINUTES; // 4 drop zones per hour
 
-  const handleDragOver = (e: React.DragEvent, grainSlot: number) => {
+  const handleDragOver = (e: React.DragEvent, dropZoneIndex: number) => {
     e.preventDefault();
     setIsDragOver(true);
-    setDragOverSlot(grainSlot);
+    setDragOverSlot(dropZoneIndex);
   };
 
-  const handleDrop = (e: React.DragEvent, grainSlot: number) => {
+  const handleDrop = (e: React.DragEvent, dropZoneIndex: number) => {
     e.preventDefault();
     setIsDragOver(false);
     setDragOverSlot(null);
 
     const appointmentId = e.dataTransfer.getData('appointmentId');
     if (appointmentId) {
-      // Calculate the new time based on the 5-minute grain slot (0-11 for each 5-min increment)
+      // Calculate the new time based on 15-minute drop zones (0-3 for 0, 15, 30, 45 min)
       const newTime = new Date(date);
-      newTime.setHours(hour, grainSlot * GRAIN_SIZE_MINUTES, 0, 0);
+      newTime.setHours(hour, dropZoneIndex * DROP_ZONE_MINUTES, 0, 0);
 
       onReschedule(appointmentId, newTime);
     }
@@ -1357,27 +1399,27 @@ function DayHourCell({
         isLastHour ? 'border-b-0' : ''
       } bg-white transition-colors`}
     >
-      {/* 5-minute grain drop zones (12 zones per hour) */}
-      {Array.from({ length: GRAINS_PER_HOUR }).map((_, grainIndex) => {
-        const topPercent = (grainIndex / GRAINS_PER_HOUR) * 100;
-        const heightPercent = (1 / GRAINS_PER_HOUR) * 100;
+      {/* 15-minute drop zones (4 zones per hour: 0, 15, 30, 45) */}
+      {Array.from({ length: DROP_ZONES_PER_HOUR }).map((_, dropZoneIndex) => {
+        const topPercent = (dropZoneIndex / DROP_ZONES_PER_HOUR) * 100;
+        const heightPercent = (1 / DROP_ZONES_PER_HOUR) * 100;
 
         return (
           <div
-            key={grainIndex}
+            key={dropZoneIndex}
             className={`absolute inset-x-0 hover:bg-gray-50/50 transition-colors ${
-              isDragOver && dragOverSlot === grainIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+              isDragOver && dragOverSlot === dropZoneIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
             }`}
             style={{
               top: `${topPercent}%`,
               height: `${heightPercent}%`,
             }}
-            onDragOver={(e) => handleDragOver(e, grainIndex)}
+            onDragOver={(e) => handleDragOver(e, dropZoneIndex)}
             onDragLeave={() => {
               setIsDragOver(false);
               setDragOverSlot(null);
             }}
-            onDrop={(e) => handleDrop(e, grainIndex)}
+            onDrop={(e) => handleDrop(e, dropZoneIndex)}
           />
         );
       })}

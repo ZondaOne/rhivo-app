@@ -27,6 +27,7 @@ export interface UpdateAppointmentParams {
   appointmentId: string;
   slotStart?: Date;
   slotEnd?: Date;
+  serviceId?: string;
   status?: AppointmentStatus;
   actorId: string;
   expectedVersion: number;
@@ -256,6 +257,7 @@ export class AppointmentManager {
       appointmentId,
       slotStart,
       slotEnd,
+      serviceId,
       status,
       actorId,
       expectedVersion
@@ -284,17 +286,18 @@ export class AppointmentManager {
         throw error;
       }
 
-      // If updating time slot, check capacity
-      if (slotStart || slotEnd) {
+      // If updating time slot or service, check capacity
+      if (slotStart || slotEnd || serviceId) {
         const newStart = slotStart || currentAppointment.slot_start;
         const newEnd = slotEnd || currentAppointment.slot_end;
+        const newServiceId = serviceId || currentAppointment.service_id;
 
         // Temporarily exclude current appointment from capacity check
         const capacity = await txDb`
           WITH service_capacity AS (
             SELECT max_simultaneous_bookings
             FROM services
-            WHERE id = ${currentAppointment.service_id}
+            WHERE id = ${newServiceId}
               AND business_id = ${currentAppointment.business_id}
               AND deleted_at IS NULL
           ),
@@ -304,7 +307,7 @@ export class AppointmentManager {
               SELECT 1
               FROM appointments
               WHERE business_id = ${currentAppointment.business_id}
-                AND service_id = ${currentAppointment.service_id}
+                AND service_id = ${newServiceId}
                 AND id != ${appointmentId}
                 AND deleted_at IS NULL
                 AND status = 'confirmed'
@@ -316,7 +319,7 @@ export class AppointmentManager {
               SELECT 1
               FROM reservations
               WHERE business_id = ${currentAppointment.business_id}
-                AND service_id = ${currentAppointment.service_id}
+                AND service_id = ${newServiceId}
                 AND expires_at > NOW()
                 AND slot_start < ${newEnd}
                 AND slot_end > ${newStart}
@@ -341,6 +344,7 @@ export class AppointmentManager {
         SET
           slot_start = COALESCE(${slotStart || null}, slot_start),
           slot_end = COALESCE(${slotEnd || null}, slot_end),
+          service_id = COALESCE(${serviceId || null}, service_id),
           status = COALESCE(${status || null}, status),
           version = version + 1,
           updated_at = NOW()

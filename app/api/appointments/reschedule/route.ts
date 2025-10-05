@@ -57,9 +57,33 @@ export async function POST(request: NextRequest) {
 
     const current = appointmentRows[0];
     const currentVersion = Number(current.version ?? 1);
-    const existingDuration = Math.floor(
-      (new Date(current.slot_end).getTime() - new Date(current.slot_start).getTime()) / (1000 * 60)
-    );
+
+    // Determine duration: if service is changing, get new service's duration; otherwise use existing duration
+    let durationMinutes: number;
+    let serviceIdToUse = current.service_id;
+
+    if (body.serviceId && body.serviceId !== current.service_id) {
+      // Service is changing - get new service's duration
+      const newServiceRows = await sql`
+        SELECT duration_minutes
+        FROM services
+        WHERE id = ${body.serviceId}
+          AND business_id = ${payload.business_id}
+          AND deleted_at IS NULL
+      `;
+
+      if (newServiceRows.length === 0) {
+        return NextResponse.json({ message: 'Service not found' }, { status: 404 });
+      }
+
+      durationMinutes = newServiceRows[0].duration_minutes;
+      serviceIdToUse = body.serviceId;
+    } else {
+      // Service not changing - use existing duration
+      durationMinutes = Math.floor(
+        (new Date(current.slot_end).getTime() - new Date(current.slot_start).getTime()) / (1000 * 60)
+      );
+    }
 
     const newStart = new Date(body.newStartTime);
     if (Number.isNaN(newStart.getTime())) {
@@ -70,36 +94,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Cannot reschedule into the past' }, { status: 400 });
     }
 
-    const newEnd = new Date(newStart.getTime() + existingDuration * 60 * 1000);
+    const newEnd = new Date(newStart.getTime() + durationMinutes * 60 * 1000);
 
     const appointmentManager = new AppointmentManager(sql);
     const notificationService = new NotificationService(sql);
 
+    let appointmentWithDetails;
+
     try {
-      await appointmentManager.updateAppointment({
+      const updated = await appointmentManager.updateAppointment({
         appointmentId: body.appointmentId,
         slotStart: newStart,
         slotEnd: newEnd,
+        serviceId: body.serviceId && body.serviceId !== current.service_id ? serviceIdToUse : undefined,
         actorId: payload.sub,
         expectedVersion: currentVersion,
       });
 
       // Queue notification to customer
       // Get customer email/phone from appointment (join with users table for registered customers)
-      const updatedAppointment = await sql`
+      appointmentWithDetails = await sql`
         SELECT
+          a.id,
+          a.service_id,
+          s.name AS service_name,
+          a.slot_start,
+          a.slot_end,
+          a.status,
+          a.version,
+          a.created_at,
+          a.updated_at,
           a.guest_email,
           a.guest_phone,
-          u.email as customer_email,
-          u.phone as customer_phone
+          u.name AS customer_name,
+          u.email AS customer_email,
+          u.phone AS customer_phone
         FROM appointments a
+        LEFT JOIN services s ON s.id = a.service_id
         LEFT JOIN users u ON a.customer_id = u.id
         WHERE a.id = ${body.appointmentId}
           AND a.deleted_at IS NULL
       `;
 
-      if (updatedAppointment.length > 0) {
-        const apt = updatedAppointment[0];
+      if (appointmentWithDetails.length > 0) {
+        const apt = appointmentWithDetails[0];
         const email = apt.customer_email || apt.guest_email;
         const phone = apt.customer_phone || apt.guest_phone;
 
@@ -131,6 +169,42 @@ export async function POST(request: NextRequest) {
         { message: 'Failed to reschedule appointment' },
         { status: 500 }
       );
+    }
+
+    // Return the updated appointment in the same format as GET /api/appointments
+    if (appointmentWithDetails && appointmentWithDetails.length > 0) {
+      const row = appointmentWithDetails[0];
+      const slotStart = new Date(row.slot_start);
+      const slotEnd = new Date(row.slot_end);
+      const durationMinutes = Math.max(5, Math.round((slotEnd.getTime() - slotStart.getTime()) / (1000 * 60)));
+
+      const STATUS_DB_TO_UI: Record<string, string> = {
+        confirmed: 'confirmed',
+        completed: 'completed',
+        canceled: 'cancelled',
+        no_show: 'no_show',
+      };
+
+      return NextResponse.json({
+        success: true,
+        appointment: {
+          id: row.id,
+          service_id: row.service_id,
+          service_name: row.service_name,
+          start_time: slotStart.toISOString(),
+          end_time: slotEnd.toISOString(),
+          duration: durationMinutes,
+          status: STATUS_DB_TO_UI[row.status] ?? row.status,
+          customer_name: row.customer_name ?? row.guest_email ?? 'Guest',
+          customer_email: row.customer_email ?? row.guest_email ?? null,
+          customer_phone: row.customer_phone ?? row.guest_phone ?? null,
+          guest_email: row.guest_email ?? null,
+          guest_phone: row.guest_phone ?? null,
+          version: row.version ?? 1,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        },
+      });
     }
 
     return NextResponse.json({ success: true });

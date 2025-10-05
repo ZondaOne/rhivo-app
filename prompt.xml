@@ -410,6 +410,24 @@
   <acceptance>Appointment blocks in week and day views correctly span their full duration vertically whether alone or in cascade columns. No vertical overflow outside hour cells. Height remains accurate when horizontally split across 2-4 columns. All appointments align precisely to 5-minute grain boundaries. Visual debugging confirms pixel-perfect alignment to grid.</acceptance>
 </step>
 
+<step number="7o">
+  <title>Multi-hour appointment rendering and continuity visualization</title>
+  <tasks>
+    <task>Implement continuous rendering for appointments spanning multiple hours: appointments that extend beyond their starting hour (e.g., 10:00-12:30) should render as a single continuous block spanning multiple hour cells, not cropped at hour boundaries.</task>
+    <task>Design vertical span calculation: detect when appointment end time exceeds starting hour boundary and calculate total vertical span across hour cells (e.g., 10:15-12:45 spans from 10:15 to end of hour 10, all of hour 11, and start to 12:45 of hour 12).</task>
+    <task>Implement absolute positioning strategy: use absolute positioning with z-index to allow appointment blocks to span across multiple hour cell boundaries without being clipped by parent overflow constraints.</task>
+    <task>Handle cascade layout for multi-hour appointments: when multiple multi-hour appointments overlap, ensure cascade column allocation considers the entire vertical span, not just the starting hour.</task>
+    <task>Add visual continuity indicators: consider subtle visual cues (border style, background pattern) to distinguish multi-hour blocks from single-hour appointments for improved scanability.</task>
+    <task>Optimize rendering performance: ensure multi-hour appointments are only rendered once in their starting hour cell (not duplicated in each spanned hour) to prevent duplicate DOM elements and event handlers.</task>
+    <task>Implement hover/interaction handling: ensure multi-hour appointments respond to hover, drag, and click events across their entire vertical span, not just the visible portion in the starting hour.</task>
+    <task>Handle edge cases: appointments starting before visible range and ending within range, appointments starting within range and ending after visible range, appointments spanning entire day (8+ hours).</task>
+    <task>Update cascade column allocation algorithm: when calculating overlaps for multi-hour appointments, check intersections across the entire time span, not just within single hour cells.</task>
+    <task>Test with various multi-hour scenarios: 1.5-hour appointments, 2-hour appointments, 3+ hour appointments, simultaneous multi-hour appointments with different durations, cascade layouts with mix of single-hour and multi-hour appointments.</task>
+  </tasks>
+  <deliverables>Multi-hour appointment rendering system, continuous vertical span calculation algorithm, updated cascade layout for cross-hour appointments, visual continuity design, performance-optimized rendering (single DOM element per appointment), comprehensive edge case handling, test suite with multi-hour scenarios.</deliverables>
+  <acceptance>Appointments spanning multiple hours render as single continuous visual blocks without cropping at hour boundaries. A 2-hour appointment (10:00-12:00) displays as one unified block spanning two hour cells. Cascade layout correctly handles overlapping multi-hour appointments by allocating columns across the entire span. Drag-and-drop and hover interactions work seamlessly across the full appointment height. No duplicate rendering or visual artifacts. Performance remains smooth with 10+ concurrent multi-hour appointments. Edge cases (partial visibility, very long appointments) handled gracefully.</acceptance>
+</step>
+
 <step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>

@@ -17,7 +17,7 @@ interface Service {
 interface AppointmentEditModalProps {
   appointment: Appointment;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (updatedAppointment?: Appointment) => void;
 }
 
 export function AppointmentEditModal({ appointment, onClose, onSave }: AppointmentEditModalProps) {
@@ -117,7 +117,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
       const serviceChanged = selectedServiceId !== appointment.service_id;
 
       if (timeChanged || serviceChanged) {
-        await apiRequest('/api/appointments/reschedule', {
+        const response = await apiRequest<{ success: boolean; appointment?: Appointment }>('/api/appointments/reschedule', {
           method: 'POST',
           body: JSON.stringify({
             appointmentId: appointment.id,
@@ -126,10 +126,13 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
             notifyCustomer,
           }),
         });
+
+        // Pass the updated appointment back to parent
+        onSave(response.appointment);
+      } else {
+        // No changes made
+        onSave();
       }
-
-
-      onSave();
     } catch (error) {
       console.error('Failed to update appointment:', error);
       alert(error instanceof Error ? error.message : 'Failed to update appointment');
