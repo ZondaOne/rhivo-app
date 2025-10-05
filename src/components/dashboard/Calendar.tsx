@@ -10,6 +10,8 @@ import { apiRequest } from '@/lib/auth/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { addStackingMetadata, StackedAppointment, groupByStartTime, allocateCascadeColumns, getCascadePositionStyles } from '@/lib/appointment-stacking';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { ViewTransition, useViewTransitionDirection } from './ViewTransition';
+import { MonthSkeleton, DaySkeleton, ListSkeleton } from './skeletons';
 
 interface CalendarProps {
   view: CalendarView;
@@ -38,7 +40,15 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
   const [pendingReschedule, setPendingReschedule] = useState<PendingReschedule | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [highlightedAppointmentId, setHighlightedAppointmentId] = useState<string | null>(null);
+  const [previousView, setPreviousView] = useState<CalendarView>(view);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Track view changes for transitions
+  useEffect(() => {
+    if (view !== previousView) {
+      setPreviousView(view);
+    }
+  }, [view, previousView]);
 
   const showToast = (message: string, type: Toast['type'] = 'info') => {
     const id = Math.random().toString(36).substring(7);
@@ -245,10 +255,19 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
     }
   }
 
+  // Determine which skeleton to show based on current view
   if (loading) {
+    if (view === 'month') {
+      return <MonthSkeleton />;
+    } else if (view === 'day' || view === 'week') {
+      return <DaySkeleton />;
+    } else if (view === 'list') {
+      return <ListSkeleton />;
+    }
+    // Fallback for any other view
     return (
       <div className="bg-white rounded-2xl border border-gray-200/60 p-12 flex items-center justify-center min-h-96">
-        <div className="text-gray-500">Loading appointments...</div>
+        <div className="h-6 w-48 bg-gray-200 rounded skeleton-shimmer mx-auto" />
       </div>
     );
   }
@@ -301,54 +320,59 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
         />
       )}
 
-      {/* Calendar views */}
-      {view === 'month' && (
-        <MonthView
-          currentDate={currentDate}
-          appointments={appointments}
-          onReschedule={requestReschedule}
-          onEdit={handleEdit}
-          draggedAppointment={draggedAppointment}
-          setDraggedAppointment={setDraggedAppointment}
-          onViewChange={onViewChange}
-          onDateChange={onDateChange}
-          onDayCellClick={handleDayCellClick}
-          onAppointmentClick={handleAppointmentClick}
-        />
-      )}
+      {/* Calendar views with smooth transitions */}
+      <ViewTransition
+        transitionKey={view}
+        direction={useViewTransitionDirection(previousView, view)}
+      >
+        {view === 'month' && (
+          <MonthView
+            currentDate={currentDate}
+            appointments={appointments}
+            onReschedule={requestReschedule}
+            onEdit={handleEdit}
+            draggedAppointment={draggedAppointment}
+            setDraggedAppointment={setDraggedAppointment}
+            onViewChange={onViewChange}
+            onDateChange={onDateChange}
+            onDayCellClick={handleDayCellClick}
+            onAppointmentClick={handleAppointmentClick}
+          />
+        )}
 
-      {view === 'week' && (
-        <WeekView
-          currentDate={currentDate}
-          appointments={appointments}
-          onReschedule={requestReschedule}
-          onEdit={handleEdit}
-          draggedAppointment={draggedAppointment}
-          setDraggedAppointment={setDraggedAppointment}
-        />
-      )}
+        {view === 'week' && (
+          <WeekView
+            currentDate={currentDate}
+            appointments={appointments}
+            onReschedule={requestReschedule}
+            onEdit={handleEdit}
+            draggedAppointment={draggedAppointment}
+            setDraggedAppointment={setDraggedAppointment}
+          />
+        )}
 
-      {view === 'day' && (
-        <DayView
-          currentDate={currentDate}
-          appointments={appointments}
-          onReschedule={requestReschedule}
-          onEdit={handleEdit}
-          draggedAppointment={draggedAppointment}
-          setDraggedAppointment={setDraggedAppointment}
-          highlightedAppointmentId={highlightedAppointmentId}
-          onDateChange={onDateChange}
-        />
-      )}
+        {view === 'day' && (
+          <DayView
+            currentDate={currentDate}
+            appointments={appointments}
+            onReschedule={requestReschedule}
+            onEdit={handleEdit}
+            draggedAppointment={draggedAppointment}
+            setDraggedAppointment={setDraggedAppointment}
+            highlightedAppointmentId={highlightedAppointmentId}
+            onDateChange={onDateChange}
+          />
+        )}
 
-      {view === 'list' && (
-        <ListView
-          currentDate={currentDate}
-          appointments={appointments}
-          onReschedule={requestReschedule}
-          onEdit={handleEdit}
-        />
-      )}
+        {view === 'list' && (
+          <ListView
+            currentDate={currentDate}
+            appointments={appointments}
+            onReschedule={requestReschedule}
+            onEdit={handleEdit}
+          />
+        )}
+      </ViewTransition>
     </>
   );
 }

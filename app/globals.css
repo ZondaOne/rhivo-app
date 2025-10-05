@@ -168,3 +168,32 @@ input[type="range"].slider-thumb:focus::-moz-range-thumb {
 .animate-highlight-pulse {
   animation: highlight-pulse 1.5s ease-out;
 }
+
+/* Skeleton shimmer loading animation */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 0%,
+    #f3f4f6 50%,
+    #e5e7eb 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Respect reduced motion preference for shimmer */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: #e5e7eb;
+  }
+}

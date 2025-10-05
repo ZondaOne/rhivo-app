@@ -351,9 +351,31 @@
     <task>Handle edge cases: appointment at very early hour (6 AM) or very late hour (10 PM) should still center properly without scrolling beyond timeline bounds.</task>
     <task>Implement URL state management: update URL parameters when navigating to day view so browser back button works correctly (e.g., /dashboard?view=day&date=2025-01-07&appointment=abc123).</task>
     <task>Preserve context on navigation: maintain selected business, filters, and other dashboard state when switching between views.</task>
+    <task>Design horizontal date picker for day view header: show selected day prominently in center with 3 days before/after, left/right chevrons for navigation.</task>
   </tasks>
-  <deliverables>Drag-drop same-position detection logic, clickable calendar cell handlers, appointment-specific navigation with scroll animation, highlight pulse effect, URL state management for deep linking, browser history integration.</deliverables>
-  <acceptance>Dragging appointment to same position does not show confirmation modal. Clicking empty day cell navigates to day view for that date. Clicking appointment navigates to day view and smoothly scrolls to center that appointment with brief highlight animation. URL updates reflect current view state. Browser back/forward buttons work correctly. All transitions are smooth at 60fps.</acceptance>
+  <deliverables>Drag-drop same-position detection logic, clickable calendar cell handlers, appointment-specific navigation with scroll animation, highlight pulse effect, URL state management for deep linking, browser history integration, horizontal date picker with responsive design.</deliverables>
+  <acceptance>Dragging appointment to same position does not show confirmation modal. Clicking empty day cell navigates to day view for that date. Clicking appointment navigates to day view and smoothly scrolls to center that appointment with brief highlight animation. URL updates reflect current view state. Browser back/forward buttons work correctly. Day view header shows clear date picker with prominent selected day. All transitions are smooth at 60fps.</acceptance>
+</step>
+
+<step number="7l">
+  <title>Calendar view transition animations and loading states</title>
+  <tasks>
+    <task>Implement subtle fade and slide transitions between calendar views (month, week, day, list) following functional minimalism style guide.</task>
+    <task>Add smooth cross-fade animation when switching views: outgoing view fades out while incoming view fades in with slight vertical offset (8-12px) for depth perception.</task>
+    <task>Create skeleton loading states for each view: show gray placeholder blocks that match final layout structure while appointments load.</task>
+    <task>Design month change animation: sliding transition (left/right based on direction) with 200-300ms duration and ease-out timing.</task>
+    <task>Design day change animation in day view: subtle horizontal slide (50px offset) with cross-fade for seamless date navigation via chevrons or date picker.</task>
+    <task>Implement appointment data loading states: show shimmer effect on skeleton blocks using CSS gradient animation.</task>
+    <task>Add smooth height transitions when calendar grid resizes (e.g., month view with 4 vs 6 weeks): animate container height changes over 250ms.</task>
+    <task>Preserve scroll position where appropriate: when switching from day to week view and back, maintain scroll offset if same time range visible.</task>
+    <task>Handle rapid view switching gracefully: cancel in-flight animations and transitions if user switches views quickly to prevent animation queue buildup.</task>
+    <task>Implement optimistic UI updates: when changing dates or views, immediately show target state with loading overlay rather than blank screen.</task>
+    <task>Add subtle loading indicator for slow connections: minimal spinner or progress bar in header that appears after 300ms delay (prevents flash for fast loads).</task>
+    <task>Ensure all transitions respect prefers-reduced-motion media query: disable or reduce animations for accessibility.</task>
+    <task>Test edge cases: view switching during active drag operation, rapid date navigation clicks, switching views while appointments are still loading.</task>
+  </tasks>
+  <deliverables>View transition animation system with fade/slide effects, skeleton loading components for all calendar views, month/day navigation animations, shimmer loading effect CSS, scroll position preservation logic, animation cancellation handlers, reduced-motion accessibility support, comprehensive loading state UI.</deliverables>
+  <acceptance>All view transitions are smooth and subtle (200-300ms duration). No jarring cuts or layout shifts during navigation. Loading states accurately represent final layout structure. Skeleton loaders appear immediately, real data cross-fades in when ready. Month and day changes slide smoothly in correct direction. Rapid clicking does not cause animation conflicts or visual glitches. Scroll positions are intelligently preserved between related views. Reduced motion preference is respected. All transitions maintain 60fps performance on mid-range devices. Loading spinner only appears for genuinely slow loads (300ms+ delay).</acceptance>
 </step>
 
 <step number="13">
