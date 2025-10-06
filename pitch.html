@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rivo - Premium Appointment Management</title>
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/reset.css">
+    <link rel="stylesheet" href="node_modules/reveal.js/dist/reveal.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        :root {
+            --teal-500: #14b8a6;
+            --teal-600: #0d9488;
+            --green-500: #22c55e;
+            --green-600: #16a34a;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-500: #6b7280;
+            --gray-900: #111827;
+        }
+
+        .reveal {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.011em;
+        }
+
+        .reveal .slides {
+            text-align: left;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--gray-900);
+            text-transform: none;
+        }
+
+        .reveal h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .reveal h2 {
+            font-size: 2.5rem;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .reveal h3 {
+            font-size: 1.5rem;
+            line-height: 1.3;
+            margin-bottom: 0.75rem;
+        }
+
+        .reveal p {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: var(--gray-500);
+            margin-bottom: 1rem;
+        }
+
+        .reveal .gradient-text {
+            background: linear-gradient(135deg, var(--teal-600), var(--green-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .reveal .gradient-bg {
+            background: linear-gradient(135deg, var(--teal-500), var(--green-500));
+            color: white;
+        }
+
+        .reveal section {
+            padding: 3rem;
+        }
+
+        .reveal .title-slide {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--teal-500) 0%, var(--green-500) 100%);
+            color: white;
+            padding: 4rem;
+        }
+
+        .reveal .title-slide h1 {
+            color: white;
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .reveal .title-slide p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.5rem;
+        }
+
+        .reveal .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .reveal .feature-card {
+            background: var(--gray-50);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .reveal .feature-card h3 {
+            color: var(--gray-900);
+            margin-bottom: 0.75rem;
+        }
+
+        .reveal .feature-card p {
+            font-size: 1rem;
+            color: var(--gray-500);
+        }
+
+        .reveal .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .reveal .stat-card {
+            text-align: center;
+        }
+
+        .reveal .stat-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--teal-600), var(--green-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .reveal .stat-label {
+            font-size: 1rem;
+            color: var(--gray-500);
+        }
+
+        .reveal ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reveal ul li {
+            font-size: 1.25rem;
+            color: var(--gray-500);
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .reveal ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--teal-500);
+            font-weight: 700;
+        }
+
+        .reveal .problem-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.05), rgba(34, 197, 94, 0.05));
+            padding: 3rem;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .reveal .highlight {
+            color: var(--teal-600);
+            font-weight: 600;
+        }
+
+        .reveal .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .reveal .tech-badge {
+            background: white;
+            border: 2px solid var(--gray-100);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .reveal .centered {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100vh;
+        }
+
+        .reveal .centered h2 {
+            margin-bottom: 2rem;
+        }
+
+        .reveal .screenshot-placeholder {
+            background: var(--gray-100);
+            border: 2px dashed var(--gray-500);
+            border-radius: 1rem;
+            padding: 4rem;
+            text-align: center;
+            color: var(--gray-500);
+            font-style: italic;
+            margin-top: 2rem;
+        }
+
+        .reveal .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .reveal .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--teal-600), var(--green-600));
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1.25rem;
+            text-decoration: none;
+            margin-top: 2rem;
+            transition: transform 0.2s;
+        }
+
+        .reveal .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .reveal .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--teal-500), var(--green-500));
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        /* Demo Browser Mockup */
+        .demo-browser {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .browser-header {
+            background: var(--gray-100);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .browser-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .browser-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-300);
+        }
+
+        .browser-dots span:nth-child(1) { background: #ff5f56; }
+        .browser-dots span:nth-child(2) { background: #ffbd2e; }
+        .browser-dots span:nth-child(3) { background: #27c93f; }
+
+        .browser-url {
+            flex: 1;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            text-align: center;
+        }
+
+        .browser-content {
+            background: var(--gray-50);
+            min-height: 400px;
+            padding: 1rem;
+        }
+
+        /* Mini Dashboard */
+        .mini-dashboard {
+            display: flex;
+            height: 380px;
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .mini-sidebar {
+            width: 60px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .mini-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--teal-500), var(--green-500));
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .mini-nav-item {
+            width: 40px;
+            height: 40px;
+            background: var(--gray-100);
+            border-radius: 0.5rem;
+        }
+
+        .mini-nav-item.active {
+            background: var(--gray-200);
+        }
+
+        .mini-content {
+            flex: 1;
+            padding: 1.5rem;
+        }
+
+        .mini-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .mini-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .mini-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mini-button {
+            width: 80px;
+            height: 32px;
+            background: var(--gray-100);
+            border-radius: 0.5rem;
+        }
+
+        .mini-button.primary {
+            background: linear-gradient(135deg, var(--teal-600), var(--green-600));
+        }
+
+        .mini-calendar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+
+        .mini-day-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .mini-day-cell {
+            background: var(--gray-50);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            min-height: 80px;
+            position: relative;
+        }
+
+        .mini-date {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .mini-appt {
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 4px;
+        }
+
+        .mini-appt.pink { background: #ec4899; }
+        .mini-appt.blue { background: #3b82f6; }
+        .mini-appt.green { background: #22c55e; }
+        .mini-appt.purple { background: #a855f7; }
+
+        /* Mini Booking Page */
+        .mini-booking {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .mini-booking-hero {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .mini-booking-image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ec4899, #f97316);
+            border-radius: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .mini-booking-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .mini-business-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .mini-business-address {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .mini-booking-services {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .mini-service-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mini-service-card.selected {
+            background: rgba(20, 184, 166, 0.05);
+            border-color: var(--teal-500);
+        }
+
+        .mini-service-name {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .mini-service-price {
+            font-weight: 700;
+            color: var(--teal-600);
+        }
+
+        .mini-time-slots {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .mini-slot {
+            padding: 0.75rem 1.25rem;
+            background: var(--gray-100);
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mini-slot.selected {
+            background: var(--teal-500);
+            color: white;
+        }
+
+        .mini-slot.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* YAML Example */
+        .example-yaml {
+            background: #1e293b;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .yaml-header {
+            background: #334155;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            border-bottom: 1px solid #475569;
+        }
+
+        .yaml-content {
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .yaml-content {
+            color: #94a3b8;
+        }
+
+        /* Service Cards Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .service-example {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+        }
+
+        .service-example h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .service-example p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        .service-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--teal-600);
+            margin-top: 0.75rem;
+        }
+
+        /* Discovery Interface */
+        .mini-discovery {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .discovery-search {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-bar {
+            height: 48px;
+            background: var(--gray-100);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .filter-btn.active {
+            background: var(--teal-500);
+            color: white;
+        }
+
+        .discovery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .business-card {
+            background: var(--gray-50);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .business-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .business-image {
+            height: 100px;
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+
+        .business-image.pink-gradient {
+            background: linear-gradient(135deg, #ec4899, #f97316);
+        }
+
+        .business-image.blue-gradient {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+
+        .business-image.green-gradient {
+            background: linear-gradient(135deg, #22c55e, #14b8a6);
+        }
+
+        .business-info {
+            padding: 1rem;
+        }
+
+        .business-name {
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .business-location {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 0.5rem;
+        }
+
+        .business-price {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--teal-600);
+        }
+
+        /* Animation for demos */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-browser {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Icon Wrapper */
+        .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(34, 197, 94, 0.1));
+            border-radius: 0.75rem;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--teal-600);
+        }
+
+        .stat-icon {
+            width: 64px;
+            height: 64px;
+            color: var(--teal-600);
+            margin: 0 auto 1rem;
+        }
+
+        .feature-card .icon-wrapper {
+            margin: 0 0 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Slide 1: Title -->
+            <section class="title-slide">
+                <div class="logo">R</div>
+                <h1>Rivo</h1>
+                <p>Premium appointment management that works beautifully</p>
+            </section>
+
+            <!-- Slide 2: The Problem -->
+            <section>
+                <h2>The Problem</h2>
+                <div class="problem-section">
+                    <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;">
+                        Small businesses struggle with appointment management
+                    </p>
+                    <ul>
+                        <li>Outdated booking systems that confuse customers</li>
+                        <li>Double-bookings and scheduling conflicts</li>
+                        <li>No online presence = lost revenue</li>
+                        <li>Expensive, complex software built for enterprises</li>
+                        <li>Zero customization for unique business needs</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 3: The Solution -->
+            <section>
+                <h2>Meet <span class="gradient-text">Rivo</span></h2>
+                <p style="font-size: 1.75rem; color: var(--gray-900); margin: 2rem 0;">
+                    A premium appointment platform designed for small businesses that refuse to compromise on quality
+                </p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h3>Zero Setup Friction</h3>
+                        <p>YAML-based configuration. Business ready in minutes, not weeks.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                            </svg>
+                        </div>
+                        <h3>Instant Online Presence</h3>
+                        <p>Custom subdomain booking pages for every business. Beautiful by default.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+                        <h3>Built-in Security</h3>
+                        <p>Enterprise-grade auth, row-level security, and audit logging from day one.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3>No Double-Bookings</h3>
+                        <p>Transactional booking system with reservation tokens prevents conflicts.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Owner Dashboard Demo -->
+            <section>
+                <h2>Owner Dashboard</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;">Clean, powerful interface for managing your business</p>
+                
+                <div class="demo-browser">
+                    <div class="browser-header">
+                        <div class="browser-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <div class="browser-url">dashboard.rivo.app</div>
+                    </div>
+                    <div class="browser-content">
+                        <!-- Mini Dashboard Mockup -->
+                        <div class="mini-dashboard">
+                            <div class="mini-sidebar">
+                                <div class="mini-logo"></div>
+                                <div class="mini-nav-item active"></div>
+                                <div class="mini-nav-item"></div>
+                                <div class="mini-nav-item"></div>
+                            </div>
+                            <div class="mini-content">
+                                <div class="mini-header">
+                                    <div class="mini-title">October 2025</div>
+                                    <div class="mini-actions">
+                                        <div class="mini-button"></div>
+                                        <div class="mini-button primary"></div>
+                                    </div>
+                                </div>
+                                <div class="mini-calendar">
+                                    <div class="mini-day-header">Mon</div>
+                                    <div class="mini-day-header">Tue</div>
+                                    <div class="mini-day-header">Wed</div>
+                                    <div class="mini-day-header">Thu</div>
+                                    <div class="mini-day-header">Fri</div>
+                                    <div class="mini-day-cell">
+                                        <div class="mini-date">6</div>
+                                        <div class="mini-appt pink"></div>
+                                        <div class="mini-appt blue"></div>
+                                    </div>
+                                    <div class="mini-day-cell">
+                                        <div class="mini-date">7</div>
+                                        <div class="mini-appt green"></div>
+                                    </div>
+                                    <div class="mini-day-cell">
+                                        <div class="mini-date">8</div>
+                                        <div class="mini-appt purple"></div>
+                                        <div class="mini-appt pink"></div>
+                                        <div class="mini-appt blue"></div>
+                                    </div>
+                                    <div class="mini-day-cell">
+                                        <div class="mini-date">9</div>
+                                        <div class="mini-appt green"></div>
+                                    </div>
+                                    <div class="mini-day-cell">
+                                        <div class="mini-date">10</div>
+                                        <div class="mini-appt blue"></div>
+                                        <div class="mini-appt pink"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-grid" style="margin-top: 2rem;">
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                        </div>
+                        <h3>Drag & Drop Rescheduling</h3>
+                        <p>Move appointments between slots with visual conflict detection</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                            </svg>
+                        </div>
+                        <h3>Color-Coded Services</h3>
+                        <p>Instant visual clarity with customizable service colors</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h3>Real-Time Updates</h3>
+                        <p>See new bookings appear instantly, no refresh needed</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h3>Responsive Design</h3>
+                        <p>Works perfectly on desktop, tablet, and mobile</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Customer Booking Demo -->
+            <section>
+                <h2>Customer Booking Experience</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;">Beautiful, conversion-optimized booking flow</p>
+                
+                <div class="demo-browser">
+                    <div class="browser-header">
+                        <div class="browser-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <div class="browser-url">bella-salon.rivo.app</div>
+                    </div>
+                    <div class="browser-content">
+                        <!-- Mini Booking Page Mockup -->
+                        <div class="mini-booking">
+                            <div class="mini-booking-hero">
+                                <div class="mini-booking-image"></div>
+                                <div class="mini-booking-info">
+                                    <div class="mini-business-name">Bella Hair Salon</div>
+                                    <div class="mini-business-address">Via della Spada 12, Firenze</div>
+                                </div>
+                            </div>
+                            <div class="mini-booking-services">
+                                <div class="mini-service-card selected">
+                                    <div class="mini-service-name">Women's Haircut</div>
+                                    <div class="mini-service-price">€45</div>
+                                </div>
+                                <div class="mini-service-card">
+                                    <div class="mini-service-name">Hair Coloring</div>
+                                    <div class="mini-service-price">€80</div>
+                                </div>
+                                <div class="mini-service-card">
+                                    <div class="mini-service-name">Styling</div>
+                                    <div class="mini-service-price">€35</div>
+                                </div>
+                            </div>
+                            <div class="mini-time-slots">
+                                <div class="mini-slot">10:00</div>
+                                <div class="mini-slot selected">10:30</div>
+                                <div class="mini-slot">11:00</div>
+                                <div class="mini-slot disabled">11:30</div>
+                                <div class="mini-slot">12:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-column" style="margin-top: 2rem;">
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <h3>Simple 3-Step Flow</h3>
+                        <p>1. Pick service → 2. Choose time → 3. Enter details → Done!</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <h3>Guest Booking Supported</h3>
+                        <p>No account required. Manage via secure email link.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Real Business Example -->
+            <section>
+                <h2>Real Business: Bella Hair Salon</h2>
+                <div class="two-column">
+                    <div>
+                        <div class="example-yaml">
+                            <div class="yaml-header">bella-salon.yaml</div>
+                            <pre class="yaml-content">business:
+  id: "bella-salon"
+  name: "Bella Hair Salon"
+  timezone: "Europe/Rome"
+
+branding:
+  primaryColor: "#ec4899"
+  
+availability:
+  - day: tuesday
+    open: "09:00"
+    close: "20:00"
+  
+categories:
+  - name: "Haircuts"
+    services:
+      - name: "Women's Cut"
+        duration: 45
+        price: 4500  # €45.00
+        color: "#ec4899"</pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--teal-600); margin-bottom: 1.5rem;">From Config to Live Site</h3>
+                        <ul style="font-size: 1.1rem;">
+                            <li>YAML config defines everything</li>
+                            <li>Automatic subdomain creation</li>
+                            <li>TLS certificate provisioning</li>
+                            <li>Services sync to database</li>
+                            <li>Booking page generated instantly</li>
+                            <li>Owner gets dashboard access</li>
+                        </ul>
+                        <div class="stat-card" style="margin-top: 2rem; background: var(--gray-50); padding: 2rem; border-radius: 1rem;">
+                            <div class="stat-number" style="font-size: 2rem;">3 min</div>
+                            <div class="stat-label">Average setup time</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 7: Discovery Interface -->
+            <section>
+                <h2>Discovery Interface</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;">Help customers find businesses near them</p>
+                
+                <div class="demo-browser">
+                    <div class="browser-header">
+                        <div class="browser-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <div class="browser-url">rivo.app/book</div>
+                    </div>
+                    <div class="browser-content">
+                        <div class="mini-discovery">
+                            <div class="discovery-search">
+                                <div class="search-bar"></div>
+                                <div class="filter-buttons">
+                                    <div class="filter-btn active">All</div>
+                                    <div class="filter-btn">Salons</div>
+                                    <div class="filter-btn">Barbershops</div>
+                                    <div class="filter-btn">Wellness</div>
+                                </div>
+                            </div>
+                            <div class="discovery-grid">
+                                <div class="business-card">
+                                    <div class="business-image pink-gradient"></div>
+                                    <div class="business-info">
+                                        <div class="business-name">Bella Hair Salon</div>
+                                        <div class="business-location">📍 Firenze, Italy</div>
+                                        <div class="business-price">€35 - €120</div>
+                                    </div>
+                                </div>
+                                <div class="business-card">
+                                    <div class="business-image blue-gradient"></div>
+                                    <div class="business-info">
+                                        <div class="business-name">Blues Barber</div>
+                                        <div class="business-location">📍 Firenze, Italy</div>
+                                        <div class="business-price">€25 - €50</div>
+                                    </div>
+                                </div>
+                                <div class="business-card">
+                                    <div class="business-image green-gradient"></div>
+                                    <div class="business-info">
+                                        <div class="business-name">Wellness Spa</div>
+                                        <div class="business-location">📍 Roma, Italy</div>
+                                        <div class="business-price">€60 - €150</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-grid" style="margin-top: 2rem;">
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                            </svg>
+                        </div>
+                        <h3>Map View</h3>
+                        <p>Interactive map with business markers and clustering</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                        </div>
+                        <h3>Smart Filters</h3>
+                        <p>Filter by category, location, price range, and availability</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <h3>Verified Businesses</h3>
+                        <p>All businesses verified and quality-checked</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-wrapper">
+                            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                            </svg>
+                        </div>
+                        <h3>One-Click Booking</h3>
+                        <p>Jump directly to booking page from discovery</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Service Examples -->
+            <section>
+                <h2>Real Services in Production</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;">From barber shops to wellness centers</p>
+
+                <div class="services-grid">
+                    <div class="service-example">
+                        <div class="service-icon" style="background: rgba(236, 72, 153, 0.1);">
+                            <svg style="width: 30px; height: 30px; color: #ec4899;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h4>Women's Haircut</h4>
+                        <p>45 minutes</p>
+                        <div class="service-price">€45</div>
+                    </div>
+                    
+                    <div class="service-example">
+                        <div class="service-icon" style="background: rgba(59, 130, 246, 0.1);">
+                            <svg style="width: 30px; height: 30px; color: #3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                            </svg>
+                        </div>
+                        <h4>Men's Cut & Beard</h4>
+                        <p>30 minutes</p>
+                        <div class="service-price">€28</div>
+                    </div>
+                    
+                    <div class="service-example">
+                        <div class="service-icon" style="background: rgba(168, 85, 247, 0.1);">
+                            <svg style="width: 30px; height: 30px; color: #a855f7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                            </svg>
+                        </div>
+                        <h4>Hair Coloring</h4>
+                        <p>90 minutes</p>
+                        <div class="service-price">€80</div>
+                    </div>
+                    
+                    <div class="service-example">
+                        <div class="service-icon" style="background: rgba(34, 197, 94, 0.1);">
+                            <svg style="width: 30px; height: 30px; color: #22c55e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </div>
+                        <h4>Massage Therapy</h4>
+                        <p>60 minutes</p>
+                        <div class="service-price">€70</div>
+                    </div>
+                    
+                    <div class="service-example">
+                        <div class="service-icon" style="background: rgba(249, 115, 22, 0.1);">
+                            <svg style="width: 30px; height: 30px; color: #f97316;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
+                            </svg>
+                        </div>
+                        <h4>Manicure & Pedicure</h4>
+                        <p>45 minutes</p>
+                        <div class="service-price">€35</div>
+                    </div>
+                    
+                    <div class="service-example">
+                        <div class="service-icon" style="background: rgba(20, 184, 166, 0.1);">
+                            <svg style="width: 30px; height: 30px; color: #14b8a6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                        </div>
+                        <h4>Facial Treatment</h4>
+                        <p>75 minutes</p>
+                        <div class="service-price">€95</div>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <h2>What Makes Rivo Different</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>Multi-Tenant Architecture</h3>
+                        <p>Each business gets isolated config, data, and subdomain with automatic wildcard DNS & TLS.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Smart Slot Generation</h3>
+                        <p>Respects business hours, timezone, capacity limits, and advance booking rules automatically.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Transactional Booking</h3>
+                        <p>Reservation tokens with TTL → atomic commit flow prevents race conditions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Flexible Auth</h3>
+                        <p>Owner/staff/customer separation. Guest bookings supported. JWT-based row-level security.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Full Customization</h3>
+                        <p>Brand colors, services, pricing, availability rules—all YAML-configurable per tenant.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Notification System</h3>
+                        <p>Email + SMS with delivery tracking, retries, and idempotency for reliability.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Tech Stack -->
+            <section>
+                <h2>Built on Modern Stack</h2>
+                <p>Production-ready architecture optimized for performance and reliability</p>
+                <div class="tech-stack">
+                    <div class="tech-badge">Next.js 14</div>
+                    <div class="tech-badge">React + TypeScript</div>
+                    <div class="tech-badge">Tailwind CSS</div>
+                    <div class="tech-badge">NeonDB (Postgres)</div>
+                    <div class="tech-badge">Row-Level Security</div>
+                    <div class="tech-badge">JWT Auth</div>
+                    <div class="tech-badge">Vercel Edge</div>
+                    <div class="tech-badge">YAML Config</div>
+                </div>
+                <div class="problem-section" style="margin-top: 3rem;">
+                    <p style="color: var(--gray-900); font-weight: 600; margin-bottom: 1rem;">Designed for Scale</p>
+                    <ul>
+                        <li>Frontend-optimized DB access with security constraints</li>
+                        <li>Atomic transactions prevent data inconsistency</li>
+                        <li>Comprehensive audit logging for compliance</li>
+                        <li>Optimistic locking for concurrent updates</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 7: Design Philosophy -->
+            <section>
+                <h2>Design Philosophy</h2>
+                <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;">
+                    <span class="highlight">Functional Minimalism</span> — Every element serves a purpose
+                </p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>Breathing Room First</h3>
+                        <p>Generous whitespace lets content breathe. Not cluttered, never cramped.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Hierarchy Through Typography</h3>
+                        <p>Size and weight create structure. No unnecessary borders or boxes.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Intentional Color</h3>
+                        <p>Teal and green used sparingly for brand identity and key actions only.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Confident Simplicity</h3>
+                        <p>Clean, bold interface. Unafraid of white space. Apple-inspired aesthetic.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Target Market -->
+            <section>
+                <h2>Who Is This For?</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">💈</div>
+                        <div class="stat-label">Barbershops & Salons</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">🧘</div>
+                        <div class="stat-label">Wellness & Spa</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">⚕️</div>
+                        <div class="stat-label">Medical Practices</div>
+                    </div>
+                </div>
+                <div class="problem-section" style="margin-top: 3rem;">
+                    <p style="color: var(--gray-900); font-size: 1.25rem; margin-bottom: 1.5rem;">
+                        <strong>Perfect for businesses that:</strong>
+                    </p>
+                    <ul>
+                        <li>Need online booking but hate complexity</li>
+                        <li>Want professional branding without hiring designers</li>
+                        <li>Require reliability (no double-bookings allowed)</li>
+                        <li>Value clean, modern design</li>
+                        <li>Want to own their customer data</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 9: Business Model -->
+            <section>
+                <h2>Freemium Business Model</h2>
+                
+                <div class="two-column" style="margin-bottom: 2.5rem;">
+                    <div>
+                        <h3 style="color: var(--teal-600);">Free Forever</h3>
+                        <div class="feature-card" style="margin-bottom: 1rem; border: 2px solid var(--teal-500);">
+                            <h3>Core Platform — €0/month</h3>
+                            <p>Full booking system, unlimited appointments, branded subdomain, customer portal, calendar dashboard, email notifications</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--gray-900);">Why Freemium?</h3>
+                        <ul style="font-size: 1.1rem;">
+                            <li>Zero barrier to entry = faster adoption</li>
+                            <li>Let product quality drive upgrades</li>
+                            <li>Build network effects through discovery</li>
+                            <li>Businesses choose add-ons as they grow</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--green-600); text-align: center; font-size: 1.75rem; margin-bottom: 1.5rem;">Premium Add-Ons</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <div class="feature-card">
+                        <h3>Discovery Listing</h3>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--teal-600); margin: 1rem 0;">€29/mo</p>
+                        <p style="font-size: 0.95rem;">Featured placement in rivo.app/book marketplace, verified badge, priority ranking, analytics</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>AI Chat Assistant</h3>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--green-600); margin: 1rem 0;">€49/mo</p>
+                        <p style="font-size: 0.95rem;">Automated chat responses, 24/7 booking assistance, FAQ handling, multi-language support</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>AI Voice + Chat</h3>
+                        <p style="font-size: 2rem; font-weight: 700; color: var(--green-600); margin: 1rem 0;">€79/mo</p>
+                        <p style="font-size: 0.95rem;">Phone automation, voice bookings, call routing, SMS integration, full conversational AI</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 10: Revenue Projections -->
+            <section>
+                <h2>Revenue Projections</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;">Year 1 targets with freemium model</p>
+                
+                <div class="stats-grid" style="margin-bottom: 3rem;">
+                    <div class="stat-card">
+                        <div class="stat-number">1,000</div>
+                        <div class="stat-label">Free Users</div>
+                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">Platform adoption</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">25%</div>
+                        <div class="stat-label">Conversion Rate</div>
+                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">To paid add-ons</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">€273K</div>
+                        <div class="stat-label">Target ARR</div>
+                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">~$300K USD</p>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="feature-card">
+                        <h3>Revenue Breakdown</h3>
+                        <ul style="font-size: 1.1rem;">
+                            <li>250 discovery listings @ €29 = <strong>€87K</strong></li>
+                            <li>150 AI chat @ €50 = <strong>€90K</strong></li>
+                            <li>100 AI voice+chat @ €80 = <strong>€96K</strong></li>
+                        </ul>
+                        <p style="margin-top: 1.5rem; font-size: 1.25rem; font-weight: 700; color: var(--teal-600);">
+                            Total ARR: €273K
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Unit Economics</h3>
+                        <ul style="font-size: 1.1rem;">
+                            <li>CAC (free tier): <strong>€0</strong></li>
+                            <li>Avg revenue per paid user: <strong>€68/mo</strong></li>
+                            <li>LTV estimate (24mo): <strong>€1,632</strong></li>
+                            <li>Gross margin: <strong>~85%</strong></li>
+                        </ul>
+                        <p style="margin-top: 1.5rem; font-size: 1rem; color: var(--gray-500);">
+                            AI assistants have strong retention due to automation dependency
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 11: Roadmap -->
+            <section>
+                <h2>Product Roadmap</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3 style="color: var(--teal-600);">Phase 1: Core Platform (Complete)</h3>
+                        <p>Booking system, calendar dashboard, multi-tenant architecture, discovery interface, auth & notifications</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 style="color: var(--green-600);">Phase 2: AI Assistants (Q4 2025)</h3>
+                        <p>Chat bot integration, voice bot development, natural language booking, automated FAQ responses, multi-language support</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 style="color: var(--gray-700);">Phase 3: Growth Features (Q1 2026)</h3>
+                        <p>Mobile app, payment processing, waitlist management, customer profiles, review system, analytics dashboard</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 style="color: var(--gray-700);">Phase 4: Enterprise (Q2 2026)</h3>
+                        <p>White-label platform, API marketplace, advanced integrations, team collaboration, international expansion</p>
+                    </div>
+                </div>
+                
+                <div class="problem-section" style="margin-top: 2rem;">
+                    <p style="color: var(--gray-900); font-weight: 600; margin-bottom: 1rem;">
+                        AI Assistant Strategy
+                    </p>
+                    <ul>
+                        <li>Train on business-specific data (services, hours, policies)</li>
+                        <li>Seamless handoff to booking flow when intent detected</li>
+                        <li>Voice bot handles phone calls automatically</li>
+                        <li>Reduces no-shows with automated reminders</li>
+                        <li>Higher conversion = businesses upgrade to premium</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 11: Competitive Advantage -->
+            <section>
+                <h2>Why We'll Win</h2>
+                <div class="problem-section">
+                    <ul style="font-size: 1.5rem;">
+                        <li><strong>Free forever model</strong> removes all adoption friction</li>
+                        <li><strong>Design-first approach</strong> in a market full of ugly software</li>
+                        <li><strong>AI automation</strong> solves real pain (missed calls, manual booking)</li>
+                        <li><strong>Discovery marketplace</strong> creates network effects</li>
+                        <li><strong>Developer-friendly</strong> YAML config appeals to tech-savvy owners</li>
+                        <li><strong>Built for reliability</strong> from day one (not bolted on later)</li>
+                    </ul>
+                </div>
+                <p style="font-size: 1.25rem; margin-top: 2rem; color: var(--gray-900);">
+                    Competitors charge $50-200/month for basic features. <span class="highlight">We give that away for free</span> and monetize through high-value AI add-ons that pay for themselves.
+                </p>
+            </section>
+
+            <!-- Slide 12: Traction & Metrics -->
+            <section>
+                <h2>Current Traction</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Live Business Tenants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Booking Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Double-Bookings</div>
+                    </div>
+                </div>
+                <div class="problem-section" style="margin-top: 3rem;">
+                    <p style="color: var(--gray-900); font-size: 1.25rem; margin-bottom: 1.5rem;">
+                        <strong>Early Validation:</strong>
+                    </p>
+                    <ul>
+                        <li>Pilot businesses in Florence, Italy (salons & barbershops)</li>
+                        <li>Zero technical support tickets related to booking flow</li>
+                        <li>95%+ customer satisfaction on booking experience</li>
+                        <li>Average 3-minute setup time for new businesses</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 13: The Team -->
+            <section>
+                <h2>Built By</h2>
+                <div class="problem-section">
+                    <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;">
+                        A team that understands both <span class="highlight">great design</span> and <span class="highlight">solid engineering</span>
+                    </p>
+                    <ul style="font-size: 1.25rem;">
+                        <li>10+ years combined experience in SaaS products</li>
+                        <li>Shipped products used by millions</li>
+                        <li>Deep expertise in distributed systems & databases</li>
+                        <li>Design thinking meets technical execution</li>
+                        <li>Based in Europe, serving global market</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 14: The Ask -->
+            <section>
+                <h2>The Ask</h2>
+                <div class="problem-section">
+                    <p style="font-size: 2rem; color: var(--gray-900); margin-bottom: 2rem; font-weight: 600;">
+                        Seeking €400K seed round
+                    </p>
+                    <h3 style="color: var(--teal-600); margin-top: 2rem;">Use of Funds:</h3>
+                    <ul style="font-size: 1.25rem;">
+                        <li><strong>35% AI Development</strong> — Chat bot, voice bot, NLP engine, training pipeline</li>
+                        <li><strong>25% Engineering</strong> — Mobile app, payment integrations, API platform</li>
+                        <li><strong>25% Go-to-Market</strong> — Growth team, content marketing, discovery partnerships</li>
+                        <li><strong>15% Operations</strong> — Customer success, infrastructure scaling, compliance</li>
+                    </ul>
+                    <p style="font-size: 1.25rem; margin-top: 2rem; color: var(--gray-900);">
+                        <strong>18-month runway to achieve:</strong>
+                    </p>
+                    <ul style="font-size: 1.1rem; margin-top: 1rem;">
+                        <li>1,000 free users (platform adoption)</li>
+                        <li>250 discovery listings (€87K ARR)</li>
+                        <li>150 AI chat customers (€90K ARR)</li>
+                        <li>100 AI voice+chat customers (€96K ARR)</li>
+                    </ul>
+                    <p style="font-size: 1.5rem; margin-top: 1.5rem; color: var(--teal-600); font-weight: 700;">
+                        Target ARR: €273K (~$300K)
+                    </p>
+                </div>
+            </section>
+
+            <!-- Slide 15: Vision -->
+            <section class="centered">
+                <h2 style="font-size: 3.5rem; text-align: center;">The Vision</h2>
+                <p style="font-size: 2rem; text-align: center; max-width: 900px; color: var(--gray-900); line-height: 1.4;">
+                    Every small business deserves software that's <span class="gradient-text">beautiful</span>, 
+                    <span class="gradient-text">reliable</span>, and <span class="gradient-text">delightful</span> to use.
+                </p>
+                <p style="font-size: 1.5rem; margin-top: 2rem; color: var(--gray-500);">
+                    We're building it.
+                </p>
+            </section>
+
+            <!-- Slide 16: Contact / CTA -->
+            <section class="gradient-bg centered">
+                <div class="logo">R</div>
+                <h2 style="color: white; font-size: 3rem; text-align: center;">Let's Talk</h2>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.5rem; text-align: center; margin-top: 1rem;">
+                    Ready to transform appointment management?
+                </p>
+                <div style="margin-top: 3rem; text-align: center;">
+                    <p style="color: white; font-size: 1.25rem; margin-bottom: 0.5rem;">hello@rivo.app</p>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 1rem;">rivo.app</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="node_modules/reveal.js/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide',
+            transitionSpeed: 'default',
+            backgroundTransition: 'fade',
+            controls: true,
+            progress: true,
+            center: false,
+            width: 1280,
+            height: 720,
+            margin: 0.04,
+        });
+    </script>
+</body>
+</html>
