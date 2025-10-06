@@ -154,21 +154,11 @@ function DashboardContent() {
       <main className="ml-20 min-h-screen">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
-          <div className="px-12 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{businessName}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  <span className="text-sm text-gray-500">
-                    {isAuthenticated ? 'Connected' : 'Disconnected'}
-                  </span>
-                </div>
-              </div>
-              
+          <div className="px-12 py-5 flex items-center justify-between gap-8">
+            <div className="flex items-center gap-6 min-w-0 flex-1">
               {/* Business Selector */}
-              {businesses.length > 0 && (
-                <div className="min-w-[280px]">
+              {businesses.length > 0 ? (
+                <div className="max-w-[320px] min-w-[240px]">
                   <BusinessSelector
                     businesses={businesses}
                     selectedBusinessId={selectedBusinessId}
@@ -176,13 +166,23 @@ function DashboardContent() {
                     isLoading={businessLoading}
                   />
                 </div>
+              ) : (
+                <div className="flex flex-col">
+                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    <span className="text-sm text-gray-500">
+                      {isAuthenticated ? 'Connected' : 'Disconnected'}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
 
             <button
               onClick={() => setShowCreateModal(true)}
               disabled={!isAuthenticated}
-              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
