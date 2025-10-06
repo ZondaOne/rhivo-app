@@ -166,6 +166,113 @@ export default function Home() {
       </section>
 
 
+      {/* Investment Pitch Section */}
+      <section className="py-32 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-teal-300/20 via-green-300/15 to-transparent rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-gradient-to-tl from-green-300/15 via-teal-300/20 to-transparent rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-8 relative">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 border border-teal-200 rounded-full text-teal-700 font-semibold text-sm mb-6">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span>For Investors</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+              See our investment pitch
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Explore our vision, business model, and growth strategy. Free forever core platform with premium AI assistants.
+            </p>
+          </div>
+
+          {/* Pitch Deck Embed */}
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
+            <div className="aspect-[16/9] w-full relative bg-gray-900">
+              <iframe
+                src="/pitch.html"
+                className="absolute inset-0 w-full h-full"
+                title="Rivo Investment Pitch"
+                allow="fullscreen"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                style={{ border: 'none' }}
+              />
+              {/* Overlay hint for interaction */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium pointer-events-none opacity-80">
+                Click inside and use arrow keys to navigate
+              </div>
+            </div>
+            
+            {/* Controls Bar */}
+            <div className="px-8 py-6 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-600 font-medium">Interactive Presentation</span>
+                </div>
+                <span className="text-sm text-gray-400">Use arrow keys to navigate</span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <a
+                  href="/pitch.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold text-sm transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  <span>Open in new tab</span>
+                </a>
+                <a
+                  href="mailto:hello@rivo.app?subject=Investment Inquiry"
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-lg font-semibold text-sm hover:shadow-lg hover:scale-[1.02] transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                  <span>Contact us</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
+                €0
+              </div>
+              <div className="text-sm text-gray-600">Core Platform</div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
+                €273K
+              </div>
+              <div className="text-sm text-gray-600">Target ARR (Year 1)</div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
+                €400K
+              </div>
+              <div className="text-sm text-gray-600">Seed Round</div>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
+                AI First
+              </div>
+              <div className="text-sm text-gray-600">Chat + Voice Bots</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-200/60 bg-gray-50 py-12">
         <div className="max-w-7xl mx-auto px-8">
@@ -179,6 +286,7 @@ export default function Home() {
             <div className="flex items-center gap-8">
               <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
               <Link href="/debug/api" className="hover:text-gray-900 transition-colors">API</Link>
+              <a href="/pitch.html" target="_blank" className="hover:text-gray-900 transition-colors">Investor Pitch</a>
             </div>
           </div>
         </div>
