@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { neon } from '@neondatabase/serverless';
+import { withAuth } from '@/middleware/auth';
+
+const sql = neon(process.env.DATABASE_URL!);
+
+/**
+ * Get all businesses owned by the authenticated user
+ */
+async function handler(request: NextRequest) {
+  try {
+    const userId = request.headers.get('x-user-id');
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID not found' },
+        { status: 401 }
+      );
+    }
+
+    // Use the get_user_businesses() database function
+    const businesses = await sql`
+      SELECT * FROM get_user_businesses(${userId}::uuid)
+    `;
+
+    return NextResponse.json({
+      businesses: businesses.map(business => ({
+        id: business.business_id,
+        subdomain: business.subdomain,
+        name: business.name,
+        isPrimary: business.is_primary,
+        joinedAt: business.joined_at,
+      })),
+    });
+  } catch (error) {
+    console.error('Get user businesses error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Export protected route
+export const GET = withAuth(handler);

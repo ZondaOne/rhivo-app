@@ -17,6 +17,7 @@ interface CreateAppointmentModalProps {
   onClose: () => void;
   onSuccess: () => void;
   defaultDate?: Date;
+  businessId?: string | null;
 }
 
 interface FormData {
@@ -30,7 +31,7 @@ interface FormData {
   status: AppointmentStatus;
 }
 
-export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate }: CreateAppointmentModalProps) {
+export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate, businessId }: CreateAppointmentModalProps) {
   const [loading, setLoading] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,12 +54,15 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
         setFormData(prev => ({ ...prev, start_time: formatDateTimeLocal(defaultDate) }));
       }
     }
-  }, [isOpen, defaultDate]);
+  }, [isOpen, defaultDate, businessId]);
 
   async function loadServices() {
     setLoadingServices(true);
     try {
-      const data = await apiRequest<Service[]>('/api/services');
+      const url = businessId 
+        ? `/api/services?businessId=${businessId}` 
+        : '/api/services';
+      const data = await apiRequest<Service[]>(url);
       setServices(data);
       if (data.length > 0 && !formData.service_id) {
         setFormData(prev => ({ 

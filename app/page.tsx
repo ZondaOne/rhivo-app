@@ -187,7 +187,7 @@ export default function Home() {
               See our investment pitch
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Explore our vision, business model, and growth strategy. Free forever core platform with premium AI assistants.
+              Explore our vision, business model, and growth strategy.
             </p>
           </div>
 
@@ -243,33 +243,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Key Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
-                €0
-              </div>
-              <div className="text-sm text-gray-600">Core Platform</div>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
-                €273K
-              </div>
-              <div className="text-sm text-gray-600">Target ARR (Year 1)</div>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
-                €400K
-              </div>
-              <div className="text-sm text-gray-600">Seed Round</div>
-            </div>
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent mb-2">
-                AI First
-              </div>
-              <div className="text-sm text-gray-600">Chat + Voice Bots</div>
-            </div>
-          </div>
+          {/* Key stats removed per request */}
         </div>
       </section>
 

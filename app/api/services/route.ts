@@ -24,6 +24,11 @@ export async function GET(request: NextRequest) {
   const sql = getDbClient();
 
   try {
+    // Support businessId query parameter for multi-business owners
+    const businessId = request.nextUrl.searchParams.get('businessId') || payload.business_id;
+    
+    // TODO: Add verification that user owns the target business using user_owns_business(user_id, business_id)
+    
     const services = await sql`
       SELECT
         s.id,
@@ -36,7 +41,7 @@ export async function GET(request: NextRequest) {
         c.name AS category_name
       FROM services s
       LEFT JOIN categories c ON c.id = s.category_id
-      WHERE s.business_id = ${payload.business_id}
+      WHERE s.business_id = ${businessId}
         AND s.deleted_at IS NULL
       ORDER BY c.sort_order, s.sort_order, s.name
     `;

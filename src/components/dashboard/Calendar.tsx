@@ -18,6 +18,7 @@ interface CalendarProps {
   currentDate: Date;
   onViewChange?: (view: CalendarView) => void;
   onDateChange?: (date: Date) => void;
+  businessId?: string | null;
 }
 
 interface Toast {
@@ -38,7 +39,7 @@ interface AppointmentCache {
   end: Date;
 }
 
-export function Calendar({ view, currentDate, onViewChange, onDateChange }: CalendarProps) {
+export function Calendar({ view, currentDate, onViewChange, onDateChange, businessId }: CalendarProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
   const [loading, setLoading] = useState(true);
@@ -147,6 +148,9 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
       return;
     }
 
+    // Clear cache when businessId changes to force fresh fetch
+    setAppointmentCache(null);
+    
     loadAppointments();
 
     // Cleanup: abort in-flight requests when view/date changes
@@ -155,7 +159,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
         abortController.abort();
       }
     };
-  }, [currentDate, view, isAuthenticated, authLoading]);
+  }, [currentDate, view, isAuthenticated, authLoading, businessId]);
 
   // Update displayed appointments when cache or view changes (defensive filtering)
   useEffect(() => {
@@ -189,7 +193,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
     const { start, end } = getDateRange(view, currentDate);
 
     // Check if cache already covers this range
-    if (cacheCoversRange(appointmentCache, start, end)) {
+    if (cacheCoversRange(appointmentCache, start, end) && appointmentCache) {
       // Use cached data - just filter and display
       const filtered = filterAppointmentsForView(appointmentCache.appointments, view, currentDate);
       setAppointments(filtered);
@@ -211,6 +215,11 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange }: Cale
         start: start.toISOString(),
         end: end.toISOString(),
       });
+
+      // Add businessId filter if provided
+      if (businessId) {
+        params.append('businessId', businessId);
+      }
 
       const data = await apiRequest<Appointment[]>(
         `/api/appointments?${params.toString()}`,

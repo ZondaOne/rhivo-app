@@ -2,18 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { BusinessProvider, useBusiness } from '@/contexts/BusinessContext';
+import { BusinessSelector } from '@/components/dashboard/BusinessSelector';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointmentModal';
 import { CalendarView } from '@/lib/calendar-utils';
 
-export default function DashboardPage() {
+function DashboardContent() {
   // Initialize from URL params on mount, then use state
   const [view, setView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSwitchingBusiness, setIsSwitchingBusiness] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+  const { businesses, selectedBusiness, selectedBusinessId, isLoading: businessLoading, selectBusiness } = useBusiness();
+
+  // Increment refresh key when business changes to force calendar reload
+  useEffect(() => {
+    if (selectedBusinessId) {
+      setIsSwitchingBusiness(true);
+      setRefreshKey(prev => prev + 1);
+      // Clear switching state after a brief moment
+      const timer = setTimeout(() => setIsSwitchingBusiness(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedBusinessId]);
 
   // Read URL params on mount to restore calendar state
   useEffect(() => {
@@ -37,7 +52,7 @@ export default function DashboardPage() {
     setIsInitialized(true);
   }, [isInitialized]);
 
-  const businessName = user?.email?.split('@')[0] || "My Business";
+  const businessName = selectedBusiness?.name || user?.email?.split('@')[0] || "My Business";
 
   return (
     <div className="min-h-screen bg-white">
@@ -140,14 +155,28 @@ export default function DashboardPage() {
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
           <div className="px-12 py-5 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{businessName}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
-                <span className="text-sm text-gray-500">
-                  {isAuthenticated ? 'Connected' : 'Disconnected'}
-                </span>
+            <div className="flex items-center gap-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{businessName}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <span className="text-sm text-gray-500">
+                    {isAuthenticated ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
               </div>
+              
+              {/* Business Selector */}
+              {businesses.length > 0 && (
+                <div className="min-w-[280px]">
+                  <BusinessSelector
+                    businesses={businesses}
+                    selectedBusinessId={selectedBusinessId}
+                    onBusinessChange={selectBusiness}
+                    isLoading={businessLoading}
+                  />
+                </div>
+              )}
             </div>
 
             <button
@@ -265,13 +294,28 @@ export default function DashboardPage() {
           </div>
 
           {/* Calendar View */}
-          <Calendar
-            key={refreshKey}
-            view={view}
-            currentDate={currentDate}
-            onViewChange={setView}
-            onDateChange={setCurrentDate}
-          />
+          <div className="relative">
+            {/* Switching Business Overlay */}
+            {isSwitchingBusiness && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-opacity duration-200">
+                <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200 animate-fade-in">
+                  <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm font-medium text-gray-700">Loading {selectedBusiness?.name}...</span>
+                </div>
+              </div>
+            )}
+            
+            <div className={`transition-opacity duration-200 ${isSwitchingBusiness ? 'opacity-50' : 'opacity-100'}`}>
+              <Calendar
+                key={refreshKey}
+                view={view}
+                currentDate={currentDate}
+                onViewChange={setView}
+                onDateChange={setCurrentDate}
+                businessId={selectedBusinessId}
+              />
+            </div>
+          </div>
         </div>
       </main>
 
@@ -283,7 +327,16 @@ export default function DashboardPage() {
           setRefreshKey(prev => prev + 1);
         }}
         defaultDate={currentDate}
+        businessId={selectedBusinessId}
       />
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <BusinessProvider>
+      <DashboardContent />
+    </BusinessProvider>
   );
 }

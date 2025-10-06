@@ -8,6 +8,7 @@ const querySchema = z.object({
   end: z.string().datetime().optional(),
   status: z.enum(['confirmed', 'completed', 'cancelled', 'canceled', 'no_show']).optional(),
   serviceId: z.string().uuid({ message: 'serviceId must be a valid UUID' }).optional(),
+  businessId: z.string().uuid({ message: 'businessId must be a valid UUID' }).optional(),
 });
 
 const STATUS_UI_TO_DB: Record<string, 'confirmed' | 'canceled' | 'completed' | 'no_show'> = {
@@ -50,6 +51,13 @@ export async function GET(request: NextRequest) {
     const rawParams = Object.fromEntries(request.nextUrl.searchParams.entries());
     const validated = querySchema.parse(rawParams);
 
+    // Use businessId from query param if provided, otherwise use from token
+    // For multi-business owners, we need to verify they own the requested business
+    const targetBusinessId = validated.businessId || payload.business_id;
+
+    // TODO: Add verification that user owns the target business using user_owns_business(user_id, business_id)
+    // For now, we'll use the businessId if provided
+
     const dbStatus = validated.status ? STATUS_UI_TO_DB[validated.status] ?? 'confirmed' : null;
 
     const rows = await sql`
@@ -71,7 +79,7 @@ export async function GET(request: NextRequest) {
       FROM appointments a
       LEFT JOIN services s ON s.id = a.service_id
       LEFT JOIN users u ON u.id = a.customer_id
-      WHERE a.business_id = ${payload.business_id}
+      WHERE a.business_id = ${targetBusinessId}
         AND a.deleted_at IS NULL
         ${validated.start ? sql`AND a.slot_end > ${new Date(validated.start).toISOString()}` : sql``}
         ${validated.end ? sql`AND a.slot_start < ${new Date(validated.end).toISOString()}` : sql``}

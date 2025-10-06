@@ -1,0 +1,273 @@
+version: "1.0.0"
+
+business:
+  id: "nails-florence"
+  name: "Florence Nails"
+  description: "Salone unghie professionale che offre manicure, pedicure, extension unghie e trattamenti di bellezza. Specializzati in nail art e design personalizzati."
+  timezone: "Europe/Rome"
+  locale: "it-IT"
+  currency: "EUR"
+
+contact:
+  address:
+    street: "Via della Condotta, 12"
+    city: "Firenze"
+    state: "Toscana"
+    postalCode: "50122"
+    country: "IT"
+  email: "info@nailsflorence.com"
+  phone: "+390552654321"
+  website: "https://nailsflorence.com"
+  latitude: 43.768
+  longitude: 11.252
+
+branding:
+  primaryColor: "#ec4899"
+  secondaryColor: "#f472b6"
+  logoUrl: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400&h=400&fit=crop"
+  coverImageUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&h=600&fit=crop"
+  profileImageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop"
+  faviconUrl: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=64&h=64&fit=crop"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "09:00"
+    close: "19:00"
+    enabled: false
+  - day: tuesday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: wednesday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: thursday
+    open: "09:00"
+    close: "19:00"
+    enabled: true
+  - day: friday
+    open: "09:00"
+    close: "20:00"
+    enabled: true
+  - day: saturday
+    open: "08:00"
+    close: "18:00"
+    enabled: true
+  - day: sunday
+    open: "10:00"
+    close: "16:00"
+    enabled: false
+
+availabilityExceptions:
+  - date: "2025-12-25"
+    reason: "Natale"
+    closed: true
+  - date: "2025-12-26"
+    reason: "Santo Stefano"
+    closed: true
+  - date: "2026-01-01"
+    reason: "Capodanno"
+    closed: true
+  - date: "2026-01-06"
+    reason: "Epifania"
+    closed: true
+  - date: "2026-08-15"
+    reason: "Ferragosto"
+    closed: true
+
+categories:
+  - id: "manicure"
+    name: "Manicure"
+    description: "Trattamenti per unghie delle mani"
+    sortOrder: 0
+    services:
+      - id: "manicure-classica"
+        name: "Manicure Classica"
+        description: "Manicure tradizionale con limatura, cuticole e smalto"
+        duration: 45
+        price: 2500
+        color: "#ec4899"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 10
+
+      - id: "manicure-spa"
+        name: "Manicure Spa"
+        description: "Manicure con bagno alle mani, massaggio e trattamento idratante"
+        duration: 60
+        price: 3500
+        color: "#db2777"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 15
+        bufferAfter: 15
+
+      - id: "manicure-gelnail"
+        name: "Manicure con Gel"
+        description: "Applicazione gel semipermanente con design personalizzato"
+        duration: 75
+        price: 4500
+        color: "#be185d"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 1500
+        bufferBefore: 20
+        bufferAfter: 20
+
+  - id: "pedicure"
+    name: "Pedicure"
+    description: "Trattamenti per unghie dei piedi"
+    sortOrder: 1
+    services:
+      - id: "pedicure-classica"
+        name: "Pedicure Classica"
+        description: "Pedicure tradizionale con limatura e smalto"
+        duration: 60
+        price: 3000
+        color: "#f59e0b"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 15
+        bufferAfter: 15
+
+      - id: "pedicure-spa"
+        name: "Pedicure Spa"
+        description: "Pedicure con bagno ai piedi, scrub e massaggio"
+        duration: 75
+        price: 4000
+        color: "#d97706"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 20
+        bufferAfter: 20
+
+      - id: "pedicure-gelnail"
+        name: "Pedicure con Gel"
+        description: "Applicazione gel semipermanente sui piedi"
+        duration: 90
+        price: 5000
+        color: "#b45309"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 2000
+        bufferBefore: 25
+        bufferAfter: 25
+
+  - id: "nail-art"
+    name: "Nail Art e Design"
+    description: "Decorazioni artistiche e design personalizzati"
+    sortOrder: 2
+    services:
+      - id: "nail-art-semplice"
+        name: "Nail Art Semplice"
+        description: "Decorazioni basic come french o disegni semplici"
+        duration: 30
+        price: 1500
+        color: "#8b5cf6"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 5
+        bufferAfter: 5
+
+      - id: "nail-art-completo"
+        name: "Nail Art Completo"
+        description: "Design artistico personalizzato per tutte le unghie"
+        duration: 60
+        price: 3000
+        color: "#7c3aed"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 10
+        bufferAfter: 10
+
+      - id: "extension-unghie"
+        name: "Extension Unghie"
+        description: "Allungamento unghie con gel o acrilico"
+        duration: 120
+        price: 6000
+        color: "#6d28d9"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: true
+        depositAmount: 3000
+        bufferBefore: 30
+        bufferAfter: 30
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields:
+    - id: "nail-shape"
+      label: "Forma Unghie Desiderata"
+      type: "select"
+      required: false
+      options:
+        - "Ovale"
+        - "Quadrata"
+        - "Mandorla"
+        - "Ballerina"
+        - "Nessuna preferenza"
+    - id: "color-preference"
+      label: "Preferenza Colore"
+      type: "text"
+      required: false
+      placeholder: "Colore smalto o descrizione"
+    - id: "special-requests"
+      label: "Richieste Speciali"
+      type: "textarea"
+      required: false
+      placeholder: "Allergie, condizioni particolari o design specifico"
+      maxLength: 300
+
+bookingLimits:
+  maxSimultaneousBookings: 3
+  advanceBookingDays: 30
+  minAdvanceBookingMinutes: 120
+  maxBookingsPerCustomerPerDay: 1
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 24
+  allowRescheduling: true
+  rescheduleDeadlineHours: 12
+  refundPolicy: "partial"
+  partialRefundPercentage: 50
+
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 24
+  sendConfirmationSMS: true
+  sendReminderSMS: false
+  ownerNotificationEmail: "bookings@nailsflorence.com"
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+
+features:
+  enableOnlinePayments: true
+  enableWaitlist: true
+  enableReviews: true
+  enableMultipleStaff: true
+
+metadata:
+  parkingAvailable: false
+  wheelchairAccessible: true
+  languages: ["it", "en"]
+  acceptsWalkIns: true
+  dresscode: "Casual - Ambiente rilassato"
