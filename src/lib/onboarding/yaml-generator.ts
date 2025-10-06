@@ -113,6 +113,7 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
         secondaryColor: formData.secondaryColor || formData.primaryColor,
         logoUrl: 'https://placehold.co/200x200', // Placeholder, will be updated later
         coverImageUrl: 'https://placehold.co/1200x400',
+        profileImageUrl: 'https://placehold.co/400x400',
         faviconUrl: 'https://placehold.co/32x32',
       },
 

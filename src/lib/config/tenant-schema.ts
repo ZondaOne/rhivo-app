@@ -77,6 +77,7 @@ const BrandingSchema = z.object({
   secondaryColor: ColorHex.optional(),
   logoUrl: UrlString,
   coverImageUrl: UrlString.optional(),
+  profileImageUrl: UrlString.optional(), // Profile picture/avatar for business cards
   faviconUrl: UrlString.optional(),
 });
 

@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
             },
             categories,
             coverImageUrl: config.branding.coverImageUrl,
+            profileImageUrl: config.branding.profileImageUrl,
             primaryColor: config.branding.primaryColor,
             // Include geolocation from YAML if available
             latitude: config.contact.latitude,

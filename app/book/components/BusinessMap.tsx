@@ -84,6 +84,9 @@ interface Business {
     name: string;
     serviceCount: number;
   }>;
+  coverImageUrl?: string;
+  profileImageUrl?: string;
+  primaryColor?: string;
   latitude?: number;
   longitude?: number;
 }
@@ -133,32 +136,45 @@ function BusinessModal({ business, onClose, onClick }: BusinessModalProps) {
         }`}
       >
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header with gradient or image */}
-          {business.coverImageUrl ? (
-            <div className="h-40 overflow-hidden relative">
-              <img
-                src={business.coverImageUrl}
-                alt={business.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : (
-            <div
-              className="h-40 flex items-center justify-center"
-              style={{
-                background: business.primaryColor
-                  ? `linear-gradient(135deg, ${business.primaryColor}, ${business.primaryColor}dd)`
-                  : 'linear-gradient(135deg, #0d9488, #14b8a6)'
-              }}
-            >
-              <span className="text-white text-5xl font-bold">
-                {business.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+          {/* Header with gradient or image and profile picture overlay */}
+          <div className="relative">
+            {business.coverImageUrl ? (
+              <div className="h-40 overflow-hidden">
+                <img
+                  src={business.coverImageUrl}
+                  alt={business.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div
+                className="h-40 flex items-center justify-center"
+                style={{
+                  background: business.primaryColor
+                    ? `linear-gradient(135deg, ${business.primaryColor}, ${business.primaryColor}dd)`
+                    : 'linear-gradient(135deg, #0d9488, #14b8a6)'
+                }}
+              >
+                <span className="text-white text-5xl font-bold">
+                  {business.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+
+            {/* Profile Picture Avatar */}
+            {business.profileImageUrl && (
+              <div className="absolute -bottom-10 left-6">
+                <img
+                  src={business.profileImageUrl}
+                  alt={`${business.name} profile`}
+                  className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className={`p-6 ${business.profileImageUrl ? 'pt-12' : ''}`}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{business.name}</h2>
@@ -246,54 +262,67 @@ function MobileBottomSheet({ business, onClose, onClick }: { business: Business;
           isVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="bg-white rounded-t-3xl shadow-2xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{business.name}</h3>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{business.address.city}, {business.address.state}</span>
-              </div>
+        <div className="bg-white rounded-t-3xl shadow-2xl overflow-hidden">
+          {/* Profile Picture at top (mobile) */}
+          {business.profileImageUrl && (
+            <div className="flex justify-center pt-4">
+              <img
+                src={business.profileImageUrl}
+                alt={`${business.name} profile`}
+                className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+              />
             </div>
+          )}
+
+          <div className={`p-6 ${business.profileImageUrl ? 'pt-3' : ''}`}>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">{business.name}</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{business.address.city}, {business.address.state}</span>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {business.description && (
+              <p className="text-sm text-gray-700 mb-4 leading-relaxed">{business.description}</p>
+            )}
+
+            {business.categories.length > 0 && (
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-2">
+                  {business.categories.map((cat) => (
+                    <span
+                      key={cat.id}
+                      className="px-3 py-1.5 bg-teal-50 text-teal-700 text-sm font-medium rounded-lg"
+                    >
+                      {cat.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="Close"
+              onClick={onClick}
+              className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all active:scale-[0.98]"
             >
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              View & Book
             </button>
           </div>
-
-          {business.description && (
-            <p className="text-sm text-gray-700 mb-4 leading-relaxed">{business.description}</p>
-          )}
-
-          {business.categories.length > 0 && (
-            <div className="mb-4">
-              <div className="flex flex-wrap gap-2">
-                {business.categories.map((cat) => (
-                  <span
-                    key={cat.id}
-                    className="px-3 py-1.5 bg-teal-50 text-teal-700 text-sm font-medium rounded-lg"
-                  >
-                    {cat.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={onClick}
-            className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all active:scale-[0.98]"
-          >
-            View & Book
-          </button>
         </div>
       </div>
     </>

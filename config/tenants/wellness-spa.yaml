@@ -26,6 +26,7 @@ branding:
   secondaryColor: "#14b8a6"
   logoUrl: "https://example.com/spa-logo.png"
   coverImageUrl: "https://example.com/spa-cover.jpg"
+  profileImageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=400&fit=crop"
   faviconUrl: "https://example.com/spa-favicon.ico"
 
 timeSlotDuration: 30

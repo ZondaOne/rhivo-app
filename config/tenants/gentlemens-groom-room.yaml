@@ -26,6 +26,7 @@ branding:
   secondaryColor: "#f59e0b"
   logoUrl: "https://images.unsplash.com/photo-1598516777874-e41703d58b79?w=400&h=400&fit=crop"
   coverImageUrl: "https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=1200&h=600&fit=crop"
+  profileImageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
   faviconUrl: "https://images.unsplash.com/photo-1598516777874-e41703d58b79?w=64&h=64&fit=crop"
 
 timeSlotDuration: 30

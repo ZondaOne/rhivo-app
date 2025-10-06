@@ -37,6 +37,7 @@ interface BusinessSummary {
     serviceCount: number;
   }>;
   coverImageUrl?: string;
+  profileImageUrl?: string;
   primaryColor?: string;
   latitude?: number;
   longitude?: number;
@@ -481,32 +482,47 @@ export default function DiscoveryPage() {
                     href={`/book/${business.subdomain}`}
                     className="group bg-white border-2 border-gray-200 rounded-xl lg:rounded-2xl overflow-hidden hover:border-teal-600 hover:shadow-xl transition-all"
                   >
-                    {/* Cover Image */}
-                    {business.coverImageUrl ? (
-                      <div className="h-40 sm:h-44 lg:h-48 overflow-hidden bg-gray-100">
-                        <img
-                          src={business.coverImageUrl}
-                          alt={business.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className="h-40 sm:h-44 lg:h-48 flex items-center justify-center"
-                        style={{
-                          background: business.primaryColor
-                            ? `linear-gradient(135deg, ${business.primaryColor}, ${business.primaryColor}dd)`
-                            : 'linear-gradient(135deg, #0d9488, #14b8a6)'
-                        }}
-                      >
-                        <span className="text-white text-4xl lg:text-5xl font-bold">
-                          {business.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    {/* Cover Image with Profile Picture Overlay */}
+                    <div className="relative">
+                      {business.coverImageUrl ? (
+                        <div className="h-40 sm:h-44 lg:h-48 overflow-hidden bg-gray-100">
+                          <img
+                            src={business.coverImageUrl}
+                            alt={business.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="h-40 sm:h-44 lg:h-48 flex items-center justify-center"
+                          style={{
+                            background: business.primaryColor
+                              ? `linear-gradient(135deg, ${business.primaryColor}, ${business.primaryColor}dd)`
+                              : 'linear-gradient(135deg, #0d9488, #14b8a6)'
+                          }}
+                        >
+                          <span className="text-white text-4xl lg:text-5xl font-bold">
+                            {business.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Profile Picture Avatar */}
+                      {business.profileImageUrl && (
+                        <div className="absolute -bottom-8 left-4 sm:left-5 lg:left-6">
+                          <div className="relative">
+                            <img
+                              src={business.profileImageUrl}
+                              alt={`${business.name} profile`}
+                              className="w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 rounded-full object-cover border-4 border-white shadow-lg group-hover:shadow-xl transition-shadow"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Content */}
-                    <div className="p-4 sm:p-5 lg:p-6">
+                    <div className={`p-4 sm:p-5 lg:p-6 ${business.profileImageUrl ? 'pt-10 sm:pt-11 lg:pt-12' : ''}`}>
                       <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 tracking-tight group-hover:text-teal-600 transition-colors">
                         {business.name}
                       </h3>
