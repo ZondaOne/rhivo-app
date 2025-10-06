@@ -84,7 +84,11 @@
         }
 
         .reveal section {
-            padding: 3rem;
+            padding: 2rem;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
         }
 
         .reveal .title-slide {
@@ -754,40 +758,83 @@
         .feature-card .icon-wrapper {
             margin: 0 0 1rem 0;
         }
+
+        /* Language Selector */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-btn {
+            width: 44px;
+            height: 44px;
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            background: var(--gray-100);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .lang-btn:hover {
+            background: var(--gray-200);
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(135deg, var(--teal-500), var(--green-500));
+            border-color: var(--teal-600);
+        }
     </style>
 </head>
 <body>
+    <div class="language-selector">
+        <button class="lang-btn active" data-lang="en" title="English">🇬🇧</button>
+        <button class="lang-btn" data-lang="it" title="Italiano">🇮🇹</button>
+        <button class="lang-btn" data-lang="es" title="Español">🇪🇸</button>
+    </div>
     <div class="reveal">
         <div class="slides">
             
             <!-- Slide 1: Title -->
             <section class="title-slide">
                 <div class="logo">R</div>
-                <h1>Rivo</h1>
-                <p>Premium appointment management that works beautifully</p>
+                <h1 data-i18n="title">Rivo</h1>
+                <p data-i18n="subtitle">Premium appointment management that works beautifully</p>
             </section>
 
             <!-- Slide 2: The Problem -->
             <section>
-                <h2>The Problem</h2>
+                <h2 data-i18n="problem-title">The Problem</h2>
                 <div class="problem-section">
-                    <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;">
+                    <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;" data-i18n="problem-subtitle">
                         Small businesses struggle with appointment management
                     </p>
                     <ul>
-                        <li>Outdated booking systems that confuse customers</li>
-                        <li>Double-bookings and scheduling conflicts</li>
-                        <li>No online presence = lost revenue</li>
-                        <li>Expensive, complex software built for enterprises</li>
-                        <li>Zero customization for unique business needs</li>
+                        <li data-i18n="problem-1">Outdated booking systems that confuse customers</li>
+                        <li data-i18n="problem-2">Double-bookings and scheduling conflicts</li>
+                        <li data-i18n="problem-3">No online presence = lost revenue</li>
+                        <li data-i18n="problem-4">Expensive, complex software built for enterprises</li>
+                        <li data-i18n="problem-5">Zero customization for unique business needs</li>
                     </ul>
                 </div>
             </section>
 
             <!-- Slide 3: The Solution -->
             <section>
-                <h2>Meet <span class="gradient-text">Rivo</span></h2>
-                <p style="font-size: 1.75rem; color: var(--gray-900); margin: 2rem 0;">
+                <h2><span data-i18n="solution-title">Meet</span> <span class="gradient-text" data-i18n="solution-title-highlight">Rivo</span></h2>
+                <p style="font-size: 1.75rem; color: var(--gray-900); margin: 2rem 0;" data-i18n="solution-subtitle">
                     A premium appointment platform designed for small businesses that refuse to compromise on quality
                 </p>
                 <div class="feature-grid">
@@ -797,8 +844,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
                         </div>
-                        <h3>Zero Setup Friction</h3>
-                        <p>YAML-based configuration. Business ready in minutes, not weeks.</p>
+                        <h3 data-i18n="feature-1-title">Zero Setup Friction</h3>
+                        <p data-i18n="feature-1-text">YAML-based configuration. Business ready in minutes, not weeks.</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -806,8 +853,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
                             </svg>
                         </div>
-                        <h3>Instant Online Presence</h3>
-                        <p>Custom subdomain booking pages for every business. Beautiful by default.</p>
+                        <h3 data-i18n="feature-2-title">Instant Online Presence</h3>
+                        <p data-i18n="feature-2-text">Custom subdomain booking pages for every business. Beautiful by default.</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -815,8 +862,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                             </svg>
                         </div>
-                        <h3>Built-in Security</h3>
-                        <p>Enterprise-grade auth, row-level security, and audit logging from day one.</p>
+                        <h3 data-i18n="feature-3-title">Built-in Security</h3>
+                        <p data-i18n="feature-3-text">Enterprise-grade auth, row-level security, and audit logging from day one.</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -824,16 +871,16 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <h3>No Double-Bookings</h3>
-                        <p>Transactional booking system with reservation tokens prevents conflicts.</p>
+                        <h3 data-i18n="feature-4-title">No Double-Bookings</h3>
+                        <p data-i18n="feature-4-text">Transactional booking system with reservation tokens prevents conflicts.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 4: Owner Dashboard Demo -->
             <section>
-                <h2>Owner Dashboard</h2>
-                <p style="color: var(--gray-500); margin-bottom: 2rem;">Clean, powerful interface for managing your business</p>
+                <h2 data-i18n="dashboard-title">Owner Dashboard</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;" data-i18n="dashboard-subtitle">Clean, powerful interface for managing your business</p>
                 
                 <div class="demo-browser">
                     <div class="browser-header">
@@ -902,8 +949,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                             </svg>
                         </div>
-                        <h3>Drag & Drop Rescheduling</h3>
-                        <p>Move appointments between slots with visual conflict detection</p>
+                        <h3 data-i18n="dashboard-feature-1-title">Drag & Drop Rescheduling</h3>
+                        <p data-i18n="dashboard-feature-1-text">Move appointments between slots with visual conflict detection</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -911,8 +958,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                             </svg>
                         </div>
-                        <h3>Color-Coded Services</h3>
-                        <p>Instant visual clarity with customizable service colors</p>
+                        <h3 data-i18n="dashboard-feature-2-title">Color-Coded Services</h3>
+                        <p data-i18n="dashboard-feature-2-text">Instant visual clarity with customizable service colors</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -920,8 +967,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
                         </div>
-                        <h3>Real-Time Updates</h3>
-                        <p>See new bookings appear instantly, no refresh needed</p>
+                        <h3 data-i18n="dashboard-feature-3-title">Real-Time Updates</h3>
+                        <p data-i18n="dashboard-feature-3-text">See new bookings appear instantly, no refresh needed</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -929,16 +976,16 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                             </svg>
                         </div>
-                        <h3>Responsive Design</h3>
-                        <p>Works perfectly on desktop, tablet, and mobile</p>
+                        <h3 data-i18n="dashboard-feature-4-title">Responsive Design</h3>
+                        <p data-i18n="dashboard-feature-4-text">Works perfectly on desktop, tablet, and mobile</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 5: Customer Booking Demo -->
             <section>
-                <h2>Customer Booking Experience</h2>
-                <p style="color: var(--gray-500); margin-bottom: 2rem;">Beautiful, conversion-optimized booking flow</p>
+                <h2 data-i18n="booking-title">Customer Booking Experience</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;" data-i18n="booking-subtitle">Beautiful, conversion-optimized booking flow</p>
                 
                 <div class="demo-browser">
                     <div class="browser-header">
@@ -989,8 +1036,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
                         </div>
-                        <h3>Simple 3-Step Flow</h3>
-                        <p>1. Pick service → 2. Choose time → 3. Enter details → Done!</p>
+                        <h3 data-i18n="booking-feature-1-title">Simple 3-Step Flow</h3>
+                        <p data-i18n="booking-feature-1-text">1. Pick service → 2. Choose time → 3. Enter details → Done!</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -998,15 +1045,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
-                        <h3>Guest Booking Supported</h3>
-                        <p>No account required. Manage via secure email link.</p>
+                        <h3 data-i18n="booking-feature-2-title">Guest Booking Supported</h3>
+                        <p data-i18n="booking-feature-2-text">No account required. Manage via secure email link.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 6: Real Business Example -->
             <section>
-                <h2>Real Business: Bella Hair Salon</h2>
+                <h2 data-i18n="example-title">Real Business: Bella Hair Salon</h2>
                 <div class="two-column">
                     <div>
                         <div class="example-yaml">
@@ -1034,18 +1081,18 @@ categories:
                         </div>
                     </div>
                     <div>
-                        <h3 style="color: var(--teal-600); margin-bottom: 1.5rem;">From Config to Live Site</h3>
+                        <h3 style="color: var(--teal-600); margin-bottom: 1.5rem;" data-i18n="example-subtitle">From Config to Live Site</h3>
                         <ul style="font-size: 1.1rem;">
-                            <li>YAML config defines everything</li>
-                            <li>Automatic subdomain creation</li>
-                            <li>TLS certificate provisioning</li>
-                            <li>Services sync to database</li>
-                            <li>Booking page generated instantly</li>
-                            <li>Owner gets dashboard access</li>
+                            <li data-i18n="example-1">YAML config defines everything</li>
+                            <li data-i18n="example-2">Automatic subdomain creation</li>
+                            <li data-i18n="example-3">TLS certificate provisioning</li>
+                            <li data-i18n="example-4">Services sync to database</li>
+                            <li data-i18n="example-5">Booking page generated instantly</li>
+                            <li data-i18n="example-6">Owner gets dashboard access</li>
                         </ul>
                         <div class="stat-card" style="margin-top: 2rem; background: var(--gray-50); padding: 2rem; border-radius: 1rem;">
-                            <div class="stat-number" style="font-size: 2rem;">3 min</div>
-                            <div class="stat-label">Average setup time</div>
+                            <div class="stat-number" style="font-size: 2rem;" data-i18n="example-stat">3 min</div>
+                            <div class="stat-label" data-i18n="example-stat-label">Average setup time</div>
                         </div>
                     </div>
                 </div>
@@ -1053,8 +1100,8 @@ categories:
 
             <!-- Slide 7: Discovery Interface -->
             <section>
-                <h2>Discovery Interface</h2>
-                <p style="color: var(--gray-500); margin-bottom: 2rem;">Help customers find businesses near them</p>
+                <h2 data-i18n="discovery-title">Discovery Interface</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;" data-i18n="discovery-subtitle">Help customers find businesses near them</p>
                 
                 <div class="demo-browser">
                     <div class="browser-header">
@@ -1111,8 +1158,8 @@ categories:
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                             </svg>
                         </div>
-                        <h3>Map View</h3>
-                        <p>Interactive map with business markers and clustering</p>
+                        <h3 data-i18n="discovery-feature-1-title">Map View</h3>
+                        <p data-i18n="discovery-feature-1-text">Interactive map with business markers and clustering</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -1120,8 +1167,8 @@ categories:
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                             </svg>
                         </div>
-                        <h3>Smart Filters</h3>
-                        <p>Filter by category, location, price range, and availability</p>
+                        <h3 data-i18n="discovery-feature-2-title">Smart Filters</h3>
+                        <p data-i18n="discovery-feature-2-text">Filter by category, location, price range, and availability</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -1129,8 +1176,8 @@ categories:
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
                         </div>
-                        <h3>Verified Businesses</h3>
-                        <p>All businesses verified and quality-checked</p>
+                        <h3 data-i18n="discovery-feature-3-title">Verified Businesses</h3>
+                        <p data-i18n="discovery-feature-3-text">All businesses verified and quality-checked</p>
                     </div>
                     <div class="feature-card">
                         <div class="icon-wrapper">
@@ -1138,16 +1185,16 @@ categories:
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
                             </svg>
                         </div>
-                        <h3>One-Click Booking</h3>
-                        <p>Jump directly to booking page from discovery</p>
+                        <h3 data-i18n="discovery-feature-4-title">One-Click Booking</h3>
+                        <p data-i18n="discovery-feature-4-text">Jump directly to booking page from discovery</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 8: Service Examples -->
             <section>
-                <h2>Real Services in Production</h2>
-                <p style="color: var(--gray-500); margin-bottom: 2rem;">From barber shops to wellness centers</p>
+                <h2 data-i18n="services-title">Real Services in Production</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;" data-i18n="services-subtitle">From barber shops to wellness centers</p>
 
                 <div class="services-grid">
                     <div class="service-example">
@@ -1218,39 +1265,39 @@ categories:
                 </div>
             </section>
             <section>
-                <h2>What Makes Rivo Different</h2>
+                <h2 data-i18n="difference-title">What Makes Rivo Different</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <h3>Multi-Tenant Architecture</h3>
-                        <p>Each business gets isolated config, data, and subdomain with automatic wildcard DNS & TLS.</p>
+                        <h3 data-i18n="difference-1-title">Multi-Tenant Architecture</h3>
+                        <p data-i18n="difference-1-text">Each business gets isolated config, data, and subdomain with automatic wildcard DNS & TLS.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Smart Slot Generation</h3>
-                        <p>Respects business hours, timezone, capacity limits, and advance booking rules automatically.</p>
+                        <h3 data-i18n="difference-2-title">Smart Slot Generation</h3>
+                        <p data-i18n="difference-2-text">Respects business hours, timezone, capacity limits, and advance booking rules automatically.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Transactional Booking</h3>
-                        <p>Reservation tokens with TTL → atomic commit flow prevents race conditions.</p>
+                        <h3 data-i18n="difference-3-title">Transactional Booking</h3>
+                        <p data-i18n="difference-3-text">Reservation tokens with TTL → atomic commit flow prevents race conditions.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Flexible Auth</h3>
-                        <p>Owner/staff/customer separation. Guest bookings supported. JWT-based row-level security.</p>
+                        <h3 data-i18n="difference-4-title">Flexible Auth</h3>
+                        <p data-i18n="difference-4-text">Owner/staff/customer separation. Guest bookings supported. JWT-based row-level security.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Full Customization</h3>
-                        <p>Brand colors, services, pricing, availability rules—all YAML-configurable per tenant.</p>
+                        <h3 data-i18n="difference-5-title">Full Customization</h3>
+                        <p data-i18n="difference-5-text">Brand colors, services, pricing, availability rules—all YAML-configurable per tenant.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Notification System</h3>
-                        <p>Email + SMS with delivery tracking, retries, and idempotency for reliability.</p>
+                        <h3 data-i18n="difference-6-title">Notification System</h3>
+                        <p data-i18n="difference-6-text">Email + SMS with delivery tracking, retries, and idempotency for reliability.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 6: Tech Stack -->
             <section>
-                <h2>Built on Modern Stack</h2>
-                <p>Production-ready architecture optimized for performance and reliability</p>
+                <h2 data-i18n="tech-title">Built on Modern Stack</h2>
+                <p data-i18n="tech-subtitle">Production-ready architecture optimized for performance and reliability</p>
                 <div class="tech-stack">
                     <div class="tech-badge">Next.js 14</div>
                     <div class="tech-badge">React + TypeScript</div>
@@ -1262,45 +1309,45 @@ categories:
                     <div class="tech-badge">YAML Config</div>
                 </div>
                 <div class="problem-section" style="margin-top: 3rem;">
-                    <p style="color: var(--gray-900); font-weight: 600; margin-bottom: 1rem;">Designed for Scale</p>
+                    <p style="color: var(--gray-900); font-weight: 600; margin-bottom: 1rem;" data-i18n="tech-scale-title">Designed for Scale</p>
                     <ul>
-                        <li>Frontend-optimized DB access with security constraints</li>
-                        <li>Atomic transactions prevent data inconsistency</li>
-                        <li>Comprehensive audit logging for compliance</li>
-                        <li>Optimistic locking for concurrent updates</li>
+                        <li data-i18n="tech-scale-1">Frontend-optimized DB access with security constraints</li>
+                        <li data-i18n="tech-scale-2">Atomic transactions prevent data inconsistency</li>
+                        <li data-i18n="tech-scale-3">Comprehensive audit logging for compliance</li>
+                        <li data-i18n="tech-scale-4">Optimistic locking for concurrent updates</li>
                     </ul>
                 </div>
             </section>
 
             <!-- Slide 7: Design Philosophy -->
             <section>
-                <h2>Design Philosophy</h2>
+                <h2 data-i18n="design-title">Design Philosophy</h2>
                 <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;">
-                    <span class="highlight">Functional Minimalism</span> — Every element serves a purpose
+                    <span class="highlight" data-i18n="design-subtitle">Functional Minimalism</span><span data-i18n="design-subtitle-2"> — Every element serves a purpose</span>
                 </p>
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <h3>Breathing Room First</h3>
-                        <p>Generous whitespace lets content breathe. Not cluttered, never cramped.</p>
+                        <h3 data-i18n="design-1-title">Breathing Room First</h3>
+                        <p data-i18n="design-1-text">Generous whitespace lets content breathe. Not cluttered, never cramped.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Hierarchy Through Typography</h3>
-                        <p>Size and weight create structure. No unnecessary borders or boxes.</p>
+                        <h3 data-i18n="design-2-title">Hierarchy Through Typography</h3>
+                        <p data-i18n="design-2-text">Size and weight create structure. No unnecessary borders or boxes.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Intentional Color</h3>
-                        <p>Teal and green used sparingly for brand identity and key actions only.</p>
+                        <h3 data-i18n="design-3-title">Intentional Color</h3>
+                        <p data-i18n="design-3-text">Teal and green used sparingly for brand identity and key actions only.</p>
                     </div>
                     <div class="feature-card">
-                        <h3>Confident Simplicity</h3>
-                        <p>Clean, bold interface. Unafraid of white space. Apple-inspired aesthetic.</p>
+                        <h3 data-i18n="design-4-title">Confident Simplicity</h3>
+                        <p data-i18n="design-4-text">Clean, bold interface. Unafraid of white space. Apple-inspired aesthetic.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Slide 8: Target Market -->
             <section>
-                <h2>Who Is This For?</h2>
+                <h2 data-i18n="market-title">Who Is This For?</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-number">💈</div>
@@ -1316,29 +1363,29 @@ categories:
                     </div>
                 </div>
                 <div class="problem-section" style="margin-top: 3rem;">
-                    <p style="color: var(--gray-900); font-size: 1.25rem; margin-bottom: 1.5rem;">
+                    <p style="color: var(--gray-900); font-size: 1.25rem; margin-bottom: 1.5rem;" data-i18n="market-subtitle">
                         <strong>Perfect for businesses that:</strong>
                     </p>
                     <ul>
-                        <li>Need online booking but hate complexity</li>
-                        <li>Want professional branding without hiring designers</li>
-                        <li>Require reliability (no double-bookings allowed)</li>
-                        <li>Value clean, modern design</li>
-                        <li>Want to own their customer data</li>
+                        <li data-i18n="market-1">Need online booking but hate complexity</li>
+                        <li data-i18n="market-2">Want professional branding without hiring designers</li>
+                        <li data-i18n="market-3">Require reliability (no double-bookings allowed)</li>
+                        <li data-i18n="market-4">Value clean, modern design</li>
+                        <li data-i18n="market-5">Want to own their customer data</li>
                     </ul>
                 </div>
             </section>
 
             <!-- Slide 9: Business Model -->
             <section>
-                <h2>Freemium Business Model</h2>
+                <h2 data-i18n="business-title">Freemium Business Model</h2>
                 
                 <div class="two-column" style="margin-bottom: 2.5rem;">
                     <div>
-                        <h3 style="color: var(--teal-600);">Free Forever</h3>
+                        <h3 style="color: var(--teal-600);" data-i18n="business-free-title">Free Forever</h3>
                         <div class="feature-card" style="margin-bottom: 1rem; border: 2px solid var(--teal-500);">
-                            <h3>Core Platform — €0/month</h3>
-                            <p>Full booking system, unlimited appointments, branded subdomain, customer portal, calendar dashboard, email notifications</p>
+                            <h3 data-i18n="business-free-subtitle">Core Platform — €0/month</h3>
+                            <p data-i18n="business-free-text">Full booking system, unlimited appointments, branded subdomain, customer portal, calendar dashboard, email notifications</p>
                         </div>
                     </div>
                     <div>
@@ -1375,48 +1422,48 @@ categories:
 
             <!-- Slide 10: Revenue Projections -->
             <section>
-                <h2>Revenue Projections</h2>
-                <p style="color: var(--gray-500); margin-bottom: 2rem;">Year 1 targets with freemium model</p>
+                <h2 data-i18n="revenue-title">Revenue Projections</h2>
+                <p style="color: var(--gray-500); margin-bottom: 2rem;" data-i18n="revenue-subtitle">Year 1 targets with freemium model</p>
                 
                 <div class="stats-grid" style="margin-bottom: 3rem;">
                     <div class="stat-card">
                         <div class="stat-number">1,000</div>
-                        <div class="stat-label">Free Users</div>
-                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">Platform adoption</p>
+                        <div class="stat-label" data-i18n="revenue-stat-1-label">Free Users</div>
+                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;" data-i18n="revenue-stat-1-text">Platform adoption</p>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">25%</div>
-                        <div class="stat-label">Conversion Rate</div>
-                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">To paid add-ons</p>
+                        <div class="stat-label" data-i18n="revenue-stat-2-label">Conversion Rate</div>
+                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;" data-i18n="revenue-stat-2-text">To paid add-ons</p>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">€273K</div>
-                        <div class="stat-label">Target ARR</div>
-                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">~$300K USD</p>
+                        <div class="stat-label" data-i18n="revenue-stat-3-label">Target ARR</div>
+                        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;" data-i18n="revenue-stat-3-text">~$300K USD</p>
                     </div>
                 </div>
 
                 <div class="two-column">
                     <div class="feature-card">
-                        <h3>Revenue Breakdown</h3>
+                        <h3 data-i18n="revenue-breakdown-title">Revenue Breakdown</h3>
                         <ul style="font-size: 1.1rem;">
-                            <li>250 discovery listings @ €29 = <strong>€87K</strong></li>
-                            <li>150 AI chat @ €50 = <strong>€90K</strong></li>
-                            <li>100 AI voice+chat @ €80 = <strong>€96K</strong></li>
+                            <li data-i18n="revenue-breakdown-1">250 discovery listings @ €29 = <strong>€87K</strong></li>
+                            <li data-i18n="revenue-breakdown-2">150 AI chat @ €50 = <strong>€90K</strong></li>
+                            <li data-i18n="revenue-breakdown-3">100 AI voice+chat @ €80 = <strong>€96K</strong></li>
                         </ul>
-                        <p style="margin-top: 1.5rem; font-size: 1.25rem; font-weight: 700; color: var(--teal-600);">
+                        <p style="margin-top: 1.5rem; font-size: 1.25rem; font-weight: 700; color: var(--teal-600);" data-i18n="revenue-total">
                             Total ARR: €273K
                         </p>
                     </div>
                     <div class="feature-card">
-                        <h3>Unit Economics</h3>
+                        <h3 data-i18n="revenue-unit-title">Unit Economics</h3>
                         <ul style="font-size: 1.1rem;">
-                            <li>CAC (free tier): <strong>€0</strong></li>
-                            <li>Avg revenue per paid user: <strong>€68/mo</strong></li>
-                            <li>LTV estimate (24mo): <strong>€1,632</strong></li>
-                            <li>Gross margin: <strong>~85%</strong></li>
+                            <li data-i18n="revenue-unit-1">CAC (free tier): <strong>€0</strong></li>
+                            <li data-i18n="revenue-unit-2">Avg revenue per paid user: <strong>€68/mo</strong></li>
+                            <li data-i18n="revenue-unit-3">LTV estimate (24mo): <strong>€1,632</strong></li>
+                            <li data-i18n="revenue-unit-4">Gross margin: <strong>~85%</strong></li>
                         </ul>
-                        <p style="margin-top: 1.5rem; font-size: 1rem; color: var(--gray-500);">
+                        <p style="margin-top: 1.5rem; font-size: 1rem; color: var(--gray-500);" data-i18n="revenue-unit-note">
                             AI assistants have strong retention due to automation dependency
                         </p>
                     </div>
@@ -1425,129 +1472,129 @@ categories:
 
             <!-- Slide 11: Roadmap -->
             <section>
-                <h2>Product Roadmap</h2>
+                <h2 data-i18n="roadmap-title">Product Roadmap</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <h3 style="color: var(--teal-600);">Phase 1: Core Platform (Complete)</h3>
-                        <p>Booking system, calendar dashboard, multi-tenant architecture, discovery interface, auth & notifications</p>
+                        <h3 style="color: var(--teal-600);" data-i18n="roadmap-1-title">Phase 1: Core Platform (Complete)</h3>
+                        <p data-i18n="roadmap-1-text">Booking system, calendar dashboard, multi-tenant architecture, discovery interface, auth & notifications</p>
                     </div>
                     <div class="feature-card">
-                        <h3 style="color: var(--green-600);">Phase 2: AI Assistants (Q4 2025)</h3>
-                        <p>Chat bot integration, voice bot development, natural language booking, automated FAQ responses, multi-language support</p>
+                        <h3 style="color: var(--green-600);" data-i18n="roadmap-2-title">Phase 2: AI Assistants (Q4 2025)</h3>
+                        <p data-i18n="roadmap-2-text">Chat bot integration, voice bot development, natural language booking, automated FAQ responses, multi-language support</p>
                     </div>
                     <div class="feature-card">
-                        <h3 style="color: var(--gray-700);">Phase 3: Growth Features (Q1 2026)</h3>
-                        <p>Mobile app, payment processing, waitlist management, customer profiles, review system, analytics dashboard</p>
+                        <h3 style="color: var(--gray-700);" data-i18n="roadmap-3-title">Phase 3: Growth Features (Q1 2026)</h3>
+                        <p data-i18n="roadmap-3-text">Mobile app, payment processing, waitlist management, customer profiles, review system, analytics dashboard</p>
                     </div>
                     <div class="feature-card">
-                        <h3 style="color: var(--gray-700);">Phase 4: Enterprise (Q2 2026)</h3>
-                        <p>White-label platform, API marketplace, advanced integrations, team collaboration, international expansion</p>
+                        <h3 style="color: var(--gray-700);" data-i18n="roadmap-4-title">Phase 4: Enterprise (Q2 2026)</h3>
+                        <p data-i18n="roadmap-4-text">White-label platform, API marketplace, advanced integrations, team collaboration, international expansion</p>
                     </div>
                 </div>
                 
                 <div class="problem-section" style="margin-top: 2rem;">
-                    <p style="color: var(--gray-900); font-weight: 600; margin-bottom: 1rem;">
+                    <p style="color: var(--gray-900); font-weight: 600; margin-bottom: 1rem;" data-i18n="roadmap-ai-title">
                         AI Assistant Strategy
                     </p>
                     <ul>
-                        <li>Train on business-specific data (services, hours, policies)</li>
-                        <li>Seamless handoff to booking flow when intent detected</li>
-                        <li>Voice bot handles phone calls automatically</li>
-                        <li>Reduces no-shows with automated reminders</li>
-                        <li>Higher conversion = businesses upgrade to premium</li>
+                        <li data-i18n="roadmap-ai-1">Train on business-specific data (services, hours, policies)</li>
+                        <li data-i18n="roadmap-ai-2">Seamless handoff to booking flow when intent detected</li>
+                        <li data-i18n="roadmap-ai-3">Voice bot handles phone calls automatically</li>
+                        <li data-i18n="roadmap-ai-4">Reduces no-shows with automated reminders</li>
+                        <li data-i18n="roadmap-ai-5">Higher conversion = businesses upgrade to premium</li>
                     </ul>
                 </div>
             </section>
 
             <!-- Slide 11: Competitive Advantage -->
             <section>
-                <h2>Why We'll Win</h2>
+                <h2 data-i18n="advantage-title">Why We'll Win</h2>
                 <div class="problem-section">
                     <ul style="font-size: 1.5rem;">
-                        <li><strong>Free forever model</strong> removes all adoption friction</li>
-                        <li><strong>Design-first approach</strong> in a market full of ugly software</li>
-                        <li><strong>AI automation</strong> solves real pain (missed calls, manual booking)</li>
-                        <li><strong>Discovery marketplace</strong> creates network effects</li>
-                        <li><strong>Developer-friendly</strong> YAML config appeals to tech-savvy owners</li>
-                        <li><strong>Built for reliability</strong> from day one (not bolted on later)</li>
+                        <li data-i18n="advantage-1"><strong>Free forever model</strong> <span data-i18n="advantage-1-text">removes all adoption friction</span></li>
+                        <li data-i18n="advantage-2"><strong>Design-first approach</strong> <span data-i18n="advantage-2-text">in a market full of ugly software</span></li>
+                        <li data-i18n="advantage-3"><strong>AI automation</strong> <span data-i18n="advantage-3-text">solves real pain (missed calls, manual booking)</span></li>
+                        <li data-i18n="advantage-4"><strong>Discovery marketplace</strong> <span data-i18n="advantage-4-text">creates network effects</span></li>
+                        <li data-i18n="advantage-5"><strong>Developer-friendly</strong> <span data-i18n="advantage-5-text">YAML config appeals to tech-savvy owners</span></li>
+                        <li data-i18n="advantage-6"><strong>Built for reliability</strong> <span data-i18n="advantage-6-text">from day one (not bolted on later)</span></li>
                     </ul>
                 </div>
-                <p style="font-size: 1.25rem; margin-top: 2rem; color: var(--gray-900);">
-                    Competitors charge $50-200/month for basic features. <span class="highlight">We give that away for free</span> and monetize through high-value AI add-ons that pay for themselves.
+                <p style="font-size: 1.25rem; margin-top: 2rem; color: var(--gray-900);" data-i18n="advantage-note">
+                    Competitors charge $50-200/month for basic features. <span class="highlight" data-i18n="advantage-note-highlight">We give that away for free</span> <span data-i18n="advantage-note-2">and monetize through high-value AI add-ons that pay for themselves.</span>
                 </p>
             </section>
 
             <!-- Slide 12: Traction & Metrics -->
             <section>
-                <h2>Current Traction</h2>
+                <h2 data-i18n="traction-title">Current Traction</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-number">8</div>
-                        <div class="stat-label">Live Business Tenants</div>
+                        <div class="stat-label" data-i18n="traction-stat-1-label">Live Business Tenants</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">100%</div>
-                        <div class="stat-label">Booking Success Rate</div>
+                        <div class="stat-label" data-i18n="traction-stat-2-label">Booking Success Rate</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">0</div>
-                        <div class="stat-label">Double-Bookings</div>
+                        <div class="stat-label" data-i18n="traction-stat-3-label">Double-Bookings</div>
                     </div>
                 </div>
                 <div class="problem-section" style="margin-top: 3rem;">
-                    <p style="color: var(--gray-900); font-size: 1.25rem; margin-bottom: 1.5rem;">
+                    <p style="color: var(--gray-900); font-size: 1.25rem; margin-bottom: 1.5rem;" data-i18n="traction-validation-title">
                         <strong>Early Validation:</strong>
                     </p>
                     <ul>
-                        <li>Pilot businesses in Florence, Italy (salons & barbershops)</li>
-                        <li>Zero technical support tickets related to booking flow</li>
-                        <li>95%+ customer satisfaction on booking experience</li>
-                        <li>Average 3-minute setup time for new businesses</li>
+                        <li data-i18n="traction-validation-1">Pilot businesses in Florence, Italy (salons & barbershops)</li>
+                        <li data-i18n="traction-validation-2">Zero technical support tickets related to booking flow</li>
+                        <li data-i18n="traction-validation-3">95%+ customer satisfaction on booking experience</li>
+                        <li data-i18n="traction-validation-4">Average 3-minute setup time for new businesses</li>
                     </ul>
                 </div>
             </section>
 
             <!-- Slide 13: The Team -->
             <section>
-                <h2>Built By</h2>
+                <h2 data-i18n="team-title">Built By</h2>
                 <div class="problem-section">
                     <p style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 2rem;">
-                        A team that understands both <span class="highlight">great design</span> and <span class="highlight">solid engineering</span>
+                        <span data-i18n="team-subtitle">A team that understands both</span> <span class="highlight" data-i18n="team-subtitle-1">great design</span> <span data-i18n="team-subtitle-2">and</span> <span class="highlight" data-i18n="team-subtitle-3">solid engineering</span>
                     </p>
                     <ul style="font-size: 1.25rem;">
-                        <li>10+ years combined experience in SaaS products</li>
-                        <li>Shipped products used by millions</li>
-                        <li>Deep expertise in distributed systems & databases</li>
-                        <li>Design thinking meets technical execution</li>
-                        <li>Based in Europe, serving global market</li>
+                        <li data-i18n="team-1">10+ years combined experience in SaaS products</li>
+                        <li data-i18n="team-2">Shipped products used by millions</li>
+                        <li data-i18n="team-3">Deep expertise in distributed systems & databases</li>
+                        <li data-i18n="team-4">Design thinking meets technical execution</li>
+                        <li data-i18n="team-5">Based in Europe, serving global market</li>
                     </ul>
                 </div>
             </section>
 
             <!-- Slide 14: The Ask -->
             <section>
-                <h2>The Ask</h2>
+                <h2 data-i18n="ask-title">The Ask</h2>
                 <div class="problem-section">
-                    <p style="font-size: 2rem; color: var(--gray-900); margin-bottom: 2rem; font-weight: 600;">
+                    <p style="font-size: 2rem; color: var(--gray-900); margin-bottom: 2rem; font-weight: 600;" data-i18n="ask-amount">
                         Seeking €400K seed round
                     </p>
-                    <h3 style="color: var(--teal-600); margin-top: 2rem;">Use of Funds:</h3>
+                    <h3 style="color: var(--teal-600); margin-top: 2rem;" data-i18n="ask-funds-title">Use of Funds:</h3>
                     <ul style="font-size: 1.25rem;">
-                        <li><strong>35% AI Development</strong> — Chat bot, voice bot, NLP engine, training pipeline</li>
-                        <li><strong>25% Engineering</strong> — Mobile app, payment integrations, API platform</li>
-                        <li><strong>25% Go-to-Market</strong> — Growth team, content marketing, discovery partnerships</li>
-                        <li><strong>15% Operations</strong> — Customer success, infrastructure scaling, compliance</li>
+                        <li data-i18n="ask-funds-1"><strong>35% AI Development</strong> <span data-i18n="ask-funds-1-text">— Chat bot, voice bot, NLP engine, training pipeline</span></li>
+                        <li data-i18n="ask-funds-2"><strong>25% Engineering</strong> <span data-i18n="ask-funds-2-text">— Mobile app, payment integrations, API platform</span></li>
+                        <li data-i18n="ask-funds-3"><strong>25% Go-to-Market</strong> <span data-i18n="ask-funds-3-text">— Growth team, content marketing, discovery partnerships</span></li>
+                        <li data-i18n="ask-funds-4"><strong>15% Operations</strong> <span data-i18n="ask-funds-4-text">— Customer success, infrastructure scaling, compliance</span></li>
                     </ul>
-                    <p style="font-size: 1.25rem; margin-top: 2rem; color: var(--gray-900);">
+                    <p style="font-size: 1.25rem; margin-top: 2rem; color: var(--gray-900);" data-i18n="ask-runway-title">
                         <strong>18-month runway to achieve:</strong>
                     </p>
                     <ul style="font-size: 1.1rem; margin-top: 1rem;">
-                        <li>1,000 free users (platform adoption)</li>
-                        <li>250 discovery listings (€87K ARR)</li>
-                        <li>150 AI chat customers (€90K ARR)</li>
-                        <li>100 AI voice+chat customers (€96K ARR)</li>
+                        <li data-i18n="ask-runway-1">1,000 free users (platform adoption)</li>
+                        <li data-i18n="ask-runway-2">250 discovery listings (€87K ARR)</li>
+                        <li data-i18n="ask-runway-3">150 AI chat customers (€90K ARR)</li>
+                        <li data-i18n="ask-runway-4">100 AI voice+chat customers (€96K ARR)</li>
                     </ul>
-                    <p style="font-size: 1.5rem; margin-top: 1.5rem; color: var(--teal-600); font-weight: 700;">
+                    <p style="font-size: 1.5rem; margin-top: 1.5rem; color: var(--teal-600); font-weight: 700;" data-i18n="ask-target">
                         Target ARR: €273K (~$300K)
                     </p>
                 </div>
@@ -1555,12 +1602,12 @@ categories:
 
             <!-- Slide 15: Vision -->
             <section class="centered">
-                <h2 style="font-size: 3.5rem; text-align: center;">The Vision</h2>
+                <h2 style="font-size: 3.5rem; text-align: center;" data-i18n="vision-title">The Vision</h2>
                 <p style="font-size: 2rem; text-align: center; max-width: 900px; color: var(--gray-900); line-height: 1.4;">
-                    Every small business deserves software that's <span class="gradient-text">beautiful</span>, 
-                    <span class="gradient-text">reliable</span>, and <span class="gradient-text">delightful</span> to use.
+                    <span data-i18n="vision-text-1">Every small business deserves software that's</span> <span class="gradient-text" data-i18n="vision-text-beautiful">beautiful</span>, 
+                    <span class="gradient-text" data-i18n="vision-text-reliable">reliable</span>, <span data-i18n="vision-text-and">and</span> <span class="gradient-text" data-i18n="vision-text-delightful">delightful</span> <span data-i18n="vision-text-2">to use.</span>
                 </p>
-                <p style="font-size: 1.5rem; margin-top: 2rem; color: var(--gray-500);">
+                <p style="font-size: 1.5rem; margin-top: 2rem; color: var(--gray-500);" data-i18n="vision-tagline">
                     We're building it.
                 </p>
             </section>
@@ -1568,8 +1615,8 @@ categories:
             <!-- Slide 16: Contact / CTA -->
             <section class="gradient-bg centered">
                 <div class="logo">R</div>
-                <h2 style="color: white; font-size: 3rem; text-align: center;">Let's Talk</h2>
-                <p style="color: rgba(255,255,255,0.9); font-size: 1.5rem; text-align: center; margin-top: 1rem;">
+                <h2 style="color: white; font-size: 3rem; text-align: center;" data-i18n="contact-title">Let's Talk</h2>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.5rem; text-align: center; margin-top: 1rem;" data-i18n="contact-subtitle">
                     Ready to transform appointment management?
                 </p>
                 <div style="margin-top: 3rem; text-align: center;">
@@ -1583,6 +1630,829 @@ categories:
 
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.js"></script>
     <script>
+        // Translations object
+        const translations = {
+            en: {
+                // Slide 1
+                'title': 'Rivo',
+                'subtitle': 'Premium appointment management that works beautifully',
+                
+                // Slide 2
+                'problem-title': 'The Problem',
+                'problem-subtitle': 'Small businesses struggle with appointment management',
+                'problem-1': 'Outdated booking systems that confuse customers',
+                'problem-2': 'Double-bookings and scheduling conflicts',
+                'problem-3': 'No online presence = lost revenue',
+                'problem-4': 'Expensive, complex software built for enterprises',
+                'problem-5': 'Zero customization for unique business needs',
+                
+                // Slide 3
+                'solution-title': 'Meet',
+                'solution-title-highlight': 'Rivo',
+                'solution-subtitle': 'A premium appointment platform designed for small businesses that refuse to compromise on quality',
+                'feature-1-title': 'Zero Setup Friction',
+                'feature-1-text': 'YAML-based configuration. Business ready in minutes, not weeks.',
+                'feature-2-title': 'Instant Online Presence',
+                'feature-2-text': 'Custom subdomain booking pages for every business. Beautiful by default.',
+                'feature-3-title': 'Built-in Security',
+                'feature-3-text': 'Enterprise-grade auth, row-level security, and audit logging from day one.',
+                'feature-4-title': 'No Double-Bookings',
+                'feature-4-text': 'Transactional booking system with reservation tokens prevents conflicts.',
+                
+                // Slide 4
+                'dashboard-title': 'Owner Dashboard',
+                'dashboard-subtitle': 'Clean, powerful interface for managing your business',
+                'dashboard-feature-1-title': 'Drag & Drop Rescheduling',
+                'dashboard-feature-1-text': 'Move appointments between slots with visual conflict detection',
+                'dashboard-feature-2-title': 'Color-Coded Services',
+                'dashboard-feature-2-text': 'Instant visual clarity with customizable service colors',
+                'dashboard-feature-3-title': 'Real-Time Updates',
+                'dashboard-feature-3-text': 'See new bookings appear instantly, no refresh needed',
+                'dashboard-feature-4-title': 'Responsive Design',
+                'dashboard-feature-4-text': 'Works perfectly on desktop, tablet, and mobile',
+                
+                // Slide 5
+                'booking-title': 'Customer Booking Experience',
+                'booking-subtitle': 'Beautiful, conversion-optimized booking flow',
+                'booking-feature-1-title': 'Simple 3-Step Flow',
+                'booking-feature-1-text': '1. Pick service → 2. Choose time → 3. Enter details → Done!',
+                'booking-feature-2-title': 'Guest Booking Supported',
+                'booking-feature-2-text': 'No account required. Manage via secure email link.',
+                
+                // Slide 6
+                'example-title': 'Real Business: Bella Hair Salon',
+                'example-subtitle': 'From Config to Live Site',
+                'example-1': 'YAML config defines everything',
+                'example-2': 'Automatic subdomain creation',
+                'example-3': 'TLS certificate provisioning',
+                'example-4': 'Services sync to database',
+                'example-5': 'Booking page generated instantly',
+                'example-6': 'Owner gets dashboard access',
+                'example-stat': '3 min',
+                'example-stat-label': 'Average setup time',
+                
+                // Slide 7
+                'discovery-title': 'Discovery Interface',
+                'discovery-subtitle': 'Help customers find businesses near them',
+                'discovery-feature-1-title': 'Map View',
+                'discovery-feature-1-text': 'Interactive map with business markers and clustering',
+                'discovery-feature-2-title': 'Smart Filters',
+                'discovery-feature-2-text': 'Filter by category, location, price range, and availability',
+                'discovery-feature-3-title': 'Verified Businesses',
+                'discovery-feature-3-text': 'All businesses verified and quality-checked',
+                'discovery-feature-4-title': 'One-Click Booking',
+                'discovery-feature-4-text': 'Jump directly to booking page from discovery',
+                
+                // Slide 8
+                'services-title': 'Real Services in Production',
+                'services-subtitle': 'From barber shops to wellness centers',
+                
+                // Slide 9
+                'difference-title': 'What Makes Rivo Different',
+                'difference-1-title': 'Multi-Tenant Architecture',
+                'difference-1-text': 'Each business gets isolated config, data, and subdomain with automatic wildcard DNS & TLS.',
+                'difference-2-title': 'Smart Slot Generation',
+                'difference-2-text': 'Respects business hours, timezone, capacity limits, and advance booking rules automatically.',
+                'difference-3-title': 'Transactional Booking',
+                'difference-3-text': 'Reservation tokens with TTL → atomic commit flow prevents race conditions.',
+                'difference-4-title': 'Flexible Auth',
+                'difference-4-text': 'Owner/staff/customer separation. Guest bookings supported. JWT-based row-level security.',
+                'difference-5-title': 'Full Customization',
+                'difference-5-text': 'Brand colors, services, pricing, availability rules—all YAML-configurable per tenant.',
+                'difference-6-title': 'Notification System',
+                'difference-6-text': 'Email + SMS with delivery tracking, retries, and idempotency for reliability.',
+                
+                // Slide 10
+                'tech-title': 'Built on Modern Stack',
+                'tech-subtitle': 'Production-ready architecture optimized for performance and reliability',
+                'tech-scale-title': 'Designed for Scale',
+                'tech-scale-1': 'Frontend-optimized DB access with security constraints',
+                'tech-scale-2': 'Atomic transactions prevent data inconsistency',
+                'tech-scale-3': 'Comprehensive audit logging for compliance',
+                'tech-scale-4': 'Optimistic locking for concurrent updates',
+                
+                // Slide 11
+                'design-title': 'Design Philosophy',
+                'design-subtitle': 'Functional Minimalism',
+                'design-subtitle-2': '— Every element serves a purpose',
+                'design-1-title': 'Breathing Room First',
+                'design-1-text': 'Generous whitespace lets content breathe. Not cluttered, never cramped.',
+                'design-2-title': 'Hierarchy Through Typography',
+                'design-2-text': 'Size and weight create structure. No unnecessary borders or boxes.',
+                'design-3-title': 'Intentional Color',
+                'design-3-text': 'Teal and green used sparingly for brand identity and key actions only.',
+                'design-4-title': 'Confident Simplicity',
+                'design-4-text': 'Clean, bold interface. Unafraid of white space. Apple-inspired aesthetic.',
+                
+                // Slide 12
+                'market-title': 'Who Is This For?',
+                'market-subtitle': 'Perfect for businesses that:',
+                'market-1': 'Need online booking but hate complexity',
+                'market-2': 'Want professional branding without hiring designers',
+                'market-3': 'Require reliability (no double-bookings allowed)',
+                'market-4': 'Value clean, modern design',
+                'market-5': 'Want to own their customer data',
+                
+                // Slide 13
+                'business-title': 'Freemium Business Model',
+                'business-free-title': 'Free Forever',
+                'business-free-subtitle': 'Core Platform — €0/month',
+                'business-free-text': 'Full booking system, unlimited appointments, branded subdomain, customer portal, calendar dashboard, email notifications',
+                'business-why-title': 'Why Freemium?',
+                'business-why-1': 'Zero barrier to entry = faster adoption',
+                'business-why-2': 'Let product quality drive upgrades',
+                'business-why-3': 'Build network effects through discovery',
+                'business-why-4': 'Businesses choose add-ons as they grow',
+                'business-premium-title': 'Premium Add-Ons',
+                'business-premium-1-title': 'Discovery Listing',
+                'business-premium-1-text': 'Featured placement in rivo.app/book marketplace, verified badge, priority ranking, analytics',
+                'business-premium-2-title': 'AI Chat Assistant',
+                'business-premium-2-text': 'Automated chat responses, 24/7 booking assistance, FAQ handling, multi-language support',
+                'business-premium-3-title': 'AI Voice + Chat',
+                'business-premium-3-text': 'Phone automation, voice bookings, call routing, SMS integration, full conversational AI',
+                
+                // Slide 14
+                'revenue-title': 'Revenue Projections',
+                'revenue-subtitle': 'Year 1 targets with freemium model',
+                'revenue-stat-1': '1,000',
+                'revenue-stat-1-label': 'Free Users',
+                'revenue-stat-1-text': 'Platform adoption',
+                'revenue-stat-2': '25%',
+                'revenue-stat-2-label': 'Conversion Rate',
+                'revenue-stat-2-text': 'To paid add-ons',
+                'revenue-stat-3': '€273K',
+                'revenue-stat-3-label': 'Target ARR',
+                'revenue-stat-3-text': '~$300K USD',
+                'revenue-breakdown-title': 'Revenue Breakdown',
+                'revenue-breakdown-1': '250 discovery listings @ €29 =',
+                'revenue-breakdown-2': '150 AI chat @ €50 =',
+                'revenue-breakdown-3': '100 AI voice+chat @ €80 =',
+                'revenue-total': 'Total ARR: €273K',
+                'revenue-unit-title': 'Unit Economics',
+                'revenue-unit-1': 'CAC (free tier):',
+                'revenue-unit-2': 'Avg revenue per paid user:',
+                'revenue-unit-3': 'LTV estimate (24mo):',
+                'revenue-unit-4': 'Gross margin:',
+                'revenue-unit-note': 'AI assistants have strong retention due to automation dependency',
+                
+                // Slide 15
+                'roadmap-title': 'Product Roadmap',
+                'roadmap-1-title': 'Phase 1: Core Platform (Complete)',
+                'roadmap-1-text': 'Booking system, calendar dashboard, multi-tenant architecture, discovery interface, auth & notifications',
+                'roadmap-2-title': 'Phase 2: AI Assistants (Q4 2025)',
+                'roadmap-2-text': 'Chat bot integration, voice bot development, natural language booking, automated FAQ responses, multi-language support',
+                'roadmap-3-title': 'Phase 3: Growth Features (Q1 2026)',
+                'roadmap-3-text': 'Mobile app, payment processing, waitlist management, customer profiles, review system, analytics dashboard',
+                'roadmap-4-title': 'Phase 4: Enterprise (Q2 2026)',
+                'roadmap-4-text': 'White-label platform, API marketplace, advanced integrations, team collaboration, international expansion',
+                'roadmap-ai-title': 'AI Assistant Strategy',
+                'roadmap-ai-1': 'Train on business-specific data (services, hours, policies)',
+                'roadmap-ai-2': 'Seamless handoff to booking flow when intent detected',
+                'roadmap-ai-3': 'Voice bot handles phone calls automatically',
+                'roadmap-ai-4': 'Reduces no-shows with automated reminders',
+                'roadmap-ai-5': 'Higher conversion = businesses upgrade to premium',
+                
+                // Slide 16
+                'advantage-title': 'Why We\'ll Win',
+                'advantage-1': 'Free forever model',
+                'advantage-1-text': ' removes all adoption friction',
+                'advantage-2': 'Design-first approach',
+                'advantage-2-text': ' in a market full of ugly software',
+                'advantage-3': 'AI automation',
+                'advantage-3-text': ' solves real pain (missed calls, manual booking)',
+                'advantage-4': 'Discovery marketplace',
+                'advantage-4-text': ' creates network effects',
+                'advantage-5': 'Developer-friendly',
+                'advantage-5-text': ' YAML config appeals to tech-savvy owners',
+                'advantage-6': 'Built for reliability',
+                'advantage-6-text': ' from day one (not bolted on later)',
+                'advantage-note': 'Competitors charge $50-200/month for basic features.',
+                'advantage-note-highlight': 'We give that away for free',
+                'advantage-note-2': ' and monetize through high-value AI add-ons that pay for themselves.',
+                
+                // Slide 17
+                'traction-title': 'Current Traction',
+                'traction-stat-1': '8',
+                'traction-stat-1-label': 'Live Business Tenants',
+                'traction-stat-2': '100%',
+                'traction-stat-2-label': 'Booking Success Rate',
+                'traction-stat-3': '0',
+                'traction-stat-3-label': 'Double-Bookings',
+                'traction-validation-title': 'Early Validation:',
+                'traction-validation-1': 'Pilot businesses in Florence, Italy (salons & barbershops)',
+                'traction-validation-2': 'Zero technical support tickets related to booking flow',
+                'traction-validation-3': '95%+ customer satisfaction on booking experience',
+                'traction-validation-4': 'Average 3-minute setup time for new businesses',
+                
+                // Slide 18
+                'team-title': 'Built By',
+                'team-subtitle': 'A team that understands both',
+                'team-subtitle-1': 'great design',
+                'team-subtitle-2': 'and',
+                'team-subtitle-3': 'solid engineering',
+                'team-1': '10+ years combined experience in SaaS products',
+                'team-2': 'Shipped products used by millions',
+                'team-3': 'Deep expertise in distributed systems & databases',
+                'team-4': 'Design thinking meets technical execution',
+                'team-5': 'Based in Europe, serving global market',
+                
+                // Slide 19
+                'ask-title': 'The Ask',
+                'ask-amount': 'Seeking €400K seed round',
+                'ask-funds-title': 'Use of Funds:',
+                'ask-funds-1': '35% AI Development',
+                'ask-funds-1-text': ' — Chat bot, voice bot, NLP engine, training pipeline',
+                'ask-funds-2': '25% Engineering',
+                'ask-funds-2-text': ' — Mobile app, payment integrations, API platform',
+                'ask-funds-3': '25% Go-to-Market',
+                'ask-funds-3-text': ' — Growth team, content marketing, discovery partnerships',
+                'ask-funds-4': '15% Operations',
+                'ask-funds-4-text': ' — Customer success, infrastructure scaling, compliance',
+                'ask-runway-title': '18-month runway to achieve:',
+                'ask-runway-1': '1,000 free users (platform adoption)',
+                'ask-runway-2': '250 discovery listings (€87K ARR)',
+                'ask-runway-3': '150 AI chat customers (€90K ARR)',
+                'ask-runway-4': '100 AI voice+chat customers (€96K ARR)',
+                'ask-target': 'Target ARR: €273K (~$300K)',
+                
+                // Slide 20
+                'vision-title': 'The Vision',
+                'vision-text-1': 'Every small business deserves software that\'s',
+                'vision-text-beautiful': 'beautiful',
+                'vision-text-reliable': 'reliable',
+                'vision-text-and': 'and',
+                'vision-text-delightful': 'delightful',
+                'vision-text-2': 'to use.',
+                'vision-tagline': 'We\'re building it.',
+                
+                // Slide 21
+                'contact-title': 'Let\'s Talk',
+                'contact-subtitle': 'Ready to transform appointment management?'
+            },
+            it: {
+                // Slide 1
+                'title': 'Rivo',
+                'subtitle': 'Gestione appuntamenti premium che funziona alla grande',
+                
+                // Slide 2
+                'problem-title': 'Il Problema',
+                'problem-subtitle': 'Le piccole attività faticano con la gestione degli appuntamenti',
+                'problem-1': 'Sistemi di prenotazione obsoleti che confondono i clienti',
+                'problem-2': 'Doppie prenotazioni e conflitti di pianificazione',
+                'problem-3': 'Nessuna presenza online = perdita di fatturato',
+                'problem-4': 'Software costoso e complesso pensato per le grandi aziende',
+                'problem-5': 'Zero personalizzazione per esigenze aziendali uniche',
+                
+                // Slide 3
+                'solution-title': 'Ecco',
+                'solution-title-highlight': 'Rivo',
+                'solution-subtitle': 'Una piattaforma di appuntamenti premium progettata per piccole imprese che rifiutano di compromettere la qualità',
+                'feature-1-title': 'Zero Attriti di Configurazione',
+                'feature-1-text': 'Configurazione basata su YAML. Azienda pronta in minuti, non settimane.',
+                'feature-2-title': 'Presenza Online Istantanea',
+                'feature-2-text': 'Pagine di prenotazione con sottodominio personalizzato per ogni azienda. Belle di default.',
+                'feature-3-title': 'Sicurezza Integrata',
+                'feature-3-text': 'Autenticazione di livello enterprise, sicurezza a livello di riga e audit logging dal primo giorno.',
+                'feature-4-title': 'Nessuna Doppia Prenotazione',
+                'feature-4-text': 'Sistema di prenotazione transazionale con token di prenotazione previene i conflitti.',
+                
+                // Slide 4
+                'dashboard-title': 'Dashboard del Proprietario',
+                'dashboard-subtitle': 'Interfaccia pulita e potente per gestire la tua attività',
+                'dashboard-feature-1-title': 'Riprogrammazione Drag & Drop',
+                'dashboard-feature-1-text': 'Sposta gli appuntamenti tra gli slot con rilevamento visivo dei conflitti',
+                'dashboard-feature-2-title': 'Servizi con Codice Colore',
+                'dashboard-feature-2-text': 'Chiarezza visiva istantanea con colori di servizio personalizzabili',
+                'dashboard-feature-3-title': 'Aggiornamenti in Tempo Reale',
+                'dashboard-feature-3-text': 'Vedi le nuove prenotazioni apparire istantaneamente, senza aggiornare',
+                'dashboard-feature-4-title': 'Design Responsivo',
+                'dashboard-feature-4-text': 'Funziona perfettamente su desktop, tablet e mobile',
+                
+                // Slide 5
+                'booking-title': 'Esperienza di Prenotazione del Cliente',
+                'booking-subtitle': 'Flusso di prenotazione bello e ottimizzato per le conversioni',
+                'booking-feature-1-title': 'Flusso Semplice in 3 Passaggi',
+                'booking-feature-1-text': '1. Scegli servizio → 2. Scegli orario → 3. Inserisci dettagli → Fatto!',
+                'booking-feature-2-title': 'Prenotazione Ospite Supportata',
+                'booking-feature-2-text': 'Nessun account richiesto. Gestisci tramite link email sicuro.',
+                
+                // Slide 6
+                'example-title': 'Azienda Reale: Bella Hair Salon',
+                'example-subtitle': 'Dalla Configurazione al Sito Live',
+                'example-1': 'La configurazione YAML definisce tutto',
+                'example-2': 'Creazione automatica del sottodominio',
+                'example-3': 'Provisioning del certificato TLS',
+                'example-4': 'Sincronizzazione dei servizi con il database',
+                'example-5': 'Pagina di prenotazione generata istantaneamente',
+                'example-6': 'Il proprietario ottiene l\'accesso alla dashboard',
+                'example-stat': '3 min',
+                'example-stat-label': 'Tempo medio di configurazione',
+                
+                // Slide 7
+                'discovery-title': 'Interfaccia di Scoperta',
+                'discovery-subtitle': 'Aiuta i clienti a trovare aziende vicino a loro',
+                'discovery-feature-1-title': 'Vista Mappa',
+                'discovery-feature-1-text': 'Mappa interattiva con marker aziendali e raggruppamento',
+                'discovery-feature-2-title': 'Filtri Intelligenti',
+                'discovery-feature-2-text': 'Filtra per categoria, posizione, fascia di prezzo e disponibilità',
+                'discovery-feature-3-title': 'Aziende Verificate',
+                'discovery-feature-3-text': 'Tutte le aziende verificate e controllate per la qualità',
+                'discovery-feature-4-title': 'Prenotazione con Un Clic',
+                'discovery-feature-4-text': 'Passa direttamente alla pagina di prenotazione dalla scoperta',
+                
+                // Slide 8
+                'services-title': 'Servizi Reali in Produzione',
+                'services-subtitle': 'Da barbieri a centri benessere',
+                
+                // Slide 9
+                'difference-title': 'Cosa Rende Rivo Diverso',
+                'difference-1-title': 'Architettura Multi-Tenant',
+                'difference-1-text': 'Ogni azienda ottiene configurazione, dati e sottodominio isolati con DNS wildcard automatico e TLS.',
+                'difference-2-title': 'Generazione Intelligente degli Slot',
+                'difference-2-text': 'Rispetta automaticamente orari di lavoro, fuso orario, limiti di capacità e regole di prenotazione anticipata.',
+                'difference-3-title': 'Prenotazione Transazionale',
+                'difference-3-text': 'Token di prenotazione con TTL → flusso di commit atomico previene le race condition.',
+                'difference-4-title': 'Autenticazione Flessibile',
+                'difference-4-text': 'Separazione proprietario/staff/cliente. Prenotazioni ospite supportate. Sicurezza a livello di riga basata su JWT.',
+                'difference-5-title': 'Personalizzazione Completa',
+                'difference-5-text': 'Colori del marchio, servizi, prezzi, regole di disponibilità—tutto configurabile in YAML per tenant.',
+                'difference-6-title': 'Sistema di Notifiche',
+                'difference-6-text': 'Email + SMS con tracciamento della consegna, tentativi e idempotenza per l\'affidabilità.',
+                
+                // Slide 10
+                'tech-title': 'Costruito su Stack Moderno',
+                'tech-subtitle': 'Architettura pronta per la produzione ottimizzata per prestazioni e affidabilità',
+                'tech-scale-title': 'Progettato per Scalare',
+                'tech-scale-1': 'Accesso DB ottimizzato per frontend con vincoli di sicurezza',
+                'tech-scale-2': 'Le transazioni atomiche prevengono l\'inconsistenza dei dati',
+                'tech-scale-3': 'Audit logging completo per la conformità',
+                'tech-scale-4': 'Locking ottimistico per aggiornamenti simultanei',
+                
+                // Slide 11
+                'design-title': 'Filosofia di Design',
+                'design-subtitle': 'Minimalismo Funzionale',
+                'design-subtitle-2': '— Ogni elemento ha uno scopo',
+                'design-1-title': 'Spazio per Respirare Prima di Tutto',
+                'design-1-text': 'Generoso spazio bianco lascia respirare il contenuto. Non affollato, mai ristretto.',
+                'design-2-title': 'Gerarchia Attraverso la Tipografia',
+                'design-2-text': 'Dimensione e peso creano struttura. Nessun bordo o box non necessario.',
+                'design-3-title': 'Colore Intenzionale',
+                'design-3-text': 'Teal e verde usati con parsimonia solo per identità del marchio e azioni chiave.',
+                'design-4-title': 'Semplicità Sicura',
+                'design-4-text': 'Interfaccia pulita e audace. Senza paura dello spazio bianco. Estetica ispirata ad Apple.',
+                
+                // Slide 12
+                'market-title': 'Per Chi È Questo?',
+                'market-subtitle': 'Perfetto per aziende che:',
+                'market-1': 'Hanno bisogno di prenotazioni online ma odiano la complessità',
+                'market-2': 'Vogliono un branding professionale senza assumere designer',
+                'market-3': 'Richiedono affidabilità (nessuna doppia prenotazione consentita)',
+                'market-4': 'Apprezzano un design pulito e moderno',
+                'market-5': 'Vogliono possedere i dati dei propri clienti',
+                
+                // Slide 13
+                'business-title': 'Modello di Business Freemium',
+                'business-free-title': 'Gratis per Sempre',
+                'business-free-subtitle': 'Piattaforma Base — €0/mese',
+                'business-free-text': 'Sistema di prenotazione completo, appuntamenti illimitati, sottodominio brandizzato, portale clienti, dashboard calendario, notifiche email',
+                'business-why-title': 'Perché Freemium?',
+                'business-why-1': 'Nessuna barriera all\'ingresso = adozione più rapida',
+                'business-why-2': 'La qualità del prodotto guida gli upgrade',
+                'business-why-3': 'Costruisce effetti di rete attraverso la scoperta',
+                'business-why-4': 'Le aziende scelgono i componenti aggiuntivi man mano che crescono',
+                'business-premium-title': 'Componenti Aggiuntivi Premium',
+                'business-premium-1-title': 'Listing di Scoperta',
+                'business-premium-1-text': 'Posizionamento in evidenza nel marketplace rivo.app/book, badge verificato, ranking prioritario, analytics',
+                'business-premium-2-title': 'Assistente Chat AI',
+                'business-premium-2-text': 'Risposte chat automatizzate, assistenza prenotazioni 24/7, gestione FAQ, supporto multilingue',
+                'business-premium-3-title': 'AI Voce + Chat',
+                'business-premium-3-text': 'Automazione telefonica, prenotazioni vocali, routing chiamate, integrazione SMS, AI conversazionale completa',
+                
+                // Slide 14
+                'revenue-title': 'Proiezioni di Fatturato',
+                'revenue-subtitle': 'Obiettivi dell\'anno 1 con modello freemium',
+                'revenue-stat-1': '1.000',
+                'revenue-stat-1-label': 'Utenti Gratuiti',
+                'revenue-stat-1-text': 'Adozione della piattaforma',
+                'revenue-stat-2': '25%',
+                'revenue-stat-2-label': 'Tasso di Conversione',
+                'revenue-stat-2-text': 'A componenti aggiuntivi a pagamento',
+                'revenue-stat-3': '€273K',
+                'revenue-stat-3-label': 'ARR Obiettivo',
+                'revenue-stat-3-text': '~$300K USD',
+                'revenue-breakdown-title': 'Ripartizione del Fatturato',
+                'revenue-breakdown-1': '250 listing scoperta @ €29 =',
+                'revenue-breakdown-2': '150 chat AI @ €50 =',
+                'revenue-breakdown-3': '100 voce+chat AI @ €80 =',
+                'revenue-total': 'ARR Totale: €273K',
+                'revenue-unit-title': 'Economia Unitaria',
+                'revenue-unit-1': 'CAC (livello gratuito):',
+                'revenue-unit-2': 'Fatturato medio per utente pagante:',
+                'revenue-unit-3': 'Stima LTV (24 mesi):',
+                'revenue-unit-4': 'Margine lordo:',
+                'revenue-unit-note': 'Gli assistenti AI hanno una forte ritenzione grazie alla dipendenza dall\'automazione',
+                
+                // Slide 15
+                'roadmap-title': 'Roadmap del Prodotto',
+                'roadmap-1-title': 'Fase 1: Piattaforma Base (Completa)',
+                'roadmap-1-text': 'Sistema di prenotazione, dashboard calendario, architettura multi-tenant, interfaccia di scoperta, autenticazione e notifiche',
+                'roadmap-2-title': 'Fase 2: Assistenti AI (Q4 2025)',
+                'roadmap-2-text': 'Integrazione chat bot, sviluppo voice bot, prenotazione in linguaggio naturale, risposte FAQ automatizzate, supporto multilingue',
+                'roadmap-3-title': 'Fase 3: Funzionalità di Crescita (Q1 2026)',
+                'roadmap-3-text': 'App mobile, elaborazione pagamenti, gestione lista d\'attesa, profili clienti, sistema recensioni, dashboard analytics',
+                'roadmap-4-title': 'Fase 4: Enterprise (Q2 2026)',
+                'roadmap-4-text': 'Piattaforma white-label, marketplace API, integrazioni avanzate, collaborazione team, espansione internazionale',
+                'roadmap-ai-title': 'Strategia Assistente AI',
+                'roadmap-ai-1': 'Addestramento su dati specifici dell\'azienda (servizi, orari, politiche)',
+                'roadmap-ai-2': 'Passaggio fluido al flusso di prenotazione quando viene rilevata l\'intenzione',
+                'roadmap-ai-3': 'Voice bot gestisce le chiamate telefoniche automaticamente',
+                'roadmap-ai-4': 'Riduce i no-show con promemoria automatici',
+                'roadmap-ai-5': 'Conversione più alta = le aziende passano al premium',
+                
+                // Slide 16
+                'advantage-title': 'Perché Vinceremo',
+                'advantage-1': 'Modello gratuito per sempre',
+                'advantage-1-text': ' rimuove tutti gli attriti di adozione',
+                'advantage-2': 'Approccio design-first',
+                'advantage-2-text': ' in un mercato pieno di software brutti',
+                'advantage-3': 'Automazione AI',
+                'advantage-3-text': ' risolve problemi reali (chiamate perse, prenotazione manuale)',
+                'advantage-4': 'Marketplace di scoperta',
+                'advantage-4-text': ' crea effetti di rete',
+                'advantage-5': 'Developer-friendly',
+                'advantage-5-text': ' configurazione YAML attrae proprietari esperti di tecnologia',
+                'advantage-6': 'Costruito per l\'affidabilità',
+                'advantage-6-text': ' dal primo giorno (non aggiunto dopo)',
+                'advantage-note': 'I concorrenti fanno pagare $50-200/mese per funzionalità di base.',
+                'advantage-note-highlight': 'Noi le diamo gratis',
+                'advantage-note-2': ' e monetizziamo attraverso componenti aggiuntivi AI di alto valore che si ripagano da soli.',
+                
+                // Slide 17
+                'traction-title': 'Trazione Attuale',
+                'traction-stat-1': '8',
+                'traction-stat-1-label': 'Tenant Aziendali Live',
+                'traction-stat-2': '100%',
+                'traction-stat-2-label': 'Tasso di Successo Prenotazioni',
+                'traction-stat-3': '0',
+                'traction-stat-3-label': 'Doppie Prenotazioni',
+                'traction-validation-title': 'Validazione Iniziale:',
+                'traction-validation-1': 'Aziende pilota a Firenze, Italia (saloni e barbieri)',
+                'traction-validation-2': 'Zero ticket di supporto tecnico relativi al flusso di prenotazione',
+                'traction-validation-3': '95%+ soddisfazione del cliente sull\'esperienza di prenotazione',
+                'traction-validation-4': 'Tempo medio di configurazione di 3 minuti per nuove aziende',
+                
+                // Slide 18
+                'team-title': 'Costruito Da',
+                'team-subtitle': 'Un team che comprende sia',
+                'team-subtitle-1': 'il grande design',
+                'team-subtitle-2': 'che',
+                'team-subtitle-3': 'l\'ingegneria solida',
+                'team-1': '10+ anni di esperienza combinata in prodotti SaaS',
+                'team-2': 'Prodotti spediti utilizzati da milioni di persone',
+                'team-3': 'Profonda competenza in sistemi distribuiti e database',
+                'team-4': 'Il design thinking incontra l\'esecuzione tecnica',
+                'team-5': 'Con sede in Europa, al servizio del mercato globale',
+                
+                // Slide 19
+                'ask-title': 'La Richiesta',
+                'ask-amount': 'Alla ricerca di €400K round seed',
+                'ask-funds-title': 'Uso dei Fondi:',
+                'ask-funds-1': '35% Sviluppo AI',
+                'ask-funds-1-text': ' — Chat bot, voice bot, motore NLP, pipeline di addestramento',
+                'ask-funds-2': '25% Ingegneria',
+                'ask-funds-2-text': ' — App mobile, integrazioni pagamenti, piattaforma API',
+                'ask-funds-3': '25% Go-to-Market',
+                'ask-funds-3-text': ' — Team di crescita, content marketing, partnership di scoperta',
+                'ask-funds-4': '15% Operazioni',
+                'ask-funds-4-text': ' — Successo del cliente, scaling dell\'infrastruttura, conformità',
+                'ask-runway-title': 'Runway di 18 mesi per raggiungere:',
+                'ask-runway-1': '1.000 utenti gratuiti (adozione della piattaforma)',
+                'ask-runway-2': '250 listing di scoperta (€87K ARR)',
+                'ask-runway-3': '150 clienti chat AI (€90K ARR)',
+                'ask-runway-4': '100 clienti voce+chat AI (€96K ARR)',
+                'ask-target': 'ARR Obiettivo: €273K (~$300K)',
+                
+                // Slide 20
+                'vision-title': 'La Visione',
+                'vision-text-1': 'Ogni piccola impresa merita un software che sia',
+                'vision-text-beautiful': 'bello',
+                'vision-text-reliable': 'affidabile',
+                'vision-text-and': 'e',
+                'vision-text-delightful': 'piacevole',
+                'vision-text-2': 'da usare.',
+                'vision-tagline': 'Lo stiamo costruendo.',
+                
+                // Slide 21
+                'contact-title': 'Parliamone',
+                'contact-subtitle': 'Pronti a trasformare la gestione degli appuntamenti?'
+            },
+            es: {
+                // Slide 1
+                'title': 'Rivo',
+                'subtitle': 'Gestión de citas premium que funciona de maravilla',
+                
+                // Slide 2
+                'problem-title': 'El Problema',
+                'problem-subtitle': 'Las pequeñas empresas se complican con la gestión de citas',
+                'problem-1': 'Sistemas de reserva obsoletos que confunden a los clientes',
+                'problem-2': 'Reservas duplicadas y conflictos de programación',
+                'problem-3': 'Sin presencia online = pérdida de ingresos',
+                'problem-4': 'Software costoso y complejo diseñado para empresas',
+                'problem-5': 'Cero personalización para necesidades empresariales únicas',
+                
+                // Slide 3
+                'solution-title': 'Conoce',
+                'solution-title-highlight': 'Rivo',
+                'solution-subtitle': 'Una plataforma premium de citas pensada para pequeños negocios que no quieren bajar la calidad',
+                'feature-1-title': 'Cero Fricción de Configuración',
+                'feature-1-text': 'Configuración basada en YAML. Negocio listo en minutos, no semanas.',
+                'feature-2-title': 'Presencia Online Instantánea',
+                'feature-2-text': 'Páginas de reserva con subdominio personalizado para cada negocio. Hermosas por defecto.',
+                'feature-3-title': 'Seguridad Incorporada',
+                'feature-3-text': 'Autenticación de nivel empresarial, seguridad a nivel de fila y registro de auditoría desde el día uno.',
+                'feature-4-title': 'Sin Reservas Duplicadas',
+                'feature-4-text': 'Sistema de reserva transaccional con tokens de reserva previene conflictos.',
+                
+                // Slide 4
+                'dashboard-title': 'Panel del Propietario',
+                'dashboard-subtitle': 'Interfaz limpia y potente para gestionar tu negocio',
+                'dashboard-feature-1-title': 'Reprogramación Arrastrar y Soltar',
+                'dashboard-feature-1-text': 'Mueve citas entre ranuras con detección visual de conflictos',
+                'dashboard-feature-2-title': 'Servicios con Código de Color',
+                'dashboard-feature-2-text': 'Claridad visual instantánea con colores de servicio personalizables',
+                'dashboard-feature-3-title': 'Actualizaciones en Tiempo Real',
+                'dashboard-feature-3-text': 'Ve nuevas reservas aparecer al instante, sin actualizar',
+                'dashboard-feature-4-title': 'Diseño Responsivo',
+                'dashboard-feature-4-text': 'Funciona perfectamente en escritorio, tablet y móvil',
+                
+                // Slide 5
+                'booking-title': 'Experiencia de Reserva del Cliente',
+                'booking-subtitle': 'Flujo de reserva hermoso y optimizado para conversiones',
+                'booking-feature-1-title': 'Flujo Simple de 3 Pasos',
+                'booking-feature-1-text': '1. Elige servicio → 2. Elige hora → 3. Ingresa detalles → ¡Listo!',
+                'booking-feature-2-title': 'Reserva de Invitado Compatible',
+                'booking-feature-2-text': 'No se requiere cuenta. Gestiona mediante enlace de correo seguro.',
+                
+                // Slide 6
+                'example-title': 'Negocio Real: Bella Hair Salon',
+                'example-subtitle': 'De la Configuración al Sitio en Vivo',
+                'example-1': 'La configuración YAML define todo',
+                'example-2': 'Creación automática del subdominio',
+                'example-3': 'Aprovisionamiento de certificado TLS',
+                'example-4': 'Sincronización de servicios con la base de datos',
+                'example-5': 'Página de reserva generada al instante',
+                'example-6': 'El propietario obtiene acceso al panel',
+                'example-stat': '3 min',
+                'example-stat-label': 'Tiempo promedio de configuración',
+                
+                // Slide 7
+                'discovery-title': 'Interfaz de Descubrimiento',
+                'discovery-subtitle': 'Ayuda a los clientes a encontrar negocios cerca de ellos',
+                'discovery-feature-1-title': 'Vista de Mapa',
+                'discovery-feature-1-text': 'Mapa interactivo con marcadores de negocios y agrupamiento',
+                'discovery-feature-2-title': 'Filtros Inteligentes',
+                'discovery-feature-2-text': 'Filtra por categoría, ubicación, rango de precios y disponibilidad',
+                'discovery-feature-3-title': 'Negocios Verificados',
+                'discovery-feature-3-text': 'Todos los negocios verificados y revisados por calidad',
+                'discovery-feature-4-title': 'Reserva con Un Clic',
+                'discovery-feature-4-text': 'Salta directamente a la página de reserva desde el descubrimiento',
+                
+                // Slide 8
+                'services-title': 'Servicios Reales en Producción',
+                'services-subtitle': 'Desde barberías hasta centros de bienestar',
+                
+                // Slide 9
+                'difference-title': 'Qué Hace a Rivo Diferente',
+                'difference-1-title': 'Arquitectura Multi-Tenant',
+                'difference-1-text': 'Cada negocio obtiene configuración, datos y subdominio aislados con DNS wildcard automático y TLS.',
+                'difference-2-title': 'Generación Inteligente de Slots',
+                'difference-2-text': 'Respeta automáticamente horarios comerciales, zona horaria, límites de capacidad y reglas de reserva anticipada.',
+                'difference-3-title': 'Reserva Transaccional',
+                'difference-3-text': 'Tokens de reserva con TTL → flujo de commit atómico previene condiciones de carrera.',
+                'difference-4-title': 'Autenticación Flexible',
+                'difference-4-text': 'Separación propietario/personal/cliente. Reservas de invitados compatibles. Seguridad a nivel de fila basada en JWT.',
+                'difference-5-title': 'Personalización Completa',
+                'difference-5-text': 'Colores de marca, servicios, precios, reglas de disponibilidad—todo configurable en YAML por tenant.',
+                'difference-6-title': 'Sistema de Notificaciones',
+                'difference-6-text': 'Email + SMS con seguimiento de entrega, reintentos e idempotencia para confiabilidad.',
+                
+                // Slide 10
+                'tech-title': 'Construido en Stack Moderno',
+                'tech-subtitle': 'Arquitectura lista para producción optimizada para rendimiento y confiabilidad',
+                'tech-scale-title': 'Diseñado para Escalar',
+                'tech-scale-1': 'Acceso DB optimizado para frontend con restricciones de seguridad',
+                'tech-scale-2': 'Las transacciones atómicas previenen inconsistencia de datos',
+                'tech-scale-3': 'Registro de auditoría completo para cumplimiento',
+                'tech-scale-4': 'Bloqueo optimista para actualizaciones concurrentes',
+                
+                // Slide 11
+                'design-title': 'Filosofía de Diseño',
+                'design-subtitle': 'Minimalismo Funcional',
+                'design-subtitle-2': '— Cada elemento sirve un propósito',
+                'design-1-title': 'Espacio para Respirar Primero',
+                'design-1-text': 'Generoso espacio en blanco deja respirar al contenido. No abarrotado, nunca estrecho.',
+                'design-2-title': 'Jerarquía a Través de Tipografía',
+                'design-2-text': 'Tamaño y peso crean estructura. Sin bordes o cajas innecesarias.',
+                'design-3-title': 'Color Intencional',
+                'design-3-text': 'Verde azulado y verde usados con moderación solo para identidad de marca y acciones clave.',
+                'design-4-title': 'Simplicidad Confiada',
+                'design-4-text': 'Interfaz limpia y audaz. Sin miedo al espacio en blanco. Estética inspirada en Apple.',
+                
+                // Slide 12
+                'market-title': '¿Para Quién Es Esto?',
+                'market-subtitle': 'Perfecto para negocios que:',
+                'market-1': 'Necesitan reservas online pero odian la complejidad',
+                'market-2': 'Quieren marca profesional sin contratar diseñadores',
+                'market-3': 'Requieren confiabilidad (no se permiten reservas duplicadas)',
+                'market-4': 'Valoran un diseño limpio y moderno',
+                'market-5': 'Quieren ser dueños de los datos de sus clientes',
+                
+                // Slide 13
+                'business-title': 'Modelo de Negocio Freemium',
+                'business-free-title': 'Gratis para Siempre',
+                'business-free-subtitle': 'Plataforma Base — €0/mes',
+                'business-free-text': 'Sistema de reserva completo, citas ilimitadas, subdominio con marca, portal de clientes, panel de calendario, notificaciones por correo',
+                'business-why-title': '¿Por Qué Freemium?',
+                'business-why-1': 'Cero barrera de entrada = adopción más rápida',
+                'business-why-2': 'La calidad del producto impulsa las actualizaciones',
+                'business-why-3': 'Construye efectos de red a través del descubrimiento',
+                'business-why-4': 'Los negocios eligen complementos a medida que crecen',
+                'business-premium-title': 'Complementos Premium',
+                'business-premium-1-title': 'Listado de Descubrimiento',
+                'business-premium-1-text': 'Ubicación destacada en el mercado rivo.app/book, insignia verificada, ranking prioritario, analytics',
+                'business-premium-2-title': 'Asistente de Chat IA',
+                'business-premium-2-text': 'Respuestas de chat automatizadas, asistencia de reservas 24/7, manejo de FAQ, soporte multiidioma',
+                'business-premium-3-title': 'IA Voz + Chat',
+                'business-premium-3-text': 'Automatización telefónica, reservas por voz, enrutamiento de llamadas, integración SMS, IA conversacional completa',
+                
+                // Slide 14
+                'revenue-title': 'Proyecciones de Ingresos',
+                'revenue-subtitle': 'Objetivos del año 1 con modelo freemium',
+                'revenue-stat-1': '1.000',
+                'revenue-stat-1-label': 'Usuarios Gratuitos',
+                'revenue-stat-1-text': 'Adopción de plataforma',
+                'revenue-stat-2': '25%',
+                'revenue-stat-2-label': 'Tasa de Conversión',
+                'revenue-stat-2-text': 'A complementos de pago',
+                'revenue-stat-3': '€273K',
+                'revenue-stat-3-label': 'ARR Objetivo',
+                'revenue-stat-3-text': '~$300K USD',
+                'revenue-breakdown-title': 'Desglose de Ingresos',
+                'revenue-breakdown-1': '250 listados descubrimiento @ €29 =',
+                'revenue-breakdown-2': '150 chat IA @ €50 =',
+                'revenue-breakdown-3': '100 voz+chat IA @ €80 =',
+                'revenue-total': 'ARR Total: €273K',
+                'revenue-unit-title': 'Economía Unitaria',
+                'revenue-unit-1': 'CAC (nivel gratuito):',
+                'revenue-unit-2': 'Ingreso promedio por usuario de pago:',
+                'revenue-unit-3': 'Estimación LTV (24 meses):',
+                'revenue-unit-4': 'Margen bruto:',
+                'revenue-unit-note': 'Los asistentes IA tienen fuerte retención debido a la dependencia de automatización',
+                
+                // Slide 15
+                'roadmap-title': 'Hoja de Ruta del Producto',
+                'roadmap-1-title': 'Fase 1: Plataforma Base (Completa)',
+                'roadmap-1-text': 'Sistema de reserva, panel de calendario, arquitectura multi-tenant, interfaz de descubrimiento, autenticación y notificaciones',
+                'roadmap-2-title': 'Fase 2: Asistentes IA (Q4 2025)',
+                'roadmap-2-text': 'Integración de chat bot, desarrollo de voice bot, reserva en lenguaje natural, respuestas FAQ automatizadas, soporte multiidioma',
+                'roadmap-3-title': 'Fase 3: Características de Crecimiento (Q1 2026)',
+                'roadmap-3-text': 'App móvil, procesamiento de pagos, gestión de lista de espera, perfiles de clientes, sistema de reseñas, panel de analytics',
+                'roadmap-4-title': 'Fase 4: Enterprise (Q2 2026)',
+                'roadmap-4-text': 'Plataforma de marca blanca, mercado API, integraciones avanzadas, colaboración en equipo, expansión internacional',
+                'roadmap-ai-title': 'Estrategia de Asistente IA',
+                'roadmap-ai-1': 'Entrenamiento con datos específicos del negocio (servicios, horarios, políticas)',
+                'roadmap-ai-2': 'Traspaso fluido al flujo de reserva cuando se detecta intención',
+                'roadmap-ai-3': 'Voice bot maneja llamadas telefónicas automáticamente',
+                'roadmap-ai-4': 'Reduce ausencias con recordatorios automatizados',
+                'roadmap-ai-5': 'Mayor conversión = los negocios actualizan a premium',
+                
+                // Slide 16
+                'advantage-title': 'Por Qué Ganaremos',
+                'advantage-1': 'Modelo gratuito para siempre',
+                'advantage-1-text': ' elimina toda fricción de adopción',
+                'advantage-2': 'Enfoque en diseño primero',
+                'advantage-2-text': ' en un mercado lleno de software feo',
+                'advantage-3': 'Automatización IA',
+                'advantage-3-text': ' resuelve dolor real (llamadas perdidas, reserva manual)',
+                'advantage-4': 'Mercado de descubrimiento',
+                'advantage-4-text': ' crea efectos de red',
+                'advantage-5': 'Amigable para desarrolladores',
+                'advantage-5-text': ' configuración YAML atrae a propietarios expertos en tecnología',
+                'advantage-6': 'Construido para confiabilidad',
+                'advantage-6-text': ' desde el día uno (no agregado después)',
+                'advantage-note': 'Los competidores cobran $50-200/mes por características básicas.',
+                'advantage-note-highlight': 'Nosotros las damos gratis',
+                'advantage-note-2': ' y monetizamos a través de complementos IA de alto valor que se pagan solos.',
+                
+                // Slide 17
+                'traction-title': 'Tracción Actual',
+                'traction-stat-1': '8',
+                'traction-stat-1-label': 'Tenants de Negocios en Vivo',
+                'traction-stat-2': '100%',
+                'traction-stat-2-label': 'Tasa de Éxito de Reservas',
+                'traction-stat-3': '0',
+                'traction-stat-3-label': 'Reservas Duplicadas',
+                'traction-validation-title': 'Validación Temprana:',
+                'traction-validation-1': 'Negocios piloto en Florencia, Italia (salones y barberías)',
+                'traction-validation-2': 'Cero tickets de soporte técnico relacionados con el flujo de reserva',
+                'traction-validation-3': '95%+ satisfacción del cliente en la experiencia de reserva',
+                'traction-validation-4': 'Tiempo promedio de configuración de 3 minutos para nuevos negocios',
+                
+                // Slide 18
+                'team-title': 'Construido Por',
+                'team-subtitle': 'Un equipo que entiende tanto',
+                'team-subtitle-1': 'el gran diseño',
+                'team-subtitle-2': 'como',
+                'team-subtitle-3': 'la ingeniería sólida',
+                'team-1': '10+ años de experiencia combinada en productos SaaS',
+                'team-2': 'Productos enviados utilizados por millones',
+                'team-3': 'Profunda experiencia en sistemas distribuidos y bases de datos',
+                'team-4': 'Pensamiento de diseño se encuentra con ejecución técnica',
+                'team-5': 'Con sede en Europa, sirviendo al mercado global',
+                
+                // Slide 19
+                'ask-title': 'La Solicitud',
+                'ask-amount': 'Buscando ronda semilla de €400K',
+                'ask-funds-title': 'Uso de Fondos:',
+                'ask-funds-1': '35% Desarrollo IA',
+                'ask-funds-1-text': ' — Chat bot, voice bot, motor NLP, pipeline de entrenamiento',
+                'ask-funds-2': '25% Ingeniería',
+                'ask-funds-2-text': ' — App móvil, integraciones de pago, plataforma API',
+                'ask-funds-3': '25% Go-to-Market',
+                'ask-funds-3-text': ' — Equipo de crecimiento, marketing de contenido, asociaciones de descubrimiento',
+                'ask-funds-4': '15% Operaciones',
+                'ask-funds-4-text': ' — Éxito del cliente, escalado de infraestructura, cumplimiento',
+                'ask-runway-title': 'Pista de 18 meses para lograr:',
+                'ask-runway-1': '1.000 usuarios gratuitos (adopción de plataforma)',
+                'ask-runway-2': '250 listados de descubrimiento (€87K ARR)',
+                'ask-runway-3': '150 clientes de chat IA (€90K ARR)',
+                'ask-runway-4': '100 clientes de voz+chat IA (€96K ARR)',
+                'ask-target': 'ARR Objetivo: €273K (~$300K)',
+                
+                // Slide 20
+                'vision-title': 'La Visión',
+                'vision-text-1': 'Cada pequeña empresa merece software que sea',
+                'vision-text-beautiful': 'hermoso',
+                'vision-text-reliable': 'confiable',
+                'vision-text-and': 'y',
+                'vision-text-delightful': 'encantador',
+                'vision-text-2': 'de usar.',
+                'vision-tagline': 'Lo estamos construyendo.',
+                
+                // Slide 21
+                'contact-title': 'Hablemos',
+                'contact-subtitle': '¿Listos para transformar la gestión de citas?'
+            }
+        };
+
+        // Current language
+        let currentLang = 'en';
+
+        // Translation function
+        function translate(lang) {
+            currentLang = lang;
+            
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Handle compound translations (like "Meet Rivo")
+            const solutionTitle = document.querySelector('h2 [data-i18n="solution-title"]');
+            if (solutionTitle && solutionTitle.parentElement) {
+                const highlight = solutionTitle.parentElement.querySelector('[data-i18n="solution-title-highlight"]');
+                if (highlight) {
+                    solutionTitle.parentElement.innerHTML = `<span data-i18n="solution-title">${translations[lang]['solution-title']}</span> <span class="gradient-text" data-i18n="solution-title-highlight">${translations[lang]['solution-title-highlight']}</span>`;
+                }
+            }
+
+            // Update active language button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Save preference
+            localStorage.setItem('rivoLang', lang);
+        }
+
+        // Initialize language selector
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const lang = this.getAttribute('data-lang');
+                translate(lang);
+            });
+        });
+
+        // Load saved language preference or default to English
+        const savedLang = localStorage.getItem('rivoLang') || 'en';
+        
+        // Initialize Reveal.js
         Reveal.initialize({
             hash: true,
             transition: 'slide',
@@ -1590,15 +2460,54 @@ categories:
             backgroundTransition: 'fade',
             controls: true,
             progress: true,
-            center: false,
+            center: true,
+            
+            // Fixed dimensions with responsive scaling
             width: 1280,
             height: 720,
-            margin: 0.04,
-            embedded: false,
+            margin: 0.05,  // Reduced margin for better fit
+            minScale: 0.1,
+            maxScale: 2.0,
+            
+            // Make it work in iframe and standalone
+            embedded: true,
             touch: true,
             keyboard: true,
             overview: true,
+            
+            // Disable auto-slide
+            autoSlide: 0,
+            
+            // Ensure proper scaling
+            disableLayout: false,
+            
+            // Slide number display
+            slideNumber: false,
         });
+
+        // Force initial layout and resize on window changes
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                Reveal.layout();
+                Reveal.sync();
+            }, 200);
+        });
+
+        window.addEventListener('resize', () => {
+            Reveal.layout();
+        });
+
+        // Also trigger on iframe load if embedded
+        if (window.parent !== window) {
+            setTimeout(() => {
+                Reveal.layout();
+            }, 500);
+        }
+
+        // Apply saved language after DOM is ready
+        setTimeout(() => {
+            translate(savedLang);
+        }, 100);
     </script>
 </body>
 </html>
