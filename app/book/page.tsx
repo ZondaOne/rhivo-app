@@ -223,7 +223,8 @@ export default function DiscoveryPage() {
       <div className="border-b border-gray-200/60 bg-gray-50">
         <div className="px-4 sm:px-6 lg:px-12 py-4 lg:py-6">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex flex-1 w-full items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
                 {/* Search Input */}
                 <div className="relative flex-1 w-full">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -259,7 +260,9 @@ export default function DiscoveryPage() {
                         ))}
                     </select>
                 </div>
-                {/* Filter Button */}
+              </div>
+              {/* Filter Button */}
+              <div className="relative">
                 <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`relative px-4 lg:px-6 py-3 rounded-xl font-semibold text-base transition-all flex items-center gap-2 ${
@@ -269,7 +272,7 @@ export default function DiscoveryPage() {
                     }`}
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
                     <span className="hidden sm:inline">Filters</span>
                     {activeFiltersCount > 0 && (
@@ -278,6 +281,126 @@ export default function DiscoveryPage() {
                     </span>
                     )}
                 </button>
+                {/* Filter Panel Dropdown */}
+                <div
+                  className={`absolute top-full right-0 mt-2 w-80 origin-top-right transition-all duration-200 ease-out z-10 ${
+                    showFilters ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                  }`}>
+                  <div className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-2xl">
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-xl font-bold text-gray-900 tracking-tight">Filters</h3>
+                      {activeFiltersCount > 0 && (
+                        <button
+                          onClick={clearAllFilters}
+                          className="px-4 py-1.5 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid gap-x-8 gap-y-6 sm:grid-cols-1 lg:grid-cols-1">
+                      {/* Price Range Filter */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-3">
+                          Price Range
+                        </label>
+                        <div className="space-y-4 pt-2">
+                          <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
+                            <span>${minPrice}</span>
+                            <span className="text-gray-500">-</span>
+                            <span>${maxPrice === 500 ? '500+' : maxPrice}</span>
+                          </div>
+                          <div className="space-y-2">
+                            <input
+                              type="range"
+                              min="0"
+                              max="500"
+                              step="10"
+                              value={minPrice}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (value <= maxPrice) setMinPrice(value);
+                              }}
+                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                            />
+                            <input
+                              type="range"
+                              min="0"
+                              max="500"
+                              step="10"
+                              value={maxPrice}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (value >= minPrice) setMaxPrice(value);
+                              }}
+                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Filters Summary */}
+                    {activeFiltersCount > 0 && (
+                      <div className="mt-6 pt-4 border-t border-gray-200/60">
+                        <div className="flex flex-wrap gap-2">
+                          {selectedCategories.map(cat => (
+                            <span
+                              key={cat}
+                              className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-800 text-sm font-semibold rounded-full"
+                            >
+                              {cat}
+                              <button
+                                onClick={() => toggleCategory(cat)}
+                                className="text-teal-600 hover:text-teal-800 hover:bg-teal-100 rounded-full p-0.5 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </span>
+                          ))}
+                          {selectedCities.map(city => (
+                            <span
+                              key={city}
+                              className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full"
+                            >
+                              {city}
+                              <button
+                                onClick={() => toggleCity(city)}
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </span>
+                          ))}
+                          {(minPrice > 0 || maxPrice < 500) && (
+                            <span
+                              className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-800 text-sm font-semibold rounded-full"
+                            >
+                              ${minPrice} - ${maxPrice === 500 ? '500+' : maxPrice}
+                              <button
+                                onClick={() => {
+                                  setMinPrice(0);
+                                  setMaxPrice(500);
+                                }}
+                                className="text-purple-600 hover:text-purple-800 hover:bg-purple-200 rounded-full p-0.5 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="mt-4 flex items-center justify-center gap-2 sm:gap-3">
                 <span className="text-sm font-semibold text-gray-600">Popular:</span>
@@ -296,192 +419,6 @@ export default function DiscoveryPage() {
                 ))}
             </div>
           </div>
-
-          {/* Filter Panel */}
-          {showFilters && (
-            <div className="mt-4 bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Filters</h3>
-                {activeFiltersCount > 0 && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm font-semibold text-teal-600 hover:text-teal-700"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {/* Categories Filter */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Categories
-                  </label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {allCategories.map(category => (
-                      <label
-                        key={category}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category)}
-                          onChange={() => toggleCategory(category)}
-                          className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
-                        />
-                        <span className="text-sm text-gray-700">{category}</span>
-                      </label>
-                    ))}
-                    {allCategories.length === 0 && (
-                      <p className="text-sm text-gray-400">No categories available</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Cities Filter */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Location
-                  </label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {allCities.map(city => (
-                      <label
-                        key={city}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedCities.includes(city)}
-                          onChange={() => toggleCity(city)}
-                          className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
-                        />
-                        <span className="text-sm text-gray-700">{city}</span>
-                      </label>
-                    ))}
-                    {allCities.length === 0 && (
-                      <p className="text-sm text-gray-400">No cities available</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Price Range Filter */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Price Range
-                  </label>
-                  <div className="space-y-4">
-                    {/* Price display */}
-                    <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
-                      <span>${minPrice}</span>
-                      <span className="text-gray-500">-</span>
-                      <span>${maxPrice}</span>
-                    </div>
-
-                    {/* Min Price Slider */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        Minimum
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="500"
-                        step="10"
-                        value={minPrice}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (value <= maxPrice) {
-                            setMinPrice(value);
-                          }
-                        }}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                      />
-                    </div>
-
-                    {/* Max Price Slider */}
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        Maximum
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="500"
-                        step="10"
-                        value={maxPrice}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (value >= minPrice) {
-                            setMaxPrice(value);
-                          }
-                        }}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Filters Summary */}
-              {activeFiltersCount > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCategories.map(cat => (
-                      <span
-                        key={cat}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-teal-50 text-teal-700 text-sm font-medium rounded-lg"
-                      >
-                        {cat}
-                        <button
-                          onClick={() => toggleCategory(cat)}
-                          className="hover:bg-teal-100 rounded-full p-0.5"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </span>
-                    ))}
-                    {selectedCities.map(city => (
-                      <span
-                        key={city}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-lg"
-                      >
-                        {city}
-                        <button
-                          onClick={() => toggleCity(city)}
-                          className="hover:bg-blue-100 rounded-full p-0.5"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </span>
-                    ))}
-                    {(minPrice > 0 || maxPrice < 500) && (
-                      <span
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 text-sm font-medium rounded-lg"
-                      >
-                        ${minPrice} - ${maxPrice}
-                        <button
-                          onClick={() => {
-                            setMinPrice(0);
-                            setMaxPrice(500);
-                          }}
-                          className="hover:bg-purple-100 rounded-full p-0.5"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
