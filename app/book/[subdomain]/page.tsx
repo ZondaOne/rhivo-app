@@ -34,6 +34,7 @@ export default function BookingPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const [currentStep, setCurrentStep] = useState<BookingStep>('service');
+  const [bookingType, setBookingType] = useState('guest');
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
@@ -883,7 +884,7 @@ export default function BookingPage() {
                         setSelectedSlot(null);
                         setCurrentStep('datetime');
                       }}
-                      className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200"
                     >
                       Change time
                     </button>
@@ -898,128 +899,170 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  <div className="space-y-5 mb-6">
-                    {config.bookingRequirements.requireName && (
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Name <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                          <input
-                            type="text"
-                            id="name"
-                            value={guestName}
-                            onChange={(e) => setGuestName(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="Enter your full name"
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
+                  {/* Booking Type Selection */}
+                  <div className="mb-6">
+                    <div className="grid grid-cols-3 gap-2 p-1.5 bg-gray-100 rounded-xl">
+                      <button
+                        onClick={() => setBookingType('guest')}
+                        className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                          bookingType === 'guest' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
+                        }`}>
+                        Book as Guest
+                      </button>
+                      <button
+                        onClick={() => setBookingType('signup')}
+                        className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                          bookingType === 'signup' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
+                        }`}>
+                        Sign Up
+                      </button>
+                      <button
+                        onClick={() => setBookingType('login')}
+                        className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                          bookingType === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
+                        }`}>
+                        Log In
+                      </button>
+                    </div>
+                  </div>
 
-                    {config.bookingRequirements.requireEmail && (
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                            </svg>
-                          </div>
-                          <input
-                            type="email"
-                            id="email"
-                            value={guestEmail}
-                            onChange={(e) => setGuestEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="your.email@example.com"
-                            required
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {config.bookingRequirements.requirePhone && (
-                      <div>
-                        <label htmlFor="phone" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Phone {config.bookingRequirements.requirePhone && <span className="text-red-500">*</span>}
-                        </label>
-                        <div className="relative">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                            </svg>
-                          </div>
-                          <input
-                            type="tel"
-                            id="phone"
-                            value={guestPhone}
-                            onChange={(e) => setGuestPhone(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="+1 (555) 000-0000"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {config.bookingRequirements.customFields.map((field) => (
-                      <div key={field.id}>
-                        <label htmlFor={field.id} className="block text-sm font-semibold text-gray-900 mb-2">
-                          {field.label} {field.required && <span className="text-red-500">*</span>}
-                        </label>
-                        {field.type === 'textarea' ? (
-                          <textarea
-                            id={field.id}
-                            value={customFieldValues[field.id] || ''}
-                            onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
-                            rows={4}
-                            maxLength={field.maxLength}
-                            placeholder={field.placeholder}
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all resize-none text-gray-900 placeholder:text-gray-400"
-                          />
-                        ) : field.type === 'select' ? (
+                  {bookingType === 'guest' && (
+                    <div className="space-y-5 mb-6">
+                      {config.bookingRequirements.requireName && (
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
+                            Name <span className="text-red-500">*</span>
+                          </label>
                           <div className="relative">
-                            <select
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <input
+                              type="text"
+                              id="name"
+                              value={guestName}
+                              onChange={(e) => setGuestName(e.target.value)}
+                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                              placeholder="Enter your full name"
+                              required
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {config.bookingRequirements.requireEmail && (
+                        <div>
+                          <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+                            Email <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                              </svg>
+                            </div>
+                            <input
+                              type="email"
+                              id="email"
+                              value={guestEmail}
+                              onChange={(e) => setGuestEmail(e.target.value)}
+                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                              placeholder="your.email@example.com"
+                              required
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {config.bookingRequirements.requirePhone && (
+                        <div>
+                          <label htmlFor="phone" className="block text-sm font-semibold text-gray-900 mb-2">
+                            Phone {config.bookingRequirements.requirePhone && <span className="text-red-500">*</span>}
+                          </label>
+                          <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                              </svg>
+                            </div>
+                            <input
+                              type="tel"
+                              id="phone"
+                              value={guestPhone}
+                              onChange={(e) => setGuestPhone(e.target.value)}
+                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                              placeholder="+1 (555) 000-0000"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {config.bookingRequirements.customFields.map((field) => (
+                        <div key={field.id}>
+                          <label htmlFor={field.id} className="block text-sm font-semibold text-gray-900 mb-2">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                          </label>
+                          {field.type === 'textarea' ? (
+                            <textarea
                               id={field.id}
                               value={customFieldValues[field.id] || ''}
                               onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 appearance-none cursor-pointer"
-                            >
-                              <option value="" className="text-gray-400">Select an option</option>
-                              {field.options?.map((option) => (
-                                <option key={option} value={option} className="text-gray-900">
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
+                              rows={4}
+                              maxLength={field.maxLength}
+                              placeholder={field.placeholder}
+                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all resize-none text-gray-900 placeholder:text-gray-400"
+                            />
+                          ) : field.type === 'select' ? (
+                            <div className="relative">
+                              <select
+                                id={field.id}
+                                value={customFieldValues[field.id] || ''}
+                                onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 appearance-none cursor-pointer"
+                              >
+                                <option value="" className="text-gray-400">Select an option</option>
+                                {field.options?.map((option) => (
+                                  <option key={option} value={option} className="text-gray-900">
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <input
-                            type="text"
-                            id={field.id}
-                            value={customFieldValues[field.id] || ''}
-                            onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
-                            maxLength={field.maxLength}
-                            placeholder={field.placeholder}
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                          ) : (
+                            <input
+                              type="text"
+                              id={field.id}
+                              value={customFieldValues[field.id] || ''}
+                              onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
+                              maxLength={field.maxLength}
+                              placeholder={field.placeholder}
+                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {(bookingType === 'signup' || bookingType === 'login') && (
+                    <div className="text-center p-8 bg-gray-50 rounded-xl border border-gray-100">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                        {bookingType === 'signup' ? 'Coming Soon: Create an Account' : 'Coming Soon: Log In'}
+                      </h3>
+                      <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                        {bookingType === 'signup'
+                          ? 'Sign up to easily manage your appointments, view your booking history, and get access to exclusive discounts. This feature is currently under construction.'
+                          : 'Log in to your account for faster bookings and to manage your appointments. This feature is currently under construction.'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Booking Summary */}
                   <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-6">
@@ -1056,6 +1099,9 @@ export default function BookingPage() {
                           {selectedService && `${(selectedService.price / 100).toFixed(2)} ${config.business.currency}`}
                         </span>
                       </div>
+                    </div>
+                    <div className="mt-4 text-xs text-gray-500 text-center">
+                      You will pay at the time of your appointment. No payment is required now.
                     </div>
                   </div>
 

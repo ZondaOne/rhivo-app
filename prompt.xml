@@ -428,6 +428,34 @@
   <acceptance>Appointments spanning multiple hours render as single continuous visual blocks without cropping at hour boundaries. A 2-hour appointment (10:00-12:00) displays as one unified block spanning two hour cells. Cascade layout correctly handles overlapping multi-hour appointments by allocating columns across the entire span. Drag-and-drop and hover interactions work seamlessly across the full appointment height. No duplicate rendering or visual artifacts. Performance remains smooth with 10+ concurrent multi-hour appointments. Edge cases (partial visibility, very long appointments) handled gracefully.</acceptance>
 </step>
 
+<step number="7p">
+  <title>Customer Authentication System</title>
+  <tasks>
+    <task>Design and implement a customer authentication system allowing users to sign up, log in, and manage their accounts.</task>
+    <task>Create a new `customers` table that can store user credentials and personal information, separate from guest bookings.</task>
+    <task>Implement JWT-based authentication for customers, similar to the business owner auth system.</task>
+    <task>Provide options for social logins (e.g., Google, Facebook) to streamline the signup process.</task>
+    <task>Create a customer dashboard where users can view their booking history, manage upcoming appointments, and update their profile.</task>
+    <task>Ensure that the booking process is integrated with the customer auth system, allowing logged-in users to book appointments with pre-filled information.</task>
+  </tasks>
+  <deliverables>Customer auth API endpoints, database schema for `customers` table, customer dashboard UI, updated booking flow with authenticated user support.</deliverables>
+  <acceptance>Customers can create accounts, log in, and view their booking history. Logged-in users have a streamlined booking experience. The system is secure and scalable.</acceptance>
+</step>
+
+<step number="7q">
+  <title>Guest Booking Management with Booking ID</title>
+  <tasks>
+    <task>Generate a unique, human-readable "Booking ID" for each new appointment (e.g., RIVO-ABC-123).</task>
+    <task>Add a `booking_id` column to the `appointments` table and ensure it is unique.</task>
+    <task>Display the Booking ID on the confirmation page and include it in all confirmation emails and SMS messages.</task>
+    <task>Create a public page where a guest can enter their Booking ID and email address to access and manage their appointment (e.g., cancel or reschedule).</task>
+    <task>Implement a secure token-based system to authenticate the guest for a single booking, ensuring they can only access the appointment associated with their Booking ID and email.</task>
+    <task>Ensure that any changes made through the guest management page are reflected in the owner's dashboard and trigger appropriate notifications.</task>
+  </tasks>
+  <deliverables>Booking ID generation logic, updated `appointments` table schema, guest booking management page, secure token-based access control for guest bookings.</deliverables>
+  <acceptance>Guests can manage their bookings using a unique Booking ID. The process is secure and does not require a user account. Data consistency is maintained across all booking management interfaces.</acceptance>
+</step>
+
 <step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>
