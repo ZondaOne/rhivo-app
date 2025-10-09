@@ -34,10 +34,12 @@ export default function BookingPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const [currentStep, setCurrentStep] = useState<BookingStep>('service');
-  const [bookingType, setBookingType] = useState('guest');
+  const [bookingType, setBookingType] = useState<'guest' | 'login'>('guest');
+  const [showSignupForm, setShowSignupForm] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [bookingNotes, setBookingNotes] = useState('');
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
 
@@ -45,6 +47,7 @@ export default function BookingPage() {
   const [confirming, setConfirming] = useState(false);
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [appointmentId, setAppointmentId] = useState<string | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const [cancellationToken, setCancellationToken] = useState<string | null>(null);
 
   // Load tenant configuration
@@ -203,30 +206,118 @@ export default function BookingPage() {
   const handleBooking = async () => {
     if (!config || !selectedService || !selectedSlot || !subdomain) return;
 
-    // Validate required fields
-    if (config.bookingRequirements.requireName && !guestName.trim()) {
-      setError('Name is required');
-      return;
-    }
-    if (config.bookingRequirements.requireEmail && !guestEmail.trim()) {
-      setError('Email is required');
-      return;
-    }
-    if (config.bookingRequirements.requirePhone && !guestPhone.trim()) {
-      setError('Phone is required');
-      return;
-    }
+    setError(null);
 
-    // Validate custom fields
-    for (const field of config.bookingRequirements.customFields) {
-      if (field.required && !customFieldValues[field.id]?.trim()) {
-        setError(`${field.label} is required`);
+    // Handle signup first if user chose that option
+    if (bookingType === 'login' && showSignupForm) {
+      if (!guestEmail && !guestPhone) {
+        setError('Please provide at least an email or phone number');
+        return;
+      }
+      if (!password || password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
+      }
+
+      try {
+        const signupRes = await fetch('/api/auth/signup/customer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: guestEmail || undefined,
+            phone: guestPhone || undefined,
+            password,
+            name: guestName || undefined,
+          }),
+        });
+
+        const signupData = await signupRes.json();
+
+        if (!signupRes.ok) {
+          throw new Error(signupData.error || 'Signup failed');
+        }
+
+        // Account created successfully, now proceed with booking
+        // The user info is already in the form fields, continue with booking flow
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Signup failed';
+        setError(message);
         return;
       }
     }
 
+    // Handle login if user chose that option
+    if (bookingType === 'login' && !showSignupForm) {
+      if (!guestEmail.trim()) {
+        setError('Email or phone is required');
+        return;
+      }
+      if (!password) {
+        setError('Password is required');
+        return;
+      }
+
+      try {
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: guestEmail, // API will detect if it's email or phone
+            password,
+          }),
+        });
+
+        const loginData = await loginRes.json();
+
+        if (!loginRes.ok) {
+          throw new Error(loginData.error || 'Login failed');
+        }
+
+        // Check if user is a customer
+        if (loginData.user.role !== 'customer') {
+          setError('This login is for customers only. Business owners should use the owner login.');
+          return;
+        }
+
+        // Login successful, auto-fill user info
+        if (loginData.user.email) setGuestEmail(loginData.user.email);
+        if (loginData.user.phone) setGuestPhone(loginData.user.phone);
+        if (loginData.user.name) setGuestName(loginData.user.name);
+
+        // Continue with booking flow
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Login failed';
+        setError(message);
+        return;
+      }
+    }
+
+    // Validate required fields for guest booking
+    if (bookingType === 'guest') {
+      if (config.bookingRequirements.requireName && !guestName.trim()) {
+        setError('Name is required');
+        return;
+      }
+      if (config.bookingRequirements.requireEmail && !guestEmail.trim()) {
+        setError('Email is required');
+        return;
+      }
+      if (config.bookingRequirements.requirePhone && !guestPhone.trim()) {
+        setError('Phone is required');
+        return;
+      }
+
+      // Validate custom fields
+      for (const field of config.bookingRequirements.customFields) {
+        if (field.required && !customFieldValues[field.id]?.trim()) {
+          setError(`${field.label} is required`);
+          return;
+        }
+      }
+    }
+
     setReserving(true);
-    setError(null);
 
     try {
       // Step 1: Create reservation
@@ -288,6 +379,7 @@ export default function BookingPage() {
       }
 
       setAppointmentId(commitData.appointment.id);
+      setBookingId(commitData.appointment.bookingId);
       setCancellationToken(commitData.appointment.cancellationToken);
       setConfirming(false);
       setCurrentStep('confirmation');
@@ -441,6 +533,14 @@ export default function BookingPage() {
                   </div>
                 </div>
               </div>
+
+              {bookingId && (
+                <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 my-6 text-center">
+                  <p className="text-sm text-gray-600 mb-1">Your Booking ID is:</p>
+                  <p className="text-xl font-bold text-gray-900 tracking-wider">{bookingId}</p>
+                  <p className="text-xs text-gray-500 mt-2">Keep this ID for your records. You will need it to manage your booking.</p>
+                </div>
+              )}
 
               {cancellationToken && config.cancellationPolicy.allowCancellation && (
                 <p className="text-xs sm:text-sm text-gray-500 mb-6">
@@ -901,27 +1001,26 @@ export default function BookingPage() {
 
                   {/* Booking Type Selection */}
                   <div className="mb-6">
-                    <div className="grid grid-cols-3 gap-2 p-1.5 bg-gray-100 rounded-xl">
+                    <div className="grid grid-cols-2 gap-2 p-1.5 bg-gray-100 rounded-xl">
                       <button
-                        onClick={() => setBookingType('guest')}
+                        onClick={() => {
+                          setBookingType('guest');
+                          setShowSignupForm(false);
+                        }}
                         className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                           bookingType === 'guest' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
                         }`}>
                         Book as Guest
                       </button>
                       <button
-                        onClick={() => setBookingType('signup')}
-                        className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                          bookingType === 'signup' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
-                        }`}>
-                        Sign Up
-                      </button>
-                      <button
-                        onClick={() => setBookingType('login')}
+                        onClick={() => {
+                          setBookingType('login');
+                          setShowSignupForm(false);
+                        }}
                         className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                           bookingType === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
                         }`}>
-                        Log In
+                        {showSignupForm ? 'Sign Up' : 'Log In'}
                       </button>
                     </div>
                   </div>
@@ -1051,18 +1150,185 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  {(bookingType === 'signup' || bookingType === 'login') && (
-                    <div className="text-center p-8 bg-gray-50 rounded-xl border border-gray-100">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
-                        {bookingType === 'signup' ? 'Coming Soon: Create an Account' : 'Coming Soon: Log In'}
-                      </h3>
-                      <p className="text-sm text-gray-500 max-w-sm mx-auto">
-                        {bookingType === 'signup'
-                          ? 'Sign up to easily manage your appointments, view your booking history, and get access to exclusive discounts. This feature is currently under construction.'
-                          : 'Log in to your account for faster bookings and to manage your appointments. This feature is currently under construction.'}
-                      </p>
+                  {bookingType === 'login' && !showSignupForm && (
+                    <div className="space-y-5 mb-6">
+                      <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mb-4">
+                        <p className="text-sm text-teal-800">
+                          <strong>Log in</strong> to your account for faster bookings and to view your appointment history.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label htmlFor="login-identifier" className="block text-sm font-semibold text-gray-900 mb-2">
+                          Email or Phone <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                          </div>
+                          <input
+                            type="text"
+                            id="login-identifier"
+                            value={guestEmail}
+                            onChange={(e) => setGuestEmail(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                            placeholder="your@email.com or +1234567890"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="login-password" className="block text-sm font-semibold text-gray-900 mb-2">
+                          Password <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                          </div>
+                          <input
+                            type="password"
+                            id="login-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                            placeholder="Enter your password"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="border-t border-gray-200 pt-4">
+                        <p className="text-sm text-gray-600 text-center mb-3">
+                          Don't have an account?
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupForm(true)}
+                          className="w-full px-4 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200"
+                        >
+                          Create an account
+                        </button>
+                      </div>
                     </div>
                   )}
+
+                  {bookingType === 'login' && showSignupForm && (
+                    <div className="space-y-5 mb-6">
+                      <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mb-4">
+                        <p className="text-sm text-teal-800">
+                          <strong>Create an account</strong> to track all your bookings in one place and rebook faster next time.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label htmlFor="signup-email" className="block text-sm font-semibold text-gray-900 mb-2">
+                          Email <span className="text-gray-400 text-xs">(optional)</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                          </div>
+                          <input
+                            type="email"
+                            id="signup-email"
+                            value={guestEmail}
+                            onChange={(e) => setGuestEmail(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                            placeholder="your@email.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="signup-phone" className="block text-sm font-semibold text-gray-900 mb-2">
+                          Phone <span className="text-gray-400 text-xs">(optional)</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                            </svg>
+                          </div>
+                          <input
+                            type="tel"
+                            id="signup-phone"
+                            value={guestPhone}
+                            onChange={(e) => setGuestPhone(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                            placeholder="+1 (555) 000-0000"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1.5">Provide at least email or phone (or both)</p>
+                      </div>
+
+                      <div>
+                        <label htmlFor="signup-password" className="block text-sm font-semibold text-gray-900 mb-2">
+                          Password <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                          </div>
+                          <input
+                            type="password"
+                            id="signup-password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                            placeholder="Min 8 characters"
+                            required
+                            minLength={8}
+                          />
+                        </div>
+                      </div>
+
+                      {config.bookingRequirements.requireName && (
+                        <div>
+                          <label htmlFor="signup-name" className="block text-sm font-semibold text-gray-900 mb-2">
+                            Name <span className="text-gray-400 text-xs">(optional)</span>
+                          </label>
+                          <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <input
+                              type="text"
+                              id="signup-name"
+                              value={guestName}
+                              onChange={(e) => setGuestName(e.target.value)}
+                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                              placeholder="Your full name"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="border-t border-gray-200 pt-4">
+                        <p className="text-sm text-gray-600 text-center mb-3">
+                          Already have an account?
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupForm(false)}
+                          className="w-full px-4 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200"
+                        >
+                          Log in instead
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
 
                   {/* Booking Summary */}
                   <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-6">
@@ -1127,7 +1393,11 @@ export default function BookingPage() {
                           {reserving ? 'Reserving...' : 'Confirming...'}
                         </>
                       ) : (
-                        'Confirm Booking'
+                        <>
+                          {bookingType === 'login' && showSignupForm && 'Create Account & Book'}
+                          {bookingType === 'login' && !showSignupForm && 'Log In & Book'}
+                          {bookingType === 'guest' && 'Confirm Booking'}
+                        </>
                       )}
                     </button>
                   </div>

@@ -12,11 +12,16 @@ import { z } from 'zod';
 const sql = neon(process.env.DATABASE_URL!);
 
 const signupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(1),
+  email: z.string().email().optional(),
   phone: z.string().optional(),
-});
+  password: z.string().min(8),
+  name: z.string().optional(),
+}).refine(
+  (data) => data.email || data.phone,
+  {
+    message: 'At least one contact method (email or phone) is required',
+  }
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,25 +49,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email already exists
-    const existingUser = await sql`
-      SELECT id FROM users WHERE email = ${validatedData.email} AND deleted_at IS NULL
-    `;
+    // Check if email already exists (if email provided)
+    if (validatedData.email) {
+      const existingUserByEmail = await sql`
+        SELECT id FROM users WHERE LOWER(email) = LOWER(${validatedData.email}) AND deleted_at IS NULL
+      `;
 
-    if (existingUser.length > 0) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 400 }
-      );
+      if (existingUserByEmail.length > 0) {
+        return NextResponse.json(
+          { error: 'Email already registered' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Check if phone already exists (if phone provided)
+    if (validatedData.phone) {
+      const existingUserByPhone = await sql`
+        SELECT id FROM users WHERE LOWER(phone) = LOWER(${validatedData.phone}) AND deleted_at IS NULL
+      `;
+
+      if (existingUserByPhone.length > 0) {
+        return NextResponse.json(
+          { error: 'Phone number already registered' },
+          { status: 400 }
+        );
+      }
     }
 
     // Hash password
     const passwordHash = await hashPassword(validatedData.password);
 
-    // Generate email verification token
-    const verificationToken = generateEmailVerificationToken();
-    const verificationTokenHash = hashToken(verificationToken);
-    const verificationExpiry = getEmailVerificationExpiry();
+    // Generate email verification token (only if email provided)
+    let verificationToken = null;
+    let verificationTokenHash = null;
+    let verificationExpiry = null;
+    let verificationUrl = null;
+
+    if (validatedData.email) {
+      verificationToken = generateEmailVerificationToken();
+      verificationTokenHash = hashToken(verificationToken);
+      verificationExpiry = getEmailVerificationExpiry();
+      verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${verificationToken}`;
+    }
 
     // Create customer user
     const [user] = await sql`
@@ -76,8 +105,8 @@ export async function POST(request: NextRequest) {
         email_verification_token,
         email_verification_expires_at
       ) VALUES (
-        ${validatedData.email},
-        ${validatedData.name},
+        ${validatedData.email || null},
+        ${validatedData.name || null},
         ${validatedData.phone || null},
         'customer',
         ${passwordHash},
@@ -85,22 +114,23 @@ export async function POST(request: NextRequest) {
         ${verificationTokenHash},
         ${verificationExpiry}
       )
-      RETURNING id, email, name, role
+      RETURNING id, email, name, phone, role
     `;
 
-    // TODO: Send verification email with token
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${verificationToken}`;
+    // TODO: Send verification email with token after debugging phase
+    // Currently skipping email verification for frictionless UX during development
 
     return NextResponse.json({
-      message: 'Account created successfully. Please verify your email.',
+      message: 'Account created successfully',
       user: {
         id: user.id,
         email: user.email,
+        phone: user.phone,
         name: user.name,
         role: user.role,
       },
-      // Remove in production
-      verificationUrl,
+      // Remove in production - for debugging only
+      ...(verificationUrl && { verificationUrl }),
     }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

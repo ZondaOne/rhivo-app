@@ -434,7 +434,7 @@
     <task>Design and implement a customer authentication system allowing users to sign up, log in, and manage their accounts.</task>
     <task>Create a new `customers` table that can store user credentials and personal information, separate from guest bookings.</task>
     <task>Implement JWT-based authentication for customers, similar to the business owner auth system.</task>
-    <task>Provide options for social logins (e.g., Google, Facebook) to streamline the signup process.</task>
+    <task>Provide options for social logins (e.g., Google)to streamline the signup process.</task>
     <task>Create a customer dashboard where users can view their booking history, manage upcoming appointments, and update their profile.</task>
     <task>Ensure that the booking process is integrated with the customer auth system, allowing logged-in users to book appointments with pre-filled information.</task>
   </tasks>
@@ -454,6 +454,41 @@
   </tasks>
   <deliverables>Booking ID generation logic, updated `appointments` table schema, guest booking management page, secure token-based access control for guest bookings.</deliverables>
   <acceptance>Guests can manage their bookings using a unique Booking ID. The process is secure and does not require a user account. Data consistency is maintained across all booking management interfaces.</acceptance>
+</step>
+
+<step number="7r">
+  <title>Customer Dashboard with Booking Management</title>
+  <tasks>
+    <task>Create a protected customer dashboard page that requires customer authentication (JWT-based).</task>
+    <task>Build an API endpoint to fetch all appointments for the authenticated customer (both guest bookings that were linked and authenticated bookings).</task>
+    <task>Display appointments in the dashboard with filters: Upcoming, Past, Canceled.</task>
+    <task>Implement appointment cancellation functionality with proper validation (check cancellation policy deadline, update appointment status, release reservation slot).</task>
+    <task>Implement appointment rescheduling functionality that reuses the booking flow logic: check slot availability, create new reservation, update appointment time, release old slot.</task>
+    <task>Add view details functionality showing full appointment information (service, time, price, business contact, booking ID).</task>
+    <task>Ensure all appointment modifications (cancel, reschedule) create audit log entries for tracking.</task>
+    <task>TODO: Add notification system to alert business owner when customer cancels or reschedules (implement in step 7s).</task>
+    <task>Reuse existing guest booking management endpoint logic where applicable, but ensure customer authentication takes precedence.</task>
+    <task>Add proper error handling for edge cases: appointment not found, customer doesn't own appointment, appointment already canceled, past appointments cannot be modified.</task>
+  </tasks>
+  <deliverables>Customer dashboard UI, appointment fetch API endpoint, cancel/reschedule API endpoints, audit logging for customer actions, integration with existing booking management logic.</deliverables>
+  <acceptance>Authenticated customers can view all their appointments, cancel upcoming appointments (respecting cancellation policy), and reschedule appointments (with real-time availability checking). All actions are logged and reflected in the owner dashboard. Guest booking management continues to work independently for non-authenticated users.</acceptance>
+</step>
+
+<step number="7s">
+  <title>Business Owner Notification Center</title>
+  <tasks>
+    <task>Design a notification data model: notification type (booking created, canceled, rescheduled, etc.), recipient (business owner), status (unread/read), timestamp, related appointment ID.</task>
+    <task>Create a `notifications` table with columns: id, business_id, user_id (owner), type, title, message, appointment_id, read status, created_at.</task>
+    <task>Implement notification creation triggers for key events: new booking, cancellation, rescheduling, no-show marked, appointment completed.</task>
+    <task>Build a notification center UI component in the business owner dashboard showing recent notifications with unread count badge.</task>
+    <task>Create API endpoints: fetch notifications (with pagination), mark as read, mark all as read, delete notification.</task>
+    <task>Add real-time notification badge update in the dashboard header showing unread count.</task>
+    <task>Implement notification preferences: allow owners to configure which events trigger notifications (email, in-app, or both).</task>
+    <task>Connect customer booking actions (cancel, reschedule from step 7r) to notification creation so owners are immediately informed.</task>
+    <task>Add notification cleanup: automatically mark notifications older than 30 days as read, archive notifications older than 90 days.</task>
+  </tasks>
+  <deliverables>Notifications database table, notification creation logic for booking events, notification center UI component, API endpoints for notification management, notification preferences configuration.</deliverables>
+  <acceptance>Business owners see real-time notifications for all booking events. Unread notification count is visible in dashboard header. Owners can mark notifications as read and configure notification preferences. Customer actions (cancel/reschedule) immediately notify the business owner.</acceptance>
 </step>
 
 <step number="13">

@@ -2,12 +2,15 @@ import { DbClient, withTransaction } from '../../db/client';
 import { Appointment, AppointmentStatus } from '../../db/types';
 import { ReservationManager } from './reservation-manager';
 import { v4 as uuidv4 } from 'uuid';
+import { generateBookingId } from '../booking/id';
 
 export interface CommitReservationParams {
   reservationId: string;
+  bookingId: string;
   customerId?: string;
   guestEmail?: string;
   guestPhone?: string;
+  guestName?: string;
   cancellationToken?: string;
 }
 
@@ -52,9 +55,11 @@ export class AppointmentManager {
   async commitReservation(params: CommitReservationParams): Promise<Appointment> {
     const {
       reservationId,
+      bookingId,
       customerId,
       guestEmail,
       guestPhone,
+      guestName,
       cancellationToken
     } = params;
 
@@ -73,11 +78,13 @@ export class AppointmentManager {
       const appointmentResult = await txDb`
         INSERT INTO appointments (
           id,
+          booking_id,
           business_id,
           service_id,
           customer_id,
           guest_email,
           guest_phone,
+          guest_name,
           slot_start,
           slot_end,
           status,
@@ -89,11 +96,13 @@ export class AppointmentManager {
           updated_at
         ) VALUES (
           ${appointmentId},
+          ${bookingId},
           ${reservation.business_id},
           ${reservation.service_id},
           ${customerId || null},
           ${guestEmail || null},
           ${guestPhone || null},
+          ${guestName || null},
           ${reservation.slot_start},
           ${reservation.slot_end},
           'confirmed',
@@ -183,10 +192,12 @@ export class AppointmentManager {
       }
 
       const appointmentId = uuidv4();
+      const bookingId = generateBookingId();
 
       const result = await txDb`
         INSERT INTO appointments (
           id,
+          booking_id,
           business_id,
           service_id,
           customer_id,
@@ -203,6 +214,7 @@ export class AppointmentManager {
           updated_at
         ) VALUES (
           ${appointmentId},
+          ${bookingId},
           ${businessId},
           ${serviceId},
           ${customerId || null},
@@ -389,7 +401,7 @@ export class AppointmentManager {
   /**
    * Cancels an appointment (soft delete with audit trail)
    */
-  async cancelAppointment(appointmentId: string, actorId: string, reason?: string): Promise<void> {
+  async cancelAppointment(appointmentId: string, actorId: string): Promise<void> {
     return withTransaction(async (txDb) => {
       const current = await txDb`
         SELECT * FROM appointments

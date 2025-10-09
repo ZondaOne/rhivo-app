@@ -258,7 +258,9 @@ export default function Home() {
               <span>© 2025 Rivo</span>
             </div>
             <div className="flex items-center gap-8">
-              <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Dashboard</Link>
+              <Link href="/book/manage" className="hover:text-gray-900 transition-colors">Manage Booking</Link>
+              <Link href="/customer/dashboard" className="hover:text-gray-900 transition-colors">My Appointments</Link>
+              <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Business Dashboard</Link>
               <Link href="/debug/api" className="hover:text-gray-900 transition-colors">API</Link>
               <a href="/pitch.html" target="_blank" className="hover:text-gray-900 transition-colors">Investor Pitch</a>
             </div>
