@@ -475,6 +475,27 @@
 </step>
 
 <step number="7s">
+  <title>Unified Appointment Rescheduling System</title>
+  <tasks>
+    <task>Design a unified reschedule flow that works for both authenticated customers (via customer dashboard) and guests (via /book/manage/[booking_id]).</task>
+    <task>Create API endpoint POST /api/appointments/[id]/reschedule that validates ownership (JWT for customers, guest token for guests) before allowing reschedule.</task>
+    <task>Implement slot availability checking: reuse existing slot-generator logic to show available time slots for the same service, respecting business hours, capacity limits, and existing bookings.</task>
+    <task>Build reservation exchange logic: create new reservation for selected time slot, atomically update appointment start/end times, release old reservation/capacity, ensure no double-booking via database constraints.</task>
+    <task>Add reschedule validation rules: appointment must be in 'confirmed' status, new time must be in the future, new time must respect advance booking limits, check cancellation/reschedule policy deadlines.</task>
+    <task>Implement optimistic locking for reschedule operations: check appointment.updated_at hasn't changed since fetch to prevent concurrent modification conflicts.</task>
+    <task>Create audit log entries for all reschedules: capture old start/end times, new start/end times, actor (customer or guest), timestamp.</task>
+    <task>Build customer dashboard reschedule UI: modal or page showing available slots for same service, calendar picker, time slot selection, confirmation step.</task>
+    <task>Build guest reschedule UI at /book/manage/[booking_id]: mirror customer dashboard flow but use guest token authentication instead of JWT.</task>
+    <task>Ensure data consistency: reschedule must be atomic transaction (check availability, create reservation, update appointment, release old slot, audit log) to prevent race conditions.</task>
+    <task>Add notification hooks: trigger business owner notification when reschedule succeeds (implement notification sending in step 7t).</task>
+    <task>Send customer confirmation: email with updated appointment details, new calendar attachment (.ics file), and cancellation link.</task>
+    <task>Handle edge cases: service no longer available, business closed on new date, capacity full for new time, appointment modified by owner concurrently.</task>
+  </tasks>
+  <deliverables>Unified reschedule API endpoint, slot availability integration, customer dashboard reschedule UI, guest reschedule UI, atomic transaction logic, audit logging, email confirmation templates, optimistic locking implementation.</deliverables>
+  <acceptance>Both authenticated customers and guests can reschedule their confirmed appointments. System validates slot availability using same logic as initial booking. No double-bookings occur due to race conditions. All reschedules are logged in audit trail. Business owners receive notifications (step 7t). Customers receive email confirmations. Concurrent modification conflicts are detected and rejected gracefully.</acceptance>
+</step>
+
+<step number="7t">
   <title>Business Owner Notification Center</title>
   <tasks>
     <task>Design a notification data model: notification type (booking created, canceled, rescheduled, etc.), recipient (business owner), status (unread/read), timestamp, related appointment ID.</task>
@@ -484,7 +505,7 @@
     <task>Create API endpoints: fetch notifications (with pagination), mark as read, mark all as read, delete notification.</task>
     <task>Add real-time notification badge update in the dashboard header showing unread count.</task>
     <task>Implement notification preferences: allow owners to configure which events trigger notifications (email, in-app, or both).</task>
-    <task>Connect customer booking actions (cancel, reschedule from step 7r) to notification creation so owners are immediately informed.</task>
+    <task>Connect customer booking actions (cancel from step 7r, reschedule from step 7s) to notification creation so owners are immediately informed.</task>
     <task>Add notification cleanup: automatically mark notifications older than 30 days as read, archive notifications older than 90 days.</task>
   </tasks>
   <deliverables>Notifications database table, notification creation logic for booking events, notification center UI component, API endpoints for notification management, notification preferences configuration.</deliverables>

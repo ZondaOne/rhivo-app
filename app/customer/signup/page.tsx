@@ -43,9 +43,28 @@ export default function CustomerSignupPage() {
         throw new Error(data.error || 'Signup failed');
       }
 
-      // Success - redirect to customer login (or auto-login in future)
-      alert('Account created successfully! Please log in.');
-      router.push('/customer/login');
+      // Auto-login after successful signup
+      // Call login API
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: email || phone, // Use email if provided, else phone
+          password,
+        }),
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (loginResponse.ok && loginData.accessToken) {
+        localStorage.setItem('accessToken', loginData.accessToken);
+        router.push('/customer/dashboard');
+      } else {
+        // If auto-login fails, redirect to login page
+        alert('Account created successfully! Please log in.');
+        router.push('/customer/login');
+      }
     } catch (err: any) {
       setError(err?.message || 'Signup failed');
     } finally {

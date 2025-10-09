@@ -40,6 +40,11 @@ export default function CustomerLoginPage() {
         return;
       }
 
+      // Store access token in localStorage
+      if (data.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken);
+      }
+
       // Success - redirect to customer dashboard
       router.push('/customer/dashboard');
     } catch (err: any) {

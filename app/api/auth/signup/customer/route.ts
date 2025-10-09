@@ -117,6 +117,35 @@ export async function POST(request: NextRequest) {
       RETURNING id, email, name, phone, role
     `;
 
+    // Link any existing guest bookings to this new customer account
+    let linkedCount = 0;
+    if (validatedData.email) {
+      const result = await sql`
+        UPDATE appointments
+        SET customer_id = ${user.id}
+        WHERE guest_email = ${validatedData.email}
+          AND customer_id IS NULL
+          AND deleted_at IS NULL
+      `;
+      linkedCount = result.count || 0;
+    }
+
+    // Also link bookings by phone if provided
+    if (validatedData.phone) {
+      const result = await sql`
+        UPDATE appointments
+        SET customer_id = ${user.id}
+        WHERE guest_phone = ${validatedData.phone}
+          AND customer_id IS NULL
+          AND deleted_at IS NULL
+      `;
+      linkedCount += result.count || 0;
+    }
+
+    if (linkedCount > 0) {
+      console.log(`Linked ${linkedCount} guest bookings to new customer account ${user.id}`);
+    }
+
     // TODO: Send verification email with token after debugging phase
     // Currently skipping email verification for frictionless UX during development
 
@@ -129,6 +158,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
       },
+      linkedBookings: linkedCount,
       // Remove in production - for debugging only
       ...(verificationUrl && { verificationUrl }),
     }, { status: 201 });
