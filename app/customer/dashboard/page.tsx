@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import RescheduleModal from './components/RescheduleModal';
 
 type AppointmentStatus = 'confirmed' | 'canceled' | 'completed' | 'no_show';
 
@@ -12,6 +13,7 @@ interface Appointment {
   businessName: string;
   subdomain: string;
   serviceName: string;
+  serviceId?: string;
   categoryName: string;
   startTime: string;
   endTime: string;
@@ -23,6 +25,18 @@ interface Appointment {
 
 type FilterTab = 'all' | 'upcoming' | 'past' | 'canceled';
 
+interface RescheduleState {
+  appointmentId: string;
+  bookingId: string;
+  businessName: string;
+  subdomain: string;
+  serviceName: string;
+  serviceId: string;
+  currentStartTime: string;
+  currentEndTime: string;
+  duration: number;
+}
+
 export default function CustomerDashboardPage() {
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -31,6 +45,7 @@ export default function CustomerDashboardPage() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('upcoming');
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [linkingBookings, setLinkingBookings] = useState(false);
+  const [reschedulingAppointment, setReschedulingAppointment] = useState<RescheduleState | null>(null);
 
   useEffect(() => {
     fetchAppointments();
@@ -171,6 +186,48 @@ export default function CustomerDashboardPage() {
     } finally {
       setLinkingBookings(false);
     }
+  }
+
+  async function handleRescheduleAppointment(appointment: Appointment) {
+    // If serviceId is missing, fetch full appointment details to get it
+    let serviceId = appointment.serviceId;
+
+    if (!serviceId || serviceId === 'unknown') {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const response = await fetch(`/api/customer/appointments/${appointment.id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Try to get external_id from service details
+          // For now, we'll show an error if it's still not available
+          serviceId = data.appointment?.service?.external_id || null;
+        }
+      } catch (error) {
+        console.error('Failed to fetch appointment details:', error);
+      }
+
+      if (!serviceId) {
+        alert('Cannot reschedule this appointment. Service information is missing. Please contact support.');
+        return;
+      }
+    }
+
+    setReschedulingAppointment({
+      appointmentId: appointment.id,
+      bookingId: appointment.bookingId,
+      businessName: appointment.businessName,
+      subdomain: appointment.subdomain,
+      serviceName: appointment.serviceName,
+      serviceId,
+      currentStartTime: appointment.startTime,
+      currentEndTime: appointment.endTime,
+      duration: appointment.duration,
+    });
   }
 
   function formatDateTime(isoString: string): string {
@@ -358,9 +415,8 @@ export default function CustomerDashboardPage() {
                           {cancelingId === appointment.id ? 'Canceling...' : 'Cancel'}
                         </button>
                         <button
+                          onClick={() => handleRescheduleAppointment(appointment)}
                           className="px-4 py-2 border border-teal-300 text-teal-700 rounded-lg hover:bg-teal-50 transition text-sm font-medium"
-                          title="Reschedule functionality coming soon"
-                          disabled
                         >
                           Reschedule
                         </button>
@@ -379,6 +435,26 @@ export default function CustomerDashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Reschedule Modal */}
+      {reschedulingAppointment && (
+        <RescheduleModal
+          appointmentId={reschedulingAppointment.appointmentId}
+          bookingId={reschedulingAppointment.bookingId}
+          businessName={reschedulingAppointment.businessName}
+          subdomain={reschedulingAppointment.subdomain}
+          serviceName={reschedulingAppointment.serviceName}
+          serviceId={reschedulingAppointment.serviceId}
+          currentStartTime={reschedulingAppointment.currentStartTime}
+          currentEndTime={reschedulingAppointment.currentEndTime}
+          duration={reschedulingAppointment.duration}
+          onClose={() => setReschedulingAppointment(null)}
+          onSuccess={() => {
+            fetchAppointments();
+            setReschedulingAppointment(null);
+          }}
+        />
+      )}
     </div>
   );
 }

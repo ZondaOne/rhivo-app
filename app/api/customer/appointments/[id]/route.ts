@@ -63,6 +63,7 @@ export async function GET(
         b.subdomain,
         b.timezone as business_timezone,
         s.id as service_id,
+        s.external_id as service_external_id,
         s.name as service_name,
         s.duration_minutes,
         s.price_cents,
@@ -108,6 +109,7 @@ export async function GET(
         },
         service: {
           id: appointment.service_id,
+          external_id: appointment.service_external_id,
           name: appointment.service_name,
           categoryName: appointment.category_name,
           duration: appointment.duration_minutes,
