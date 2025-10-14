@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
 import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
+import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { z } from 'zod';
 import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -87,7 +88,24 @@ export async function POST(request: NextRequest, { params }: { params: { booking
       // Don't fail the cancellation if notification fails
     }
 
-    // TODO: Send confirmation email to guest (implement email service later)
+    // Send cancellation confirmation email to guest (non-blocking)
+    const customerNotificationService = new CustomerNotificationService(db);
+    customerNotificationService
+      .sendCancellationConfirmation({
+        id: appointment.id,
+        businessId: appointment.business_id,
+        serviceId: appointment.service_id,
+        guestEmail: appointment.guest_email,
+        guestName: appointment.guest_name,
+        slotStart: new Date(appointment.slot_start),
+        slotEnd: new Date(appointment.slot_end),
+        status: 'canceled',
+        bookingId,
+      })
+      .catch((error) => {
+        console.error('Failed to send cancellation confirmation email:', error);
+        // Don't block cancellation on email failure
+      });
 
     return NextResponse.json({ success: true });
 

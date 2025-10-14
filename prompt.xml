@@ -512,6 +512,57 @@
   <acceptance>Business owners see real-time notifications for all booking events. Unread notification count is visible in dashboard header. Owners can mark notifications as read and configure notification preferences. Customer actions (cancel/reschedule) immediately notify the business owner.</acceptance>
 </step>
 
+<step number="7u">
+  <title>Customer Email Notifications with Resend and React Email</title>
+  <tasks>
+    <task>Install and configure Resend SDK and React Email libraries (resend, @react-email/components).</task>
+    <task>use Resend API key in environment variables and create email service wrapper module.</task>
+    <task>Design email templates using React Email components for: booking confirmation, appointment reminder (24h before), cancellation confirmation, reschedule confirmation.</task>
+    <task>Build booking confirmation email template: include business name/logo, service details, appointment date/time, booking ID, customer name, cancellation/reschedule link, calendar attachment (.ics file).</task>
+    <task>Build cancellation confirmation email template: confirm cancellation, show original appointment details, provide rebooking link to business booking page.</task>
+    <task>Build reschedule confirmation email template: show old appointment time (strikethrough), new appointment time (highlighted), updated booking details, cancellation link.</task>
+    <task>Build appointment reminder email template: sent 24 hours before appointment, include appointment details, directions/parking info if available, prepare-for-appointment instructions.</task>
+    <task>Implement email delivery functions: sendBookingConfirmation(), sendCancellationConfirmation(), sendRescheduleConfirmation(), sendAppointmentReminder().</task>
+    <task>Integrate email sending into booking flow: trigger sendBookingConfirmation() after successful appointment creation in /api/booking/commit.</task>
+    <task>Integrate email sending into cancellation flow: trigger sendCancellationConfirmation() in customer cancel and guest cancel endpoints.</task>
+    <task>Integrate email sending into reschedule flow: trigger sendRescheduleConfirmation() in unified reschedule endpoint (step 7s).</task>
+    <task>Create email delivery logging table: log all email attempts with status (sent, failed, bounced), recipient, template type, appointment_id, timestamp.</task>
+    <task>Implement retry logic with exponential backoff for transient email delivery failures (rate limits, temporary API errors).</task>
+    <task>Add email delivery status checking: query Resend API for delivery/open/click events and update email_logs table.</task>
+    <task>Design fallback strategy: if Resend fails, log error and optionally fall back to console logging in development or alternative provider in production.</task>
+    <task>Ensure email templates are mobile-responsive and follow branding guidelines (teal/green color scheme, minimal design).</task>
+    <task>Add unsubscribe mechanism: include unsubscribe link in reminder emails (required for transactional email compliance), store preferences in customer record.</task>
+  </tasks>
+  <deliverables>Resend integration module, React Email templates for all customer notifications, email delivery functions, email_logs table schema, retry logic implementation, admin preview page, mobile-responsive email designs, unsubscribe system.</deliverables>
+  <acceptance>Customers receive professional, branded email confirmations immediately after booking. Cancellation and reschedule actions trigger appropriate email notifications. Emails render correctly on desktop and mobile email clients. Email delivery is logged and failures are retried automatically. Reminder emails are sent 24 hours before appointments. Admin can preview all email templates with test data. Unsubscribe link works for reminder emails.</acceptance>
+</step>
+
+<step number="7v">
+  <title>Business Owner Email Notifications for Booking Events</title>
+  <tasks>
+    <task>Design business owner email templates using React Email: new booking notification, cancellation notification, reschedule notification, no-show marked, appointment completed.</task>
+    <task>Build new booking email template: include customer name/contact, service booked, appointment date/time, booking ID, link to appointment in dashboard, total revenue for booking.</task>
+    <task>Build cancellation notification email template: show canceled appointment details, customer name, original date/time, reason if provided, rebooking suggestion if applicable.</task>
+    <task>Build reschedule notification email template: show customer name, old appointment time, new appointment time, booking ID, link to updated appointment in dashboard.</task>
+    <task>Build no-show notification email template: appointment details, customer info, suggestion to mark as no-show in dashboard, option to contact customer.</task>
+    <task>Build daily summary email template: sent each morning with summary of appointments for the day, total bookings, cancellations, revenue forecast, agenda-style list view.</task>
+    <task>Implement owner email delivery functions: sendOwnerNewBookingEmail(), sendOwnerCancellationEmail(), sendOwnerRescheduleEmail(), sendDailySummaryEmail().</task>
+    <task>Integrate owner email sending into booking commit flow: after in-app notification created (step 7t), trigger sendOwnerNewBookingEmail() for all business owners.</task>
+    <task>Integrate owner email sending into cancellation flows: trigger sendOwnerCancellationEmail() in customer cancel, guest cancel, and owner cancel endpoints.</task>
+    <task>Integrate owner email sending into reschedule flow: trigger sendOwnerRescheduleEmail() in unified reschedule endpoint and drag-and-drop reschedule (step 7g).</task>
+    <task>Create owner notification preferences table: allow owners to toggle email notifications per event type (new booking, cancellation, reschedule), set daily summary preference (on/off, time of day).</task>
+    <task>Build notification preferences UI in owner dashboard settings: toggles for each event type, daily summary time picker, test email button.</task>
+    <task>Implement daily summary cron job: scheduled task that runs each morning, fetches today's appointments per business, generates and sends summary emails to opted-in owners.</task>
+    <task>Respect notification preferences: before sending owner emails, check preferences table to ensure owner has that notification type enabled.</task>
+    <task>Add multi-owner support: for businesses with multiple owners, send emails to all owners based on their individual preferences (some may opt out of certain notifications).</task>
+    <task>Include actionable links in owner emails: deep links to specific appointment in dashboard, quick-action links to contact customer, mark as no-show, reschedule.</task>
+    <task>Ensure owner email templates match Rivo branding: use business logo if available, teal/green accent colors, clean minimal design.</task>
+    <task>Implement email digest mode: instead of immediate emails for each event, owners can opt for hourly or daily digest combining multiple notifications into one email.</task>
+  </tasks>
+  <deliverables>React Email templates for owner notifications, owner email delivery functions, notification preferences table and UI, daily summary cron job, multi-owner email distribution logic, preference-respecting email triggers, deep link generation for dashboard actions.</deliverables>
+  <acceptance>Business owners receive email notifications for new bookings, cancellations, and reschedules based on their preferences. Daily summary email provides agenda of today's appointments. Owners can configure notification preferences in dashboard settings. Multi-owner businesses respect individual preferences. Emails include actionable links to dashboard. Digest mode allows batching notifications. All owner emails are professional and branded.</acceptance>
+</step>
+
 <step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>

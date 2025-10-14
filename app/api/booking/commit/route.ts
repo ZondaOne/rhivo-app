@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
 import { AppointmentManager } from '@/lib/booking';
 import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
+import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { generateBookingId } from '@/lib/booking/id';
@@ -64,6 +65,37 @@ export async function POST(request: NextRequest) {
       console.error('Failed to send owner notification:', notificationError);
       // Don't fail the booking if notification fails
     }
+
+    // Send booking confirmation email to customer (non-blocking)
+    console.log('📧 Triggering booking confirmation email:', {
+      appointmentId: appointment.id,
+      guestEmail: data.guestEmail,
+      bookingId: appointment.booking_id,
+    });
+
+    const customerNotificationService = new CustomerNotificationService(db);
+    customerNotificationService
+      .sendBookingConfirmation({
+        id: appointment.id,
+        businessId: appointment.business_id,
+        serviceId: appointment.service_id,
+        customerId: data.customerId,
+        guestEmail: data.guestEmail,
+        guestPhone: data.guestPhone,
+        guestName: data.guestName,
+        slotStart: new Date(appointment.slot_start),
+        slotEnd: new Date(appointment.slot_end),
+        status: appointment.status,
+        bookingId: appointment.booking_id,
+        cancellationToken: appointment.cancellation_token,
+      })
+      .then(() => {
+        console.log('✅ Booking confirmation email sent successfully');
+      })
+      .catch((error) => {
+        console.error('❌ Failed to send booking confirmation email:', error);
+        // Don't block booking on email failure
+      });
 
     return NextResponse.json({
       success: true,

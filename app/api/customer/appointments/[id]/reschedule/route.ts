@@ -6,6 +6,7 @@ import { generateTimeSlots } from '@/lib/booking/slot-generator';
 import { getDbClient } from '@/db/client';
 import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { v4 as uuidv4 } from 'uuid';
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -323,7 +324,7 @@ export async function POST(
       // Don't fail the request if notification fails
     }
 
-    // Queue email confirmation to customer
+    // Queue in-app notification (for notification_logs table - step 7t)
     try {
       const db = getDbClient();
       const notificationService = new NotificationService(db);
@@ -335,8 +336,32 @@ export async function POST(
         );
       }
     } catch (error) {
-      console.error('Failed to queue customer notification:', error);
-      // Don't fail the request if notification fails
+      console.error('Failed to queue in-app notification:', error);
+      // Don't fail the request if notification queueing fails
+    }
+
+    // Send reschedule confirmation email to customer (step 7u - immediate delivery)
+    const customerNotificationService = new CustomerNotificationService(getDbClient());
+    if (appointment.customer_email) {
+      customerNotificationService
+        .sendRescheduleConfirmation(
+          {
+            id: appointmentId,
+            businessId: appointment.business_id,
+            serviceId: appointment.service_id,
+            customerId: appointment.customer_id,
+            slotStart: new Date(newSlotStart),
+            slotEnd: new Date(newSlotEnd),
+            status: 'confirmed',
+            bookingId: appointment.booking_id,
+          },
+          new Date(appointment.slot_start),
+          new Date(appointment.slot_end)
+        )
+        .catch((error) => {
+          console.error('Failed to send reschedule confirmation email:', error);
+          // Don't block reschedule on email failure
+        });
     }
 
     return NextResponse.json({
