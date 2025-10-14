@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
 import { AppointmentManager } from '@/lib/booking';
+import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { generateBookingId } from '@/lib/booking/id';
@@ -37,6 +38,32 @@ export async function POST(request: NextRequest) {
       guestName: data.guestName,
       cancellationToken
     });
+
+    // Send owner notification (non-blocking)
+    try {
+      const ownerNotificationService = new OwnerNotificationService(db);
+
+      // Fetch service name for the notification
+      const serviceResult = await db`
+        SELECT name FROM services WHERE id = ${appointment.service_id} LIMIT 1
+      `;
+      const serviceName = serviceResult[0]?.name || 'Service';
+
+      // Get customer name
+      const customerName = data.guestName || data.customerId || null;
+
+      await ownerNotificationService.notifyOwnerOfNewBooking(
+        appointment.business_id,
+        appointment.id,
+        appointment.booking_id,
+        customerName,
+        serviceName,
+        appointment.slot_start.toISOString()
+      );
+    } catch (notificationError) {
+      console.error('Failed to send owner notification:', notificationError);
+      // Don't fail the booking if notification fails
+    }
 
     return NextResponse.json({
       success: true,

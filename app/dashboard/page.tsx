@@ -6,7 +6,9 @@ import { BusinessProvider, useBusiness } from '@/contexts/BusinessContext';
 import { BusinessSelector } from '@/components/dashboard/BusinessSelector';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointmentModal';
+import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
 import { CalendarView } from '@/lib/calendar-utils';
+import OnboardingTutorial from '@/components/dashboard/OnboardingTutorial';
 
 function DashboardContent() {
   // Initialize from URL params on mount, then use state
@@ -84,6 +86,15 @@ function DashboardContent() {
               Insights
             </div>
           </button>
+
+          <NotificationCenter
+            onNotificationClick={(appointmentId) => {
+              if (appointmentId) {
+                // TODO: Navigate to appointment or scroll to it in calendar
+                console.log('Navigate to appointment:', appointmentId);
+              }
+            }}
+          />
 
           <a
             href="/dashboard/settings"
@@ -329,6 +340,7 @@ function DashboardContent() {
         defaultDate={currentDate}
         businessId={selectedBusinessId}
       />
+      <OnboardingTutorial />
     </div>
   );
 }

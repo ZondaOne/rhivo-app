@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
+import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
 import { z } from 'zod';
 import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest, { params }: { params: { booking
     const db = getDbClient();
 
     const result = await db`
-      SELECT id, status, guest_token_hash, guest_token_expires_at, business_id, service_id, slot_start, slot_end, guest_email
+      SELECT id, status, guest_token_hash, guest_token_expires_at, business_id, service_id, slot_start, slot_end, guest_email, guest_name
       FROM appointments
       WHERE booking_id = ${bookingId} AND deleted_at IS NULL
       LIMIT 1
@@ -69,8 +70,24 @@ export async function POST(request: NextRequest, { params }: { params: { booking
       )
     `;
 
-    // TODO: Send notification to business owner about guest cancellation
-    // TODO: Send confirmation email to guest
+    // Send owner notification (non-blocking)
+    try {
+      const ownerNotificationService = new OwnerNotificationService(db);
+      const customerName = appointment.guest_name || null;
+
+      await ownerNotificationService.notifyOwnerOfCancellation(
+        appointment.business_id,
+        appointment.id,
+        bookingId,
+        customerName,
+        appointment.slot_start.toISOString()
+      );
+    } catch (notificationError) {
+      console.error('Failed to send owner notification:', notificationError);
+      // Don't fail the cancellation if notification fails
+    }
+
+    // TODO: Send confirmation email to guest (implement email service later)
 
     return NextResponse.json({ success: true });
 
