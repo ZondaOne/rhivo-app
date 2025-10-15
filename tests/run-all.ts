@@ -22,6 +22,10 @@ const testSuites = [
   { name: 'Booking Tests', file: 'tests/03-booking.test.ts' },
   { name: 'Appointment Tests', file: 'tests/04-appointments.test.ts' },
   { name: 'Audit Log Tests', file: 'tests/05-audit-logs.test.ts' },
+  { name: 'Advisory Lock Tests (Step 7z)', file: 'tests/06-advisory-locks.test.ts' },
+  { name: 'Database Trigger Tests (Step 7z)', file: 'tests/07-database-triggers.test.ts' },
+  { name: 'Cleanup Resilience Tests (Step 7z)', file: 'tests/08-cleanup-resilience.test.ts' },
+  { name: 'Load Tests (Step 7z)', file: 'tests/load-test.ts' },
 ];
 
 async function runTestSuite(suite: { name: string; file: string }): Promise<TestResult> {

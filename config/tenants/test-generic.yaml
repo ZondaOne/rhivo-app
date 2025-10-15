@@ -1,0 +1,168 @@
+version: "1.0.0"
+
+business:
+  id: "test-generic"
+  name: "Test Business"
+  description: "Generic test business for automated testing"
+  timezone: "America/New_York"
+  locale: "en-US"
+  currency: "USD"
+
+contact:
+  address:
+    street: "123 Test Street"
+    city: "Test City"
+    state: "NY"
+    postalCode: "10001"
+    country: "US"
+  email: "test@example.com"
+  phone: "+1234567890"
+  website: "https://test.example.com"
+  latitude: 40.7128
+  longitude: -74.0060
+
+branding:
+  primaryColor: "#10b981"
+  secondaryColor: "#3b82f6"
+  logoUrl: "https://via.placeholder.com/400"
+  coverImageUrl: "https://via.placeholder.com/1200x600"
+  profileImageUrl: "https://via.placeholder.com/400"
+  faviconUrl: "https://via.placeholder.com/64"
+
+timeSlotDuration: 30
+
+availability:
+  - day: monday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: tuesday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: wednesday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: thursday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: friday
+    open: "09:00"
+    close: "17:00"
+    enabled: true
+  - day: saturday
+    open: "09:00"
+    close: "17:00"
+    enabled: false
+  - day: sunday
+    open: "09:00"
+    close: "17:00"
+    enabled: false
+
+availabilityExceptions: []
+
+categories:
+  - id: "test-services"
+    name: "Test Services"
+    description: "Test services for automated testing"
+    sortOrder: 0
+    services:
+      - id: "test-service-cap1"
+        name: "Test Service (Capacity 1)"
+        description: "Test service with capacity of 1"
+        duration: 60
+        price: 5000
+        color: "#10b981"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 0
+        bufferAfter: 0
+        maxSimultaneousBookings: 1
+
+      - id: "test-service-cap2"
+        name: "Test Service (Capacity 2)"
+        description: "Test service with capacity of 2"
+        duration: 60
+        price: 5000
+        color: "#3b82f6"
+        sortOrder: 1
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 0
+        bufferAfter: 0
+        maxSimultaneousBookings: 2
+
+      - id: "test-service-cap3"
+        name: "Test Service (Capacity 3)"
+        description: "Test service with capacity of 3"
+        duration: 45
+        price: 7500
+        color: "#f59e0b"
+        sortOrder: 2
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 0
+        bufferAfter: 0
+        maxSimultaneousBookings: 3
+
+      - id: "test-service-cap5"
+        name: "Test Service (Capacity 5)"
+        description: "Test service with capacity of 5"
+        duration: 60
+        price: 10000
+        color: "#ef4444"
+        sortOrder: 3
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 0
+        bufferAfter: 0
+        maxSimultaneousBookings: 5
+
+bookingRequirements:
+  requireEmail: true
+  requirePhone: true
+  requireName: false
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields: []
+
+bookingLimits:
+  maxSimultaneousBookings: 2
+  advanceBookingDays: 30
+  minAdvanceBookingMinutes: 0
+  maxBookingsPerCustomerPerDay: 10
+
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 24
+  allowRescheduling: true
+  rescheduleDeadlineHours: 12
+  refundPolicy: "full"
+  partialRefundPercentage: 100
+
+notifications:
+  sendConfirmationEmail: false
+  sendReminderEmail: false
+  reminderHoursBefore: 24
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: "test@example.com"
+  notifyOwnerOnNewBooking: false
+  notifyOwnerOnCancellation: false
+
+features:
+  enableOnlinePayments: false
+  enableWaitlist: false
+  enableReviews: false
+  enableMultipleStaff: false
+
+metadata:
+  parkingAvailable: true
+  wheelchairAccessible: true
+  languages: ["en"]
+  acceptsWalkIns: true
+  dresscode: "Casual"

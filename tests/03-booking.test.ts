@@ -14,8 +14,8 @@ import { nanoid } from 'nanoid';
 
 const testId = nanoid(8);
 const testEmail = `test-booking-${testId}@test.com`;
-const testBusinessName = `Test Booking Business ${testId}`;
-const testSubdomain = `test-booking-${testId}`;
+const testBusinessName = `Test Booking Business`;
+const testSubdomain = `test-generic`; // Use test YAML config
 
 let testUserId: string;
 let testBusinessId: string;
@@ -35,6 +35,7 @@ async function setupTestData() {
         password: 'TestPassword123!',
         name: 'Test Booking Owner',
         businessName: testBusinessName,
+        subdomain: testSubdomain,
         businessPhone: '+1234567890',
         timezone: 'America/New_York',
       }),
@@ -61,6 +62,15 @@ async function setupTestData() {
     testUserId = userId;
     testBusinessId = businessId;
 
+    // Update business to use test YAML config
+    await sql`
+      UPDATE businesses
+      SET
+        subdomain = ${testSubdomain},
+        config_yaml_path = 'config/tenants/test-generic.yaml'
+      WHERE id = ${testBusinessId}
+    `;
+
     // Create category
     const category = await sql`
       INSERT INTO categories (business_id, name, sort_order)
@@ -70,24 +80,28 @@ async function setupTestData() {
 
     const categoryId = category[0].id;
 
-    // Create service
+    // Create service matching test YAML config
     const service = await sql`
       INSERT INTO services (
         business_id,
         category_id,
         name,
+        external_id,
         duration_minutes,
         price_cents,
         color,
+        max_simultaneous_bookings,
         sort_order
       )
       VALUES (
         ${testBusinessId},
         ${categoryId},
-        'Test Service',
-        30,
+        'Test Service (Capacity 2)',
+        'test-service-cap2',
+        60,
         5000,
-        '#10b981',
+        '#3b82f6',
+        2,
         0
       )
       RETURNING id

@@ -16,7 +16,12 @@
     "test:auth": "tsx tests/02-auth.test.ts",
     "test:booking": "tsx tests/03-booking.test.ts",
     "test:appointments": "tsx tests/04-appointments.test.ts",
-    "test:audit": "tsx tests/05-audit-logs.test.ts"
+    "test:audit": "tsx tests/05-audit-logs.test.ts",
+    "test:advisory-locks": "tsx tests/06-advisory-locks.test.ts",
+    "test:triggers": "tsx tests/07-database-triggers.test.ts",
+    "test:cleanup": "tsx tests/08-cleanup-resilience.test.ts",
+    "test:load": "tsx tests/load-test.ts",
+    "test:concurrency": "tsx tests/06-advisory-locks.test.ts && tsx tests/07-database-triggers.test.ts && tsx tests/08-cleanup-resilience.test.ts && tsx tests/load-test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",

@@ -4,6 +4,7 @@ import { getDbClient } from '@/db/client';
 import { AppointmentManager } from '@/lib/booking';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
+import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 
 const createManualAppointmentSchema = z.object({
   service_id: z.string().uuid({ message: 'Invalid service_id' }),
@@ -66,8 +67,19 @@ export async function POST(request: NextRequest) {
   const sql = getDbClient();
 
   try {
+    // Get business subdomain first
+    const [business] = await sql`
+      SELECT subdomain FROM businesses
+      WHERE id = ${payload.business_id}
+      LIMIT 1
+    `;
+
+    if (!business) {
+      return NextResponse.json({ message: 'Business not found' }, { status: 404 });
+    }
+
     const [service] = await sql`
-      SELECT id, business_id, duration_minutes
+      SELECT id, business_id, duration_minutes, external_id
       FROM services
       WHERE id = ${body.service_id}
         AND business_id = ${payload.business_id}
@@ -133,6 +145,26 @@ export async function POST(request: NextRequest) {
       customerId = newCustomer.id as string;
     }
 
+    // Load capacity from YAML config (single source of truth)
+    const configResult = await loadConfigBySubdomain(business.subdomain);
+    if (!configResult.success || !configResult.config) {
+      return NextResponse.json(
+        { message: 'Business configuration not found' },
+        { status: 500 }
+      );
+    }
+
+    const serviceConfig = configResult.config.categories
+      .flatMap((cat) => cat.services)
+      .find((svc) => svc.id === service.external_id);
+
+    if (!serviceConfig) {
+      return NextResponse.json(
+        { message: `Service configuration not found in YAML for external_id: ${service.external_id}` },
+        { status: 500 }
+      );
+    }
+
     const appointmentManager = new AppointmentManager(sql);
     const idempotencyKey = body.idempotency_key ?? nanoid();
 
@@ -146,6 +178,7 @@ export async function POST(request: NextRequest) {
       guestPhone: undefined,
       idempotencyKey,
       actorId: payload.sub,
+      maxSimultaneousBookings: serviceConfig.maxSimultaneousBookings,
     });
 
     const desiredStatus = STATUS_UI_TO_DB[body.status] ?? 'confirmed';

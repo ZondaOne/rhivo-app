@@ -13,7 +13,7 @@ import { nanoid } from 'nanoid';
 
 const testId = nanoid(8);
 const testEmail = `test-audit-${testId}@test.com`;
-const testSubdomain = `test-audit-${testId}`;
+const testSubdomain = `test-generic`; // Use test YAML config
 
 let testUserId: string;
 let testBusinessId: string;
@@ -33,6 +33,7 @@ async function setupTestData() {
         password: 'TestPassword123!',
         name: 'Test Audit Owner',
         businessName: 'Test Audit Business',
+        subdomain: testSubdomain,
         businessPhone: '+1234567890',
         timezone: 'America/New_York',
       }),
@@ -58,6 +59,15 @@ async function setupTestData() {
     testUserId = userId;
     testBusinessId = businessId;
 
+    // Update business to use test YAML config
+    await sql`
+      UPDATE businesses
+      SET
+        subdomain = ${testSubdomain},
+        config_yaml_path = 'config/tenants/test-generic.yaml'
+      WHERE id = ${testBusinessId}
+    `;
+
     // Create category and service
     const category = await sql`
       INSERT INTO categories (business_id, name, sort_order)
@@ -70,24 +80,47 @@ async function setupTestData() {
         business_id,
         category_id,
         name,
+        external_id,
         duration_minutes,
         price_cents,
         color,
+        max_simultaneous_bookings,
         sort_order
       )
       VALUES (
         ${testBusinessId},
         ${category[0].id},
-        'Test Service',
-        30,
+        'Test Service (Capacity 2)',
+        'test-service-cap2',
+        60,
         5000,
-        '#10b981',
+        '#3b82f6',
+        2,
         0
       )
       RETURNING id
     `;
 
     testServiceId = service[0].id;
+
+    // Create business availability (Mon-Fri 9AM-5PM)
+    const daysOfWeek = [1, 2, 3, 4, 5]; // Monday to Friday
+    for (const day of daysOfWeek) {
+      await sql`
+        INSERT INTO availability (
+          business_id,
+          day_of_week,
+          start_time,
+          end_time
+        )
+        VALUES (
+          ${testBusinessId},
+          ${day},
+          '09:00',
+          '17:00'
+        )
+      `;
+    }
 
     debug.success('SETUP', 'Test data created', {
       userId: testUserId,
