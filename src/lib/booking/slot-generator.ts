@@ -190,15 +190,18 @@ function generateSlotsForDay(
 
     // Calculate capacity using 5-minute grain blocks
     // This checks if any 5-min block in the service duration + buffers is occupied
+    // Use per-service capacity if specified, otherwise fall back to business-level default
+    const maxCapacity = service.maxSimultaneousBookings ?? config.bookingLimits.maxSimultaneousBookings;
+
     const capacity = calculateSlotCapacity(
       effectiveStart,
       bufferEnd,
-      config.bookingLimits.maxSimultaneousBookings,
+      maxCapacity,
       appointments,
       reservations
     );
 
-    const totalCapacity = config.bookingLimits.maxSimultaneousBookings;
+    const totalCapacity = maxCapacity;
     const availableCapacity = capacity;
     const usedCapacity = totalCapacity - availableCapacity;
     const capacityPercentage = totalCapacity > 0 ? Math.round((usedCapacity / totalCapacity) * 100) : 0;

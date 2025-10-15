@@ -24,6 +24,7 @@ export interface CreateManualAppointmentParams {
   guestPhone?: string;
   idempotencyKey: string;
   actorId: string;
+  maxSimultaneousBookings: number; // YAML config capacity (single source of truth)
 }
 
 export interface UpdateAppointmentParams {
@@ -34,6 +35,7 @@ export interface UpdateAppointmentParams {
   status?: AppointmentStatus;
   actorId: string;
   expectedVersion: number;
+  maxSimultaneousBookings?: number; // YAML config capacity (required if changing time/service)
 }
 
 export interface AppointmentConflictError extends Error {
@@ -152,6 +154,8 @@ export class AppointmentManager {
   /**
    * Creates a manual appointment directly (for owner/staff use).
    * This bypasses the reservation system and requires appropriate permissions.
+   *
+   * IMPORTANT: maxSimultaneousBookings MUST come from YAML config (single source of truth).
    */
   async createManualAppointment(params: CreateManualAppointmentParams): Promise<Appointment> {
     const {
@@ -163,7 +167,8 @@ export class AppointmentManager {
       guestEmail,
       guestPhone,
       idempotencyKey,
-      actorId
+      actorId,
+      maxSimultaneousBookings
     } = params;
 
     // Check for existing appointment with same idempotency key
@@ -184,7 +189,8 @@ export class AppointmentManager {
         businessId,
         serviceId,
         slotStart,
-        slotEnd
+        slotEnd,
+        maxSimultaneousBookings
       );
 
       if (capacity < 1) {
@@ -263,6 +269,9 @@ export class AppointmentManager {
   /**
    * Updates an appointment with optimistic locking to prevent conflicts.
    * Uses version field to detect concurrent modifications.
+   *
+   * IMPORTANT: If updating time or service, maxSimultaneousBookings MUST be provided
+   * from YAML config (single source of truth).
    */
   async updateAppointment(params: UpdateAppointmentParams): Promise<Appointment> {
     const {
@@ -272,7 +281,8 @@ export class AppointmentManager {
       serviceId,
       status,
       actorId,
-      expectedVersion
+      expectedVersion,
+      maxSimultaneousBookings
     } = params;
 
     return withTransaction(async (txDb) => {
@@ -300,20 +310,18 @@ export class AppointmentManager {
 
       // If updating time slot or service, check capacity
       if (slotStart || slotEnd || serviceId) {
+        if (!maxSimultaneousBookings) {
+          throw new Error('maxSimultaneousBookings is required when updating time or service');
+        }
+
         const newStart = slotStart || currentAppointment.slot_start;
         const newEnd = slotEnd || currentAppointment.slot_end;
         const newServiceId = serviceId || currentAppointment.service_id;
 
         // Temporarily exclude current appointment from capacity check
+        // Capacity value comes from YAML config (passed as parameter), not from database
         const capacity = await txDb`
-          WITH service_capacity AS (
-            SELECT max_simultaneous_bookings
-            FROM services
-            WHERE id = ${newServiceId}
-              AND business_id = ${currentAppointment.business_id}
-              AND deleted_at IS NULL
-          ),
-          occupied_count AS (
+          WITH occupied_count AS (
             SELECT COUNT(*) as count
             FROM (
               SELECT 1
@@ -339,10 +347,10 @@ export class AppointmentManager {
           )
           SELECT
             GREATEST(
-              service_capacity.max_simultaneous_bookings - occupied_count.count,
+              ${maxSimultaneousBookings} - occupied_count.count,
               0
             ) as available
-          FROM service_capacity, occupied_count
+          FROM occupied_count
         `;
 
         if (capacity[0]?.available < 1) {

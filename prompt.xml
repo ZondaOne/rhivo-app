@@ -563,6 +563,93 @@
   <acceptance>Business owners receive email notifications for new bookings, cancellations, and reschedules based on their preferences. Daily summary email provides agenda of today's appointments. Owners can configure notification preferences in dashboard settings. Multi-owner businesses respect individual preferences. Emails include actionable links to dashboard. Digest mode allows batching notifications. All owner emails are professional and branded.</acceptance>
 </step>
 
+<step number="7w">
+  <title>Critical: YAML-Database Capacity Consistency and Per-Service Configuration</title>
+  <tasks>
+    <task>CRITICAL FIX: Resolve capacity configuration mismatch between YAML and database to ensure data consistency.</task>
+    <task>Add maxSimultaneousBookings field to YAML service schema as optional per-service override of business-level default.</task>
+    <task>Update tenant-schema.ts: extend ServiceSchema with optional maxSimultaneousBookings field (integer, min 1, max 100).</task>
+    <task>Update services database table: ensure max_simultaneous_bookings column exists and can store per-service capacity values.</task>
+    <task>Modify business onboarding pipeline to sync YAML capacity values to database during service creation: use service.maxSimultaneousBookings if present, otherwise fall back to business-level bookingLimits.maxSimultaneousBookings.</task>
+    <task>Remove database column max_simultaneous_bookings as source of truth: all capacity checks must read from YAML config loaded in memory, never query database column directly.</task>
+    <task>Refactor slot-generator.ts: pass service-specific maxSimultaneousBookings from YAML config to calculateSlotCapacity function, use this value instead of config.bookingLimits.maxSimultaneousBookings.</task>
+    <task>Refactor reservation-manager.ts: modify createReservation CTE to read capacity from passed parameter instead of querying services.max_simultaneous_bookings from database.</task>
+    <task>Update appointment-manager.ts: pass capacity value from YAML config when checking availability during manual appointment creation and rescheduling.</task>
+    <task>Create YAML config sync validation script: on config update, verify all service capacity values are consistent between YAML and in-memory config cache.</task>
+    <task>Add database migration to add buffer_before_minutes and buffer_after_minutes columns to services table for complete YAML-to-DB consistency.</task>
+    <task>Update onboarding pipeline to populate buffer columns from YAML service.bufferBefore and service.bufferAfter fields during service creation.</task>
+    <task>Add 5-minute grain enforcement constraints to database: ALTER TABLE services ADD CONSTRAINT check duration_minutes, buffer_before_minutes, buffer_after_minutes are multiples of 5.</task>
+    <task>Update all API endpoints that query services to include buffer columns in SELECT statements and pass to slot generation logic.</task>
+    <task>Document single source of truth principle: YAML config is authoritative for all booking business logic; database stores operational data only.</task>
+  </tasks>
+  <deliverables>Updated tenant-schema.ts with per-service capacity, refactored slot-generator.ts and reservation-manager.ts to use YAML values exclusively, database migration adding buffer columns and 5min grain constraints, updated onboarding pipeline with YAML-to-DB sync, config validation script, comprehensive documentation of data flow and source of truth architecture.</deliverables>
+  <acceptance>All capacity checks use YAML configuration values exclusively. Database column max_simultaneous_bookings is deprecated or removed. Per-service capacity overrides work correctly in YAML configs. Slot generation and reservation creation produce identical availability results. Buffer times are stored in database and used consistently. 5-minute grain constraints enforced at database level prevent invalid data. Onboarding pipeline creates services with all YAML fields synced to database. No capacity mismatch between YAML config and runtime booking logic. All existing YAML configs updated with per-service capacity where needed. Load tests confirm no double-bookings under concurrent load.</acceptance>
+</step>
+
+<step number="7x">
+  <title>Critical: Reservation Race Condition Fix with Database Locking</title>
+  <tasks>
+    <task>CRITICAL FIX: Eliminate time-of-check-to-time-of-use race condition in reservation creation that can cause double-bookings under high concurrency.</task>
+    <task>Analyze current reservation-manager.ts CTE implementation: identify that WHERE clause capacity check happens outside database lock, allowing multiple transactions to pass check simultaneously.</task>
+    <task>Implement PostgreSQL advisory lock strategy: add pg_advisory_xact_lock to reservation creation CTE to serialize concurrent reservation attempts for same time slot.</task>
+    <task>Design lock key generation: create deterministic hash function that combines business_id, service_id, and slot_start to produce unique int8 lock key for pg_advisory_xact_lock.</task>
+    <task>Update reservation-manager.ts createReservation method: add slot_lock CTE that acquires advisory lock before checking capacity and inserting reservation.</task>
+    <task>Add reservation capacity trigger to database: CREATE TRIGGER reservations_capacity_check BEFORE INSERT OR UPDATE that validates capacity constraints at database level as final safety net.</task>
+    <task>Implement check_reservation_capacity() function similar to check_appointment_capacity() trigger: count overlapping reservations and appointments, enforce maxSimultaneousBookings limit, raise exception if exceeded.</task>
+    <task>Update unique index on reservations table: modify reservations_slot_unique_idx to NOT include expires_at in unique constraint, preventing same slot from having multiple active reservations regardless of expiry time.</task>
+    <task>Handle index constraint conflicts: when multiple start times are valid for same service due to timeSlotDuration being smaller than serviceDuration, ensure uniqueness constraint accounts for this.</task>
+    <task>Add transaction isolation level configuration: update withTransaction helper in db/client.ts to use SERIALIZABLE isolation for all booking-critical operations.</task>
+    <task>Implement reservation cleanup monitoring: add metrics tracking for expired reservation count, cleanup job success rate, and reservation table size to detect cleanup failures early.</task>
+    <task>Create load testing harness: build script that simulates 100 concurrent clients attempting to book same time slot, verify only maxSimultaneousBookings succeed and rest receive clear error messages.</task>
+    <task>Add rate limiting to reservation API endpoint: prevent malicious clients from spamming reservation creation, implement per-IP limit of 10 reservations per 5 minutes.</task>
+    <task>Document concurrency guarantees: update TRANSACTIONS_IMPLEMENTATION.md with detailed explanation of advisory locks, trigger safety net, and why race conditions are now prevented.</task>
+  </tasks>
+  <deliverables>Refactored reservation-manager.ts with advisory locks, new database trigger check_reservation_capacity(), updated unique constraints on reservations table, transaction isolation level configuration, reservation cleanup monitoring system, load testing harness proving no double-bookings, rate limiting implementation, updated concurrency documentation.</deliverables>
+  <acceptance>100 concurrent reservation attempts for same slot result in exactly maxSimultaneousBookings successful reservations and remaining attempts receive "slot unavailable" error. No double-bookings occur under load testing. Advisory locks serialize concurrent access to same time slot. Database trigger provides final safety net against capacity violations. Reservation table unique constraint prevents duplicate active reservations for same slot. Transaction isolation level prevents phantom reads. Rate limiting prevents abuse. Load tests pass consistently with zero overbooking incidents. Documentation clearly explains multi-layer concurrency protection strategy.</acceptance>
+</step>
+
+<step number="7y">
+  <title>Critical: Reservation Cleanup and Monitoring System</title>
+  <tasks>
+    <task>CRITICAL FIX: Ensure expired reservations are reliably cleaned up and do not block capacity indefinitely.</task>
+    <task>Verify reservation cleanup cron job configuration: ensure vercel.json or equivalent deployment config includes cron schedule for /api/cron/cleanup-reservations running every 5 minutes.</task>
+    <task>Add cleanup job health monitoring: create /api/health/reservations endpoint that returns metrics on expired reservation count, last cleanup timestamp, and average cleanup duration.</task>
+    <task>Implement cleanup failure alerting: if expired reservation count exceeds 100 or last cleanup was more than 15 minutes ago, send alert to monitoring system.</task>
+    <task>Add automatic cleanup fallback: if cron job fails, trigger cleanup automatically when any reservation query detects more than 50 expired reservations.</task>
+    <task>Create reservation metrics dashboard: track active reservations, expired reservations, cleanup frequency, reservation-to-appointment conversion rate, and expiry TTL distribution.</task>
+    <task>Optimize reservation queries: ensure all queries that check capacity use "WHERE expires_at > NOW()" filter and have proper index on expires_at column.</task>
+    <task>Add reservation expiry monitoring: alert if average TTL is consistently maxed out (indicates users abandoning bookings), suggesting UX friction in booking flow.</task>
+    <task>Implement graceful degradation: if reservation table size exceeds 10,000 rows, automatically trigger aggressive cleanup and log warning for investigation.</task>
+    <task>Document cleanup job dependencies: ensure deployment checklist includes verifying CRON_SECRET environment variable, testing cron endpoint authentication, and monitoring setup.</task>
+  </tasks>
+  <deliverables>Verified cron configuration, health check endpoint, cleanup monitoring dashboard, automatic cleanup fallback mechanism, alerting system for cleanup failures, optimized reservation queries, reservation metrics tracking, graceful degradation strategy, deployment checklist updates.</deliverables>
+  <acceptance>Reservation cleanup runs every 5 minutes without failure. Health endpoint returns current system state. Alerts trigger if cleanup job fails or expired reservation count is high. Automatic fallback cleanup prevents table bloat. Reservation queries are optimized with proper indexes. Metrics dashboard shows healthy reservation lifecycle. System gracefully handles cleanup failures without impacting booking availability. Documentation includes complete cleanup job setup and monitoring instructions.</acceptance>
+</step>
+
+<step number="7z">
+  <title>Critical: Comprehensive Integration Testing for Data Consistency</title>
+  <tasks>
+    <task>CRITICAL: Build comprehensive test suite proving no double-bookings occur under all edge cases and concurrent scenarios.</task>
+    <task>Create concurrency test harness: extend existing __tests__/concurrency.test.ts with additional scenarios covering YAML capacity, race conditions, and cleanup failures.</task>
+    <task>Test YAML-database capacity sync: verify slot generation and reservation creation use identical capacity values from YAML config, test with various service configurations.</task>
+    <task>Test per-service capacity overrides: create YAML with mixed capacity (service A: 2, service B: 1, business default: 3), verify each service respects its specific limit.</task>
+    <task>Test advisory lock effectiveness: spawn 100 concurrent requests for same slot with capacity=1, verify exactly 1 succeeds and 99 fail with "slot unavailable".</task>
+    <task>Test database trigger safety net: attempt to bypass application logic and insert reservation directly via SQL, verify trigger prevents capacity violation.</task>
+    <task>Test reservation expiry and cleanup: create reservation, wait for expiry, verify capacity is freed, verify cleanup job removes expired record.</task>
+    <task>Test idempotency key handling: make same reservation request twice with identical idempotency key, verify second request returns existing reservation instead of error.</task>
+    <task>Test 5-minute grain enforcement: attempt to create service with duration=37 minutes via database insert, verify constraint prevents invalid data.</task>
+    <task>Test buffer time calculations: create overlapping appointments with buffer times, verify slot generator correctly marks slots unavailable during buffer periods.</task>
+    <task>Test multi-hour service booking: book 90-minute service in business with 30-minute time slots, verify slot generator shows correct availability gaps.</task>
+    <task>Test capacity across service types: with business capacity=2, book service A at 10:00 and service B at 10:00, verify third booking at 10:00 is rejected if business-level capacity applies.</task>
+    <task>Test optimistic locking: simulate concurrent appointment updates, verify version conflict detection prevents lost updates.</task>
+    <task>Test cleanup failure scenario: disable cleanup job, create 100 expired reservations, verify system still functions and fallback cleanup triggers.</task>
+    <task>Create load testing script: simulate realistic booking patterns (100 users booking across 50 time slots over 1 hour), verify no capacity violations and all bookings properly logged.</task>
+    <task>Document all test scenarios and expected behaviors: create TEST_SCENARIOS.md with descriptions of each test, rationale, and acceptance criteria.</task>
+  </tasks>
+  <deliverables>Extended concurrency test suite with 20+ test scenarios, YAML capacity sync tests, advisory lock verification tests, trigger enforcement tests, expiry and cleanup tests, idempotency tests, grain constraint tests, buffer time tests, load testing script simulating production traffic, TEST_SCENARIOS.md documentation.</deliverables>
+  <acceptance>All concurrency tests pass with zero failures. YAML and database capacity values stay synchronized. Advisory locks prevent race conditions in all scenarios. Database triggers catch any capacity violations that bypass application logic. Reservation expiry and cleanup work reliably. Idempotency prevents duplicate bookings on retry. 5-minute grain constraints enforced. Buffer times calculated correctly. Multi-hour services book without conflicts. Business-level capacity limits respected across service types. Optimistic locking detects conflicts. Cleanup failures handled gracefully. Load tests complete successfully with no overbooking incidents. Test coverage exceeds 90% for booking-critical code paths. Documentation provides clear test execution instructions and debugging guidance.</acceptance>
+</step>
+
 <step number="13">
   <title>Post-launch: telemetry, iterative improvements</title>
   <tasks>

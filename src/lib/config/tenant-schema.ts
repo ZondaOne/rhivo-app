@@ -168,6 +168,12 @@ const ServiceSchema = z.object({
   requiresDeposit: z.boolean().default(false),
   depositAmount: z.number().int().min(0).optional(),
   maxAdvanceBookingDays: z.number().int().min(0).optional(), // Override global setting
+  // Per-service capacity override (falls back to business-level bookingLimits.maxSimultaneousBookings)
+  maxSimultaneousBookings: z.number()
+    .int('Max simultaneous bookings must be an integer')
+    .min(1, 'Must allow at least 1 booking per slot')
+    .max(100, 'Cannot exceed 100 simultaneous bookings')
+    .optional(),
   bufferBefore: z.number().int().min(0).default(0)
     .transform((val) => {
       // Auto-round to nearest 5-minute block

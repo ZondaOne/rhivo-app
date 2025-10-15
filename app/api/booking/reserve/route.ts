@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
 import { ReservationManager } from '@/lib/booking';
 import { getServiceByIdentifier } from '@/lib/db/service-helpers';
+import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 import { z } from 'zod';
 
 const reserveSchema = z.object({
@@ -46,6 +47,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Load YAML config to get capacity (single source of truth)
+    const business = await db`
+      SELECT subdomain, config_yaml_path FROM businesses
+      WHERE id = ${data.businessId} AND deleted_at IS NULL
+      LIMIT 1
+    `;
+
+    if (business.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Business not found' },
+        { status: 404 }
+      );
+    }
+
+    const configResult = await loadConfigBySubdomain(business[0].subdomain);
+
+    if (!configResult.success || !configResult.config) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to load business configuration' },
+        { status: 500 }
+      );
+    }
+
+    const config = configResult.config;
+
+    // Find the service in YAML config to get capacity
+    let serviceConfig = null;
+    for (const category of config.categories) {
+      const found = category.services.find((s: any) => s.id === service.external_id);
+      if (found) {
+        serviceConfig = found;
+        break;
+      }
+    }
+
+    if (!serviceConfig) {
+      return NextResponse.json(
+        { success: false, error: 'Service configuration not found in YAML' },
+        { status: 500 }
+      );
+    }
+
+    // Use per-service capacity or fall back to business-level default
+    const maxSimultaneousBookings = serviceConfig.maxSimultaneousBookings ?? config.bookingLimits.maxSimultaneousBookings;
+
     // Handle both startTime (simplified) and slotStart/slotEnd (explicit)
     let slotStart: Date;
     let slotEnd: Date;
@@ -73,7 +119,8 @@ export async function POST(request: NextRequest) {
       slotStart,
       slotEnd,
       idempotencyKey: data.idempotencyKey,
-      ttlMinutes: data.ttlMinutes
+      ttlMinutes: data.ttlMinutes,
+      maxSimultaneousBookings // Pass YAML config capacity
     });
 
     return NextResponse.json({

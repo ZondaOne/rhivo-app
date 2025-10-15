@@ -9,6 +9,7 @@ export interface CreateReservationParams {
   slotEnd: Date;
   idempotencyKey: string;
   ttlMinutes?: number;
+  maxSimultaneousBookings: number; // YAML config capacity (single source of truth)
 }
 
 export interface ReservationValidationResult {
@@ -24,6 +25,9 @@ export class ReservationManager {
    * Creates a reservation with atomic capacity checking.
    * This method ensures that the reservation respects the maxSimultaneousBookings
    * constraint by using database-level checks.
+   *
+   * IMPORTANT: maxSimultaneousBookings MUST come from YAML config (single source of truth),
+   * NOT from the database. This ensures consistency between slot generation and reservation logic.
    */
   async createReservation(params: CreateReservationParams): Promise<Reservation> {
     const {
@@ -32,7 +36,8 @@ export class ReservationManager {
       slotStart,
       slotEnd,
       idempotencyKey,
-      ttlMinutes = 15
+      ttlMinutes = 15,
+      maxSimultaneousBookings
     } = params;
 
     // Check for existing reservation with same idempotency key
@@ -53,15 +58,9 @@ export class ReservationManager {
     try {
       // Atomic reservation creation with capacity check
       // This query will fail if creating the reservation would exceed capacity
+      // Capacity value comes from YAML config (passed as parameter), not from database
       const result = await this.db`
-        WITH service_capacity AS (
-          SELECT max_simultaneous_bookings
-          FROM services
-          WHERE id = ${serviceId}
-            AND business_id = ${businessId}
-            AND deleted_at IS NULL
-        ),
-        overlapping_count AS (
+        WITH overlapping_count AS (
           SELECT COUNT(*) as count
           FROM (
             -- Count confirmed appointments in the slot
@@ -105,8 +104,8 @@ export class ReservationManager {
           ${idempotencyKey},
           ${expiresAt},
           NOW()
-        FROM service_capacity, overlapping_count
-        WHERE overlapping_count.count < service_capacity.max_simultaneous_bookings
+        FROM overlapping_count
+        WHERE overlapping_count.count < ${maxSimultaneousBookings}
         RETURNING *
       `;
 
@@ -206,22 +205,19 @@ export class ReservationManager {
 
   /**
    * Get available capacity for a specific time slot
+   *
+   * IMPORTANT: maxSimultaneousBookings MUST come from YAML config (single source of truth),
+   * NOT from the database. This ensures consistency between slot generation and reservation logic.
    */
   async getAvailableCapacity(
     businessId: string,
     serviceId: string,
     slotStart: Date,
-    slotEnd: Date
+    slotEnd: Date,
+    maxSimultaneousBookings: number
   ): Promise<number> {
     const result = await this.db`
-      WITH service_capacity AS (
-        SELECT max_simultaneous_bookings
-        FROM services
-        WHERE id = ${serviceId}
-          AND business_id = ${businessId}
-          AND deleted_at IS NULL
-      ),
-      occupied_count AS (
+      WITH occupied_count AS (
         SELECT COUNT(*) as count
         FROM (
           -- Count confirmed appointments
@@ -248,10 +244,10 @@ export class ReservationManager {
       )
       SELECT
         GREATEST(
-          service_capacity.max_simultaneous_bookings - occupied_count.count,
+          ${maxSimultaneousBookings} - occupied_count.count,
           0
         ) as available
-      FROM service_capacity, occupied_count
+      FROM occupied_count
     `;
 
     return result[0]?.available ?? 0;
