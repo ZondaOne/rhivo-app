@@ -22,12 +22,16 @@ export class ReservationManager {
   constructor(private db: DbClient) {}
 
   /**
-   * Creates a reservation with atomic capacity checking.
+   * Creates a reservation with atomic capacity checking using advisory locks.
    * This method ensures that the reservation respects the maxSimultaneousBookings
-   * constraint by using database-level checks.
+   * constraint by using database-level checks AND PostgreSQL advisory locks
+   * to prevent race conditions.
    *
    * IMPORTANT: maxSimultaneousBookings MUST come from YAML config (single source of truth),
    * NOT from the database. This ensures consistency between slot generation and reservation logic.
+   *
+   * CRITICAL: Advisory locks serialize concurrent reservation attempts for the same time slot,
+   * eliminating the time-of-check-to-time-of-use (TOCTOU) race condition.
    */
   async createReservation(params: CreateReservationParams): Promise<Reservation> {
     const {
@@ -55,12 +59,21 @@ export class ReservationManager {
     const reservationId = uuidv4();
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
+    // Generate deterministic lock key for this slot
+    // Combines business_id, service_id, and slot_start to create unique int8 lock
+    const lockKey = this.generateAdvisoryLockKey(businessId, serviceId, slotStart);
+
     try {
-      // Atomic reservation creation with capacity check
-      // This query will fail if creating the reservation would exceed capacity
-      // Capacity value comes from YAML config (passed as parameter), not from database
+      // Atomic reservation creation with advisory lock to prevent TOCTOU race conditions
+      // The lock is acquired first, then capacity is checked, then insertion happens
+      // All within the transaction scope - lock is released automatically at transaction end
       const result = await this.db`
-        WITH overlapping_count AS (
+        WITH slot_lock AS (
+          -- Acquire advisory lock for this specific slot
+          -- This serializes all concurrent reservation attempts for the same slot
+          SELECT pg_advisory_xact_lock(${lockKey})
+        ),
+        overlapping_count AS (
           SELECT COUNT(*) as count
           FROM (
             -- Count confirmed appointments in the slot
@@ -104,7 +117,7 @@ export class ReservationManager {
           ${idempotencyKey},
           ${expiresAt},
           NOW()
-        FROM overlapping_count
+        FROM slot_lock, overlapping_count
         WHERE overlapping_count.count < ${maxSimultaneousBookings}
         RETURNING *
       `;
@@ -136,6 +149,35 @@ export class ReservationManager {
 
       throw error;
     }
+  }
+
+  /**
+   * Generate a deterministic advisory lock key for a time slot.
+   * Combines business_id, service_id, and slot_start into a unique int8.
+   *
+   * Uses a simple hash function that creates a 64-bit integer suitable
+   * for pg_advisory_xact_lock.
+   */
+  private generateAdvisoryLockKey(businessId: string, serviceId: string, slotStart: Date): bigint {
+    // Convert UUIDs and timestamp to a deterministic hash
+    // We use the first 8 bytes of business_id + first 8 bytes of service_id + timestamp
+    const businessHash = this.hashUuid(businessId);
+    const serviceHash = this.hashUuid(serviceId);
+    const timeHash = BigInt(Math.floor(slotStart.getTime() / 1000)); // Unix timestamp in seconds
+
+    // Combine hashes using bitwise operations
+    // This creates a unique lock key for each business + service + time slot combination
+    const maxInt64 = BigInt('0x7FFFFFFFFFFFFFFF'); // Max positive int8 (63 bits)
+    return (businessHash ^ serviceHash ^ timeHash) & maxInt64;
+  }
+
+  /**
+   * Hash a UUID string into a bigint for lock key generation
+   */
+  private hashUuid(uuid: string): bigint {
+    // Remove hyphens and take first 16 hex characters (8 bytes)
+    const hex = uuid.replace(/-/g, '').substring(0, 16);
+    return BigInt('0x' + hex);
   }
 
   /**

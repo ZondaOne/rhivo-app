@@ -31,14 +31,36 @@ export const sql = new Proxy({} as ReturnType<typeof neon>, {
 // Type helpers for common database operations
 export type DbClient = ReturnType<typeof getDbClient>;
 
-// Transaction helper
+// Transaction isolation levels
+export type TransactionIsolationLevel =
+  | 'READ UNCOMMITTED'
+  | 'READ COMMITTED'
+  | 'REPEATABLE READ'
+  | 'SERIALIZABLE';
+
+export interface TransactionOptions {
+  isolationLevel?: TransactionIsolationLevel;
+}
+
+/**
+ * Transaction helper with configurable isolation level
+ *
+ * For booking operations, use SERIALIZABLE isolation to prevent phantom reads
+ * and ensure complete consistency under concurrent load.
+ *
+ * Note: Neon's serverless driver doesn't support connection pooling with
+ * long-lived transactions, so we use BEGIN/COMMIT within a single query context.
+ */
 export async function withTransaction<T>(
-  callback: (sql: DbClient) => Promise<T>
+  callback: (sql: DbClient) => Promise<T>,
+  options: TransactionOptions = {}
 ): Promise<T> {
   const client = getDbClient();
+  const isolationLevel = options.isolationLevel || 'READ COMMITTED';
 
   try {
-    await client`BEGIN`;
+    // Begin transaction with specified isolation level
+    await client`BEGIN TRANSACTION ISOLATION LEVEL ${client.unsafe(isolationLevel)}`;
     const result = await callback(client);
     await client`COMMIT`;
     return result;
@@ -46,4 +68,14 @@ export async function withTransaction<T>(
     await client`ROLLBACK`;
     throw error;
   }
+}
+
+/**
+ * Shorthand for SERIALIZABLE transaction
+ * Use this for critical booking operations
+ */
+export async function withSerializableTransaction<T>(
+  callback: (sql: DbClient) => Promise<T>
+): Promise<T> {
+  return withTransaction(callback, { isolationLevel: 'SERIALIZABLE' });
 }

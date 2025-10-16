@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import RippleGrid from '@/components/dashboard/RippleGrid';
 
 export default function Home() {
   return (
@@ -13,8 +14,19 @@ export default function Home() {
           <div className="absolute top-1/3 left-1/4 w-[700px] h-[700px] bg-gradient-to-br from-teal-300/25 via-green-300/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '12s' }} />
           <div className="absolute bottom-1/4 right-1/3 w-[600px] h-[600px] bg-gradient-to-tl from-green-300/20 via-teal-300/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '15s', animationDelay: '3s' }} />
 
-          {/* Subtle grid texture */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:5rem_5rem] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,black_10%,transparent_100%)] opacity-30" />
+          <RippleGrid
+            enableRainbow={false}
+            gridColor="#14b8a6"
+            rippleIntensity={0.004}
+            gridSize={15}
+            gridThickness={20}
+            mouseInteraction={false}
+            mouseInteractionRadius={1.5}
+            opacity={0.2}
+            fadeDistance={3.0}
+            vignetteStrength={3}
+            glowIntensity={0.1}
+          />
         </div>
 
         {/* Content */}

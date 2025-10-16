@@ -3,6 +3,7 @@ import { getDbClient } from '@/db/client';
 import { ReservationManager } from '@/lib/booking';
 import { getServiceByIdentifier } from '@/lib/db/service-helpers';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
+import { checkRateLimit, getClientIdentifier } from '@/lib/middleware/rate-limiter';
 import { z } from 'zod';
 
 const reserveSchema = z.object({
@@ -16,6 +17,32 @@ const reserveSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 10 reservation attempts per 5 minutes per IP
+  const clientId = getClientIdentifier(request);
+  const rateLimit = checkRateLimit(clientId, {
+    maxRequests: 10,
+    windowMs: 5 * 60 * 1000, // 5 minutes
+  });
+
+  if (!rateLimit.allowed) {
+    const resetIn = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Too many reservation attempts. Please try again later.',
+        retryAfter: resetIn,
+      },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimit.resetAt.toString(),
+          'Retry-After': resetIn.toString(),
+        },
+      }
+    );
+  }
   try {
     const body = await request.json();
     const data = reserveSchema.parse(body);
@@ -123,18 +150,27 @@ export async function POST(request: NextRequest) {
       maxSimultaneousBookings // Pass YAML config capacity
     });
 
-    return NextResponse.json({
-      success: true,
-      reservationId: reservation.id,
-      reservationToken: reservation.id, // Same as ID for now
-      expiresAt: reservation.expires_at,
-      reservation: {
-        id: reservation.id,
+    return NextResponse.json(
+      {
+        success: true,
+        reservationId: reservation.id,
+        reservationToken: reservation.id, // Same as ID for now
         expiresAt: reservation.expires_at,
-        slotStart: reservation.slot_start,
-        slotEnd: reservation.slot_end
+        reservation: {
+          id: reservation.id,
+          expiresAt: reservation.expires_at,
+          slotStart: reservation.slot_start,
+          slotEnd: reservation.slot_end
+        }
+      },
+      {
+        headers: {
+          'X-RateLimit-Limit': '10',
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': rateLimit.resetAt.toString(),
+        },
       }
-    });
+    );
   } catch (error: any) {
     if (error.message.includes('no longer available')) {
       return NextResponse.json(
