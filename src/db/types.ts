@@ -6,6 +6,7 @@ export type AppointmentStatus = 'confirmed' | 'canceled' | 'completed' | 'no_sho
 export type NotificationChannel = 'email' | 'sms' | 'webhook';
 export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'retrying';
 export type AuditAction = 'created' | 'confirmed' | 'modified' | 'canceled' | 'completed' | 'no_show';
+export type NotificationType = 'booking_created' | 'booking_canceled' | 'booking_rescheduled' | 'no_show_marked' | 'appointment_completed';
 
 export interface Business {
   id: string;
@@ -22,11 +23,18 @@ export interface Business {
 
 export interface User {
   id: string;
-  email: string;
+  email: string | null;
+  name: string | null;
   phone: string | null;
   role: UserRole;
   business_id: string | null;
   password_hash: string | null;
+  email_verified: boolean;
+  email_verification_token: string | null;
+  email_verification_expires_at: Date | null;
+  password_reset_token: string | null;
+  password_reset_expires_at: Date | null;
+  requires_password_change: boolean;
   created_at: Date;
   deleted_at: Date | null;
 }
@@ -76,23 +84,28 @@ export interface Reservation {
 
 export interface Appointment {
   id: string;
+  booking_id: string;
   business_id: string;
   service_id: string;
   customer_id: string | null;
   customer_name?: string | null;
   customer_email?: string | null;
   customer_phone?: string | null;
+  guest_name: string | null;
   guest_email?: string | null;
   guest_phone?: string | null;
   start_time: Date | string;
   end_time: Date | string;
   slot_start?: Date;
   slot_end?: Date;
-  status: AppointmentStatus | 'pending' | 'confirmed' | 'cancelled';
+  status: AppointmentStatus;
   notes?: string | null;
   idempotency_key?: string;
   reservation_id?: string | null;
+  /** @deprecated Use guest_token_hash instead */
   cancellation_token?: string | null;
+  guest_token_hash: string | null;
+  guest_token_expires_at: Date | null;
   version?: number;
   created_at: Date | string;
   updated_at: Date | string;
@@ -107,6 +120,18 @@ export interface AuditLog {
   old_state: Record<string, any> | null;
   new_state: Record<string, any>;
   timestamp: Date;
+}
+
+export interface Notification {
+    id: string;
+    business_id: string;
+    user_id: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    appointment_id: string | null;
+    read: boolean;
+    created_at: Date;
 }
 
 export interface NotificationLog {

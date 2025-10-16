@@ -2,9 +2,9 @@
 
 This document provides a comprehensive reference for the Rivo database schema. All tables, columns, constraints, and relationships are documented here.
 
-**Generated:** 2025-10-04
+**Generated:** 2025-10-16
 **Database:** PostgreSQL 16.9 on NeonDB
-**Migrations Status:** Up to date (migrations 001-013 ready)
+**Migrations Status:** Up to date (migrations 001-020 applied)
 
 ---
 
@@ -22,6 +22,7 @@ This document provides a comprehensive reference for the Rivo database schema. A
   - [reservations](#reservations)
   - [appointments](#appointments)
   - [audit_logs](#audit_logs)
+  - [notifications](#notifications)
   - [notification_logs](#notification_logs)
   - [refresh_tokens](#refresh_tokens)
   - [jwt_revocations](#jwt_revocations)
@@ -75,6 +76,11 @@ The Rivo database is designed for a multi-tenant appointment booking platform. K
 'created' | 'confirmed' | 'modified' | 'canceled' | 'completed' | 'no_show'
 ```
 
+### `notification_type`
+```sql
+'booking_created' | 'booking_canceled' | 'booking_rescheduled' | 'no_show_marked' | 'appointment_completed'
+```
+
 ---
 
 ## Tables
@@ -113,7 +119,7 @@ User accounts (owners, staff, customers).
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | `id` | UUID | NO | `uuid_generate_v4()` | Primary key |
-| `email` | TEXT | NO | - | User email address |
+| `email` | TEXT | YES | - | User email address |
 | `name` | TEXT | YES | NULL | User full name |
 | `phone` | TEXT | YES | NULL | User phone number |
 | `role` | user_role | NO | - | User role |
@@ -124,17 +130,20 @@ User accounts (owners, staff, customers).
 | `email_verification_expires_at` | TIMESTAMPTZ | YES | NULL | Token expiration |
 | `password_reset_token` | TEXT | YES | NULL | Hashed password reset token |
 | `password_reset_expires_at` | TIMESTAMPTZ | YES | NULL | Token expiration |
+| `requires_password_change` | BOOLEAN | NO | `FALSE` | Flag to force password change on next login |
 | `created_at` | TIMESTAMPTZ | NO | `NOW()` | Record creation timestamp |
 | `deleted_at` | TIMESTAMPTZ | YES | NULL | Soft delete timestamp |
 
 **Constraints:**
 - PRIMARY KEY: `id`
 - FOREIGN KEY: `business_id` REFERENCES `businesses(id)` ON DELETE CASCADE
-- UNIQUE: `email` (WHERE `deleted_at IS NULL`)
-- CHECK: Password required for owners/staff
+- UNIQUE: `email` (WHERE `deleted_at IS NULL` AND `email IS NOT NULL`)
+- UNIQUE: `phone` (WHERE `deleted_at IS NULL` AND `phone IS NOT NULL`)
+- CHECK: `users_contact_check` ((email IS NOT NULL AND email <> '') OR (phone IS NOT NULL AND phone <> ''))
 
 **Indexes:**
 - `users_email_unique_idx` - Unique email for active users
+- `users_phone_unique_idx` - Unique phone for active users
 - `users_email_lower_idx` - Case-insensitive email lookup
 - `users_business_role_idx` - Query users by business and role
 
@@ -301,9 +310,11 @@ Confirmed appointments/bookings.
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | `id` | UUID | NO | `uuid_generate_v4()` | Primary key |
+| `booking_id` | TEXT | NO | - | Human-readable booking ID (RIVO-XXX-XXX-XXX) |
 | `business_id` | UUID | NO | - | Owning business |
 | `service_id` | UUID | NO | - | Booked service |
 | `customer_id` | UUID | YES | NULL | Customer user (if registered) |
+| `guest_name` | TEXT | YES | NULL | Guest full name for display purposes |
 | `guest_email` | TEXT | YES | NULL | Guest email (if not registered) |
 | `guest_phone` | TEXT | YES | NULL | Guest phone |
 | `slot_start` | TIMESTAMPTZ | NO | - | Appointment start time |
@@ -311,7 +322,7 @@ Confirmed appointments/bookings.
 | `status` | appointment_status | NO | `'confirmed'` | Appointment status |
 | `idempotency_key` | TEXT | NO | - | Client-provided idempotency key |
 | `reservation_id` | UUID | YES | NULL | Original reservation ID |
-| `cancellation_token` | TEXT | YES | NULL | Guest cancellation token |
+| `cancellation_token` | TEXT | YES | NULL | DEPRECATED: Guest cancellation token |
 | `guest_token_hash` | TEXT | YES | NULL | Hashed guest access token |
 | `guest_token_expires_at` | TIMESTAMPTZ | YES | NULL | Guest token expiration |
 | `version` | INTEGER | NO | `1` | Optimistic locking version |
@@ -326,11 +337,12 @@ Confirmed appointments/bookings.
 - FOREIGN KEY: `customer_id` REFERENCES `users(id)` ON DELETE SET NULL
 - FOREIGN KEY: `reservation_id` REFERENCES `reservations(id)` ON DELETE SET NULL
 - UNIQUE: `idempotency_key`
-- UNIQUE: `cancellation_token` (WHERE NOT NULL)
+- UNIQUE: `booking_id`
+- CHECK: `appointments_contact_check` (customer_id IS NOT NULL OR guest_email IS NOT NULL)
 
 **Indexes:**
 - `appointments_idempotency_key_unique_idx` - Idempotency enforcement
-- `appointments_cancellation_token_unique_idx` - Cancellation token lookup
+- `appointments_booking_id_idx` - Booking ID lookup
 - `appointments_business_time_idx` - Time-based queries
 - `appointments_business_status_time_idx` - Status + time queries
 - `appointments_customer_idx` - Customer appointment list
@@ -371,6 +383,37 @@ Immutable audit trail for appointment changes.
 
 ---
 
+### `notifications`
+
+In-app notifications for business owners about booking events.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| `id` | UUID | NO | `uuid_generate_v4()` | Primary key |
+| `business_id` | UUID | NO | - | Owning business |
+| `user_id` | UUID | NO | - | User to notify |
+| `type` | notification_type | NO | - | Type of notification event |
+| `title` | TEXT | NO | - | Notification title |
+| `message` | TEXT | NO | - | Notification message |
+| `appointment_id` | UUID | YES | NULL | Related appointment |
+| `read` | BOOLEAN | NO | `FALSE` | Whether the owner has read this notification |
+| `created_at` | TIMESTAMPTZ | NO | `NOW()` | Record creation timestamp |
+
+**Constraints:**
+- PRIMARY KEY: `id`
+- FOREIGN KEY: `business_id` REFERENCES `businesses(id)` ON DELETE CASCADE
+- FOREIGN KEY: `user_id` REFERENCES `users(id)` ON DELETE CASCADE
+- FOREIGN KEY: `appointment_id` REFERENCES `appointments(id)` ON DELETE SET NULL
+
+**Indexes:**
+- `notifications_user_id_idx` - User's notifications
+- `notifications_business_id_idx` - Business's notifications
+- `notifications_read_created_idx` - For fetching unread notifications
+- `notifications_user_unread_idx` - For fetching unread count
+- `notifications_appointment_id_idx` - For finding notifications for an appointment
+
+---
+
 ### `notification_logs`
 
 Notification delivery tracking.
@@ -382,6 +425,7 @@ Notification delivery tracking.
 | `recipient_email` | TEXT | YES | NULL | Email recipient |
 | `recipient_phone` | TEXT | YES | NULL | Phone recipient |
 | `channel` | notification_channel | NO | - | Delivery channel |
+| `template_name` | TEXT | YES | NULL | Email template name used |
 | `status` | notification_status | NO | `'pending'` | Delivery status |
 | `attempts` | INTEGER | NO | `0` | Delivery attempts |
 | `last_attempt_at` | TIMESTAMPTZ | YES | NULL | Last attempt time |
@@ -396,6 +440,7 @@ Notification delivery tracking.
 - `notification_logs_appointment_idx` - Appointment notifications
 - `notification_logs_retry_idx` - Failed notifications needing retry
 - `notification_logs_pending_retry_idx` - Pending retry queue
+- `notification_logs_template_name_idx` - For template-based queries
 
 ---
 
@@ -575,7 +620,7 @@ All major query patterns are indexed:
 ### `cleanup_expired_auth_data()`
 Automatic cleanup of expired authentication data:
 - Expired JWT revocations (older than 1 hour)
-- Expired refresh tokens (marked as revoked)
+- Expired refresh tokens (marked as revoked) -
 - Old rate limit records (older than 24 hours)
 - Expired email verification tokens
 - Expired password reset tokens
@@ -625,10 +670,17 @@ SELECT cleanup_expired_auth_data();
 | 010 | fix_availability_audit_schema | ✅ Applied | Fix availability audit trigger |
 | 011 | add_service_external_id | ✅ Applied | Add external_id to services |
 | 012 | backfill_service_external_ids | ✅ Applied | Backfill external_id values |
-| 013 | multi_business_ownership | 🆕 Ready | Multi-business ownership via junction table |
+| 013 | multi_business_ownership | ✅ Applied | Multi-business ownership via junction table |
+| 014 | password_management | ✅ Applied | Add `requires_password_change` to users |
+| 015 | guest_booking_management | ✅ Applied | Add `booking_id` and `guest_token` to appointments |
+| 016 | add_guest_name_to_appointments | ✅ Applied | Add `guest_name` to appointments |
+| 017 | fix_guest_booking_schema | ✅ Applied | Rename `guest_token` to `guest_token_hash` |
+| 018 | customer_auth_flexible_contact | ✅ Applied | Allow phone-only customer accounts |
+| 019 | owner_notifications | ✅ Applied | Add `notifications` table for owner in-app notifications |
+| 020 | add_template_name_to_notification_logs | ✅ Applied | Add `template_name` to `notification_logs` |
 
 ---
 
-**Last Updated:** 2025-10-04
+**Last Updated:** 2025-10-16
 **Maintained By:** Development Team
 **Source:** `/Users/lautaro-mac-mini/Projects/rivo-app/src/db/migrations/`
