@@ -963,12 +963,21 @@ function WeekDayCell({
       {Array.from({ length: DROP_ZONES_PER_HOUR }).map((_, dropZoneIndex) => {
         const topPercent = (dropZoneIndex / DROP_ZONES_PER_HOUR) * 100;
         const heightPercent = (1 / DROP_ZONES_PER_HOUR) * 100;
+        const isHovered = isDragOver && dragOverSlot === dropZoneIndex;
+
+        // Calculate the time this drop zone represents
+        const minutes = dropZoneIndex * DROP_ZONE_MINUTES;
+        const displayTime = formatTime(new Date(day.setHours(hour, minutes, 0, 0)));
 
         return (
           <div
             key={dropZoneIndex}
-            className={`absolute inset-x-0 hover:bg-gray-50/50 transition-colors ${
-              isDragOver && dragOverSlot === dropZoneIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+            className={`absolute inset-x-0 transition-all ${
+              draggedAppointment
+                ? 'hover:bg-teal-50/60'
+                : 'hover:bg-gray-50/30'
+            } ${
+              isHovered ? 'bg-teal-50/90 border-2 border-teal-500 z-10' : ''
             }`}
             style={{
               top: `${topPercent}%`,
@@ -980,7 +989,14 @@ function WeekDayCell({
               setDragOverSlot(null);
             }}
             onDrop={(e) => handleDrop(e, dropZoneIndex)}
-          />
+          >
+            {/* Time label shown during drag */}
+            {isHovered && draggedAppointment && (
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-teal-600 text-white text-xs font-semibold rounded shadow-lg pointer-events-none z-20">
+                {displayTime}
+              </div>
+            )}
+          </div>
         );
       })}
 
@@ -1049,12 +1065,20 @@ function WeekDayCell({
             needsCompression
           );
 
+          const isDragging = draggedAppointment?.id === apt.id;
+
           return (
             <div
               key={apt.id}
               draggable
-              className={`px-1.5 py-1.5 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses}`}
-              style={positionStyles}
+              className={`group px-1.5 py-1.5 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses} ${
+                isDragging ? 'opacity-50' : ''
+              }`}
+              style={{
+                ...positionStyles,
+                // Allow drop zones underneath to receive events when ANY appointment is being dragged
+                pointerEvents: draggedAppointment ? 'none' : 'auto',
+              }}
               onDragStart={(e) => {
                 e.dataTransfer.setData('appointmentId', apt.id);
                 setDraggedAppointment(apt);
@@ -1077,6 +1101,7 @@ function WeekDayCell({
                     e.stopPropagation();
                     onEdit(apt.id);
                   }}
+                  style={{ pointerEvents: 'auto' }} // Keep button clickable
                   className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
                   title="Edit appointment"
                 >
@@ -1396,12 +1421,21 @@ function DayHourCell({
       {Array.from({ length: DROP_ZONES_PER_HOUR }).map((_, dropZoneIndex) => {
         const topPercent = (dropZoneIndex / DROP_ZONES_PER_HOUR) * 100;
         const heightPercent = (1 / DROP_ZONES_PER_HOUR) * 100;
+        const isHovered = isDragOver && dragOverSlot === dropZoneIndex;
+
+        // Calculate the time this drop zone represents
+        const minutes = dropZoneIndex * DROP_ZONE_MINUTES;
+        const displayTime = formatTime(new Date(date.setHours(hour, minutes, 0, 0)));
 
         return (
           <div
             key={dropZoneIndex}
-            className={`absolute inset-x-0 hover:bg-gray-50/50 transition-colors ${
-              isDragOver && dragOverSlot === dropZoneIndex ? 'bg-teal-50/80 border-2 border-teal-500' : ''
+            className={`absolute inset-x-0 transition-all ${
+              draggedAppointment
+                ? 'hover:bg-teal-50/60'
+                : 'hover:bg-gray-50/30'
+            } ${
+              isHovered ? 'bg-teal-50/90 border-2 border-teal-500 z-10' : ''
             }`}
             style={{
               top: `${topPercent}%`,
@@ -1413,7 +1447,14 @@ function DayHourCell({
               setDragOverSlot(null);
             }}
             onDrop={(e) => handleDrop(e, dropZoneIndex)}
-          />
+          >
+            {/* Time label shown during drag */}
+            {isHovered && draggedAppointment && (
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-teal-600 text-white text-xs font-semibold rounded shadow-lg pointer-events-none z-20">
+                {displayTime}
+              </div>
+            )}
+          </div>
         );
       })}
 
@@ -1496,17 +1537,22 @@ function DayHourCell({
           );
 
           const isHighlighted = highlightedAppointmentId === apt.id;
+          const isDragging = draggedAppointment?.id === apt.id;
 
           return (
             <div
               key={apt.id}
               draggable
-              className={`px-2 py-2 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses} ${
+              className={`group px-2 py-2 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses} ${
                 isHighlighted
                   ? 'border-teal-400 border-2 bg-teal-100 animate-highlight-pulse !z-50'
                   : ''
-              }`}
-              style={positionStyles}
+              } ${isDragging ? 'opacity-50' : ''}`}
+              style={{
+                ...positionStyles,
+                // Allow drop zones underneath to receive events when ANY appointment is being dragged
+                pointerEvents: draggedAppointment ? 'none' : 'auto',
+              }}
               onDragStart={(e) => {
                 e.dataTransfer.setData('appointmentId', apt.id);
                 setDraggedAppointment(apt);
@@ -1534,6 +1580,7 @@ function DayHourCell({
                     e.stopPropagation();
                     onEdit(apt.id);
                   }}
+                  style={{ pointerEvents: 'auto' }} // Keep button clickable
                   className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
                   title="Edit appointment"
                 >
