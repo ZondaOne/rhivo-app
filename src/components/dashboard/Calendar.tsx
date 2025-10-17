@@ -990,12 +990,36 @@ function WeekDayCell({
             }}
             onDrop={(e) => handleDrop(e, dropZoneIndex)}
           >
-            {/* Time label shown during drag */}
-            {isHovered && draggedAppointment && (
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-teal-600 text-white text-xs font-semibold rounded shadow-lg pointer-events-none z-20">
-                {displayTime}
-              </div>
-            )}
+            {/* Ghost card preview during drag */}
+            {isHovered && draggedAppointment && (() => {
+              // Calculate the actual height based on appointment duration
+              const start = new Date(draggedAppointment.start_time);
+              const end = new Date(draggedAppointment.end_time);
+              const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+              const durationGrains = durationMinutes / GRAIN_SIZE_MINUTES;
+              const ghostHeightPx = Math.max(durationGrains * GRAIN_HEIGHT, GRAIN_HEIGHT);
+
+              return (
+                <div
+                  className="absolute inset-x-1 bg-teal-100/80 border-2 border-teal-400 border-dashed rounded-lg pointer-events-none z-20 flex items-start justify-between p-1.5"
+                  style={{
+                    top: 0,
+                    height: `${ghostHeightPx}px`
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-teal-900 truncate">
+                      {displayTime}
+                    </div>
+                    {ghostHeightPx > 30 && (
+                      <div className="text-xs text-teal-700 truncate mt-0.5">
+                        {draggedAppointment.customer_name}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })}
@@ -1448,12 +1472,36 @@ function DayHourCell({
             }}
             onDrop={(e) => handleDrop(e, dropZoneIndex)}
           >
-            {/* Time label shown during drag */}
-            {isHovered && draggedAppointment && (
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-teal-600 text-white text-xs font-semibold rounded shadow-lg pointer-events-none z-20">
-                {displayTime}
-              </div>
-            )}
+            {/* Ghost card preview during drag */}
+            {isHovered && draggedAppointment && (() => {
+              // Calculate the actual height based on appointment duration
+              const start = new Date(draggedAppointment.start_time);
+              const end = new Date(draggedAppointment.end_time);
+              const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+              const durationGrains = durationMinutes / GRAIN_SIZE_MINUTES;
+              const ghostHeightPx = Math.max(durationGrains * GRAIN_HEIGHT, GRAIN_HEIGHT);
+
+              return (
+                <div
+                  className="absolute inset-x-1 bg-teal-100/80 border-2 border-teal-400 border-dashed rounded-lg pointer-events-none z-20 flex items-start justify-between p-1.5"
+                  style={{
+                    top: 0,
+                    height: `${ghostHeightPx}px`
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-teal-900 truncate">
+                      {displayTime}
+                    </div>
+                    {ghostHeightPx > 30 && (
+                      <div className="text-xs text-teal-700 truncate mt-0.5">
+                        {draggedAppointment.customer_name}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })}
