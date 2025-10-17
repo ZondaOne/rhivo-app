@@ -12,6 +12,19 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white">
+      {/* SVG Filter to remove red channel */}
+      <svg style={{ display: 'none' }}>
+        <defs>
+          <filter id="remove-red">
+            <feComponentTransfer>
+              <feFuncR type="linear" slope="0"/>
+              <feFuncG type="linear" slope="1" intercept="0.15"/>
+              <feFuncB type="linear" slope="1"/>
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
+      
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
         {/* Premium gradient background - subtle, organic */}
@@ -45,16 +58,8 @@ export default function Home() {
         {/* Content - with entrance animation */}
         <div className={`relative max-w-6xl mx-auto px-8 text-center transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Logo wordmark - premium */}
-          <div className="mb-16">
-            <h1
-              className="text-[7rem] md:text-[9rem] bg-gradient-to-r from-teal-600 via-green-500 to-teal-600 bg-clip-text text-transparent transition-all duration-700"
-              style={{
-                fontFamily: 'Negan, sans-serif',
-                letterSpacing: '0.01em',
-                backgroundSize: '200% auto',
-                animation: 'shimmer 8s ease-in-out infinite'
-              }}
-            >
+          <div className="mb-16 flex justify-center items-center">
+            <h1 className="rivo-logo">
               rivo
             </h1>
           </div>
@@ -118,6 +123,29 @@ export default function Home() {
         </button>
 
         <style jsx>{`
+          @font-face {
+            font-family: 'ColorTube';
+            src: url('/ColorTube.otf') format('opentype');
+            font-display: swap;
+          }
+          
+          .rivo-logo {
+            font-family: 'ColorTube', sans-serif;
+            font-size: clamp(80px, 14vw, 140px);
+            line-height: 1.4;
+            letter-spacing: 0.01em;
+            background: linear-gradient(to right, #0d9488, #10b981, #0d9488);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 8s ease-in-out infinite;
+            filter: url(#remove-red);
+            margin: 20px 0;
+            padding: 20px 40px;
+            display: block;
+          }
+          
           @keyframes float {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -30px) scale(1.1); }
