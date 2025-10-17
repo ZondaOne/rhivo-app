@@ -215,6 +215,7 @@ export function getCascadeColumnWidth(totalColumns: number): number {
 
 /**
  * Get inline styles for cascaded appointment positioning
+ * Enhanced with visual spacing and depth cues
  */
 export function getCascadePositionStyles(
   columnIndex: number,
@@ -225,11 +226,53 @@ export function getCascadePositionStyles(
   const width = getCascadeColumnWidth(totalColumns);
   const left = columnIndex * width;
 
+  // Add subtle vertical offset for "shingled" effect (max 4px offset per column)
+  const verticalOffset = Math.min(columnIndex * 2, 8);
+
+  // Calculate right padding to create gaps between columns
+  // Last column has less padding, others have 4-8px depending on total columns
+  const rightPaddingPercent = columnIndex === totalColumns - 1 ? 0.5 : (totalColumns <= 3 ? 2 : 1.5);
+
   return {
     position: 'absolute',
     left: `${left}%`,
-    width: `${width}%`,
-    top: `${topPx}px`,
-    height: `${heightPx}px`,
+    width: `calc(${width}% - ${rightPaddingPercent}%)`,
+    top: `${topPx + verticalOffset}px`,
+    height: `${heightPx - verticalOffset}px`,
+    zIndex: 10 + columnIndex, // Higher z-index for later columns
   };
+}
+
+/**
+ * Get visual style classes for cascaded appointments
+ * Returns CSS classes for border, shadow, and hover effects
+ */
+export function getCascadeVisualClasses(
+  columnIndex: number,
+  _totalColumns: number,
+  isCompressed: boolean = false
+): string {
+  const baseClasses = 'group transition-all duration-200';
+
+  // Border intensity: later columns get slightly thicker borders for depth
+  const borderClass = columnIndex === 0
+    ? 'border-2 border-teal-200'
+    : columnIndex === 1
+    ? 'border-2 border-teal-300'
+    : 'border-2 border-teal-400';
+
+  // Shadow depth: create visual layering
+  const shadowClass = columnIndex === 0
+    ? 'shadow-sm'
+    : columnIndex === 1
+    ? 'shadow-md'
+    : 'shadow-lg';
+
+  // Hover effect: expand slightly on hover
+  const hoverClass = 'hover:scale-[1.02] hover:shadow-xl hover:z-50';
+
+  // Compression indicator (when more than 4 overlapping appointments)
+  const compressionClass = isCompressed ? 'ring-1 ring-orange-300' : '';
+
+  return `${baseClasses} ${borderClass} ${shadowClass} ${hoverClass} ${compressionClass}`;
 }

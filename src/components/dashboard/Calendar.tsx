@@ -8,7 +8,7 @@ import { RescheduleConfirmationModal } from './RescheduleConfirmationModal';
 import { AppointmentEditModal } from './AppointmentEditModal';
 import { apiRequest } from '@/lib/auth/api-client';
 import { useAuth } from '@/contexts/AuthContext';
-import { addStackingMetadata, StackedAppointment, groupByStartTime, allocateCascadeColumns, getCascadePositionStyles } from '@/lib/appointment-stacking';
+import { addStackingMetadata, StackedAppointment, groupByStartTime, allocateCascadeColumns, getCascadePositionStyles, getCascadeVisualClasses } from '@/lib/appointment-stacking';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ViewTransition, useViewTransitionDirection } from './ViewTransition';
 import { MonthSkeleton, DaySkeleton, ListSkeleton } from './skeletons';
@@ -871,7 +871,26 @@ function WeekView({
             {/* Day Cells */}
             {weekDays.map((day, dayIdx) => {
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-              
+
+              // Get appointments that START in this hour OR overlap into this hour
+              const cellAppointments = appointmentsByDay[dayIdx].filter(apt => {
+                const aptStartHour = new Date(apt.start_time).getHours();
+                const aptEndHour = new Date(apt.end_time).getHours();
+                const aptEndMinute = new Date(apt.end_time).getMinutes();
+
+                // Include appointment if:
+                // 1. It starts in this hour, OR
+                // 2. It started earlier but extends into/through this hour
+                return aptStartHour === hour || (aptStartHour < hour && (aptEndHour > hour || (aptEndHour === hour && aptEndMinute > 0)));
+              });
+
+              // But only render appointments that START in this hour
+              // (overlapping appointments are handled by multi-hour rendering in WeekDayCell)
+              const appointmentsToRender = cellAppointments.filter(apt => {
+                const aptStartHour = new Date(apt.start_time).getHours();
+                return aptStartHour === hour;
+              });
+
               return (
                 <WeekDayCell
                   key={`${day.toISOString()}-${hour}`}
@@ -881,10 +900,8 @@ function WeekView({
                   isLastHour={hourIdx === hours.length - 1}
                   isLastDay={dayIdx === 6}
                   isWeekend={isWeekend}
-                  appointments={appointmentsByDay[dayIdx].filter(apt => {
-                    const aptStartHour = new Date(apt.start_time).getHours();
-                    return aptStartHour === hour;
-                  })}
+                  appointments={appointmentsToRender}
+                  allDayAppointments={appointmentsByDay[dayIdx]}
                   startHour={START_HOUR}
                   onReschedule={onReschedule}
                   onEdit={onEdit}
@@ -908,6 +925,7 @@ function WeekDayCell({
   isLastDay,
   isWeekend,
   appointments,
+  allDayAppointments,
   startHour,
   onReschedule,
   onEdit,
@@ -921,6 +939,7 @@ function WeekDayCell({
   isLastDay: boolean;
   isWeekend: boolean;
   appointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
+  allDayAppointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   startHour: number;
   onReschedule: (id: string, date: Date) => void;
   onEdit: (id: string) => void;
@@ -1001,9 +1020,17 @@ function WeekDayCell({
       {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) + MULTI-HOUR SPANNING (Step 7o) */}
       {(() => {
         // Use cascade layout for overlapping appointments
-        const cascadedApts = allocateCascadeColumns(appointments);
+        // IMPORTANT: Pass ALL day appointments to detect overlaps across hour boundaries
+        const cascadedAll = allocateCascadeColumns(allDayAppointments);
+
+        // But only render appointments that START in this hour
+        const cascadedApts = cascadedAll.filter(apt => {
+          const aptStartHour = new Date(apt.start_time).getHours();
+          return aptStartHour === hour;
+        });
+
         const maxVisibleColumns = 4;
-        const needsCompression = cascadedApts.some(apt => apt.totalColumns > maxVisibleColumns);
+        const needsCompression = cascadedAll.some(apt => apt.totalColumns > maxVisibleColumns);
 
         return cascadedApts.map((apt) => {
           const start = new Date(apt.start_time);
@@ -1043,17 +1070,19 @@ function WeekDayCell({
             heightPx
           );
 
+          // Get visual classes for depth and layering
+          const visualClasses = getCascadeVisualClasses(
+            apt.columnIndex,
+            apt.totalColumns,
+            needsCompression
+          );
+
           return (
             <div
               key={apt.id}
               draggable
-              className="group px-1.5 py-1.5 rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 hover:z-30 cursor-move overflow-hidden transition-all"
-              style={{
-                ...positionStyles,
-                left: `calc(${positionStyles.left} + 4px)`,
-                width: `calc(${positionStyles.width} - ${apt.columnIndex < apt.totalColumns - 1 ? '6px' : '4px'})`,
-                zIndex: 20, // Ensure multi-hour appointments appear above subsequent hour cells
-              }}
+              className={`px-1.5 py-1.5 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses}`}
+              style={positionStyles}
               onDragStart={(e) => {
                 e.dataTransfer.setData('appointmentId', apt.id);
                 setDraggedAppointment(apt);
@@ -1156,28 +1185,29 @@ function DayView({
     }
   }, [highlightedAppointmentId, appointments, START_HOUR]);
 
-  // Calculate position for each appointment
+  // Calculate ALL appointments with position metadata
+  const allDayAppointments = appointments.map(apt => {
+    const start = new Date(apt.start_time);
+    const end = new Date(apt.end_time);
+
+    const startHour = start.getHours();
+    const startMinute = start.getMinutes();
+    const endHour = end.getHours();
+    const endMinute = end.getMinutes();
+
+    const rowStart = startHour - START_HOUR + startMinute / 60;
+    const rowEnd = endHour - START_HOUR + endMinute / 60;
+    const rowSpan = rowEnd - rowStart;
+
+    return { ...apt, rowStart, rowSpan };
+  });
+
+  // Filter appointments by hour for rendering (only those that START in each hour)
   const appointmentsByHour = hours.map(hour => {
-    return appointments
-      .filter(apt => {
-        const start = new Date(apt.start_time);
-        return start.getHours() === hour;
-      })
-      .map(apt => {
-        const start = new Date(apt.start_time);
-        const end = new Date(apt.end_time);
-
-        const startHour = start.getHours();
-        const startMinute = start.getMinutes();
-        const endHour = end.getHours();
-        const endMinute = end.getMinutes();
-
-        const rowStart = startHour - START_HOUR + startMinute / 60;
-        const rowEnd = endHour - START_HOUR + endMinute / 60;
-        const rowSpan = rowEnd - rowStart;
-
-        return { ...apt, rowStart, rowSpan };
-      });
+    return allDayAppointments.filter(apt => {
+      const start = new Date(apt.start_time);
+      return start.getHours() === hour;
+    });
   });
 
   // Generate array of dates: 3 days before, current day, 3 days after
@@ -1305,6 +1335,7 @@ function DayView({
               hourIdx={hourIdx}
               isLastHour={hourIdx === hours.length - 1}
               appointments={appointmentsByHour[hourIdx]}
+              allDayAppointments={allDayAppointments}
               startHour={START_HOUR}
               showCurrentTime={currentTimeRow === hourIdx}
               currentTimeOffset={currentTimeOffset}
@@ -1327,6 +1358,7 @@ function DayHourCell({
   hourIdx,
   isLastHour,
   appointments,
+  allDayAppointments,
   startHour,
   showCurrentTime,
   currentTimeOffset,
@@ -1341,6 +1373,7 @@ function DayHourCell({
   hourIdx: number;
   isLastHour: boolean;
   appointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
+  allDayAppointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   startHour: number;
   showCurrentTime: boolean;
   currentTimeOffset: number;
@@ -1433,9 +1466,17 @@ function DayHourCell({
       {/* Appointments positioned within this cell - CASCADE LAYOUT (Step 7j) + MULTI-HOUR SPANNING (Step 7o) */}
       {(() => {
         // Use cascade layout for overlapping appointments
-        const cascadedApts = allocateCascadeColumns(appointments);
+        // IMPORTANT: Pass ALL day appointments to detect overlaps across hour boundaries
+        const cascadedAll = allocateCascadeColumns(allDayAppointments);
+
+        // But only render appointments that START in this hour
+        const cascadedApts = cascadedAll.filter(apt => {
+          const aptStartHour = new Date(apt.start_time).getHours();
+          return aptStartHour === hour;
+        });
+
         const maxVisibleColumns = 4;
-        const needsCompression = cascadedApts.some(apt => apt.totalColumns > maxVisibleColumns);
+        const needsCompression = cascadedAll.some(apt => apt.totalColumns > maxVisibleColumns);
 
         return cascadedApts.map((apt) => {
           const start = new Date(apt.start_time);
@@ -1475,23 +1516,25 @@ function DayHourCell({
             heightPx
           );
 
+          // Get visual classes for depth and layering
+          const visualClasses = getCascadeVisualClasses(
+            apt.columnIndex,
+            apt.totalColumns,
+            needsCompression
+          );
+
           const isHighlighted = highlightedAppointmentId === apt.id;
 
           return (
             <div
               key={apt.id}
               draggable
-              className={`group px-2 py-2 rounded-lg bg-teal-50 border text-teal-900 hover:bg-teal-100 hover:z-30 hover:shadow-md cursor-move overflow-hidden transition-all ${
+              className={`px-2 py-2 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses} ${
                 isHighlighted
-                  ? 'border-teal-400 border-2 bg-teal-100 animate-highlight-pulse z-40'
-                  : 'border-teal-100'
+                  ? 'border-teal-400 border-2 bg-teal-100 animate-highlight-pulse !z-50'
+                  : ''
               }`}
-              style={{
-                ...positionStyles,
-                left: `calc(${positionStyles.left} + 8px)`,
-                width: `calc(${positionStyles.width} - ${apt.columnIndex < apt.totalColumns - 1 ? '10px' : '8px'})`,
-                zIndex: 20, // Ensure multi-hour appointments appear above subsequent hour cells
-              }}
+              style={positionStyles}
               onDragStart={(e) => {
                 e.dataTransfer.setData('appointmentId', apt.id);
                 setDraggedAppointment(apt);
