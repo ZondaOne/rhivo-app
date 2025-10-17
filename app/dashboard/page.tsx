@@ -9,6 +9,7 @@ import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointment
 import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
 import { CalendarView } from '@/lib/calendar-utils';
 import OnboardingTutorial from '@/components/dashboard/OnboardingTutorial';
+import { Logo } from '@/components/Logo';
 
 function DashboardContent() {
   // Initialize from URL params on mount, then use state
@@ -61,10 +62,8 @@ function DashboardContent() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-20 bg-white border-r border-gray-200/60 flex flex-col items-center py-6 z-50">
         {/* Logo */}
-        <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-2xl flex items-center justify-center mb-8">
-          <span className="text-white font-bold text-xl tracking-tight">
-            {businessName.charAt(0).toUpperCase()}
-          </span>
+        <div className="mb-8 scale-75">
+          <Logo size="sm" showText={false} />
         </div>
 
         {/* Navigation */}

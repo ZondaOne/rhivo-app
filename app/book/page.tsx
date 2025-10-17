@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { Logo } from '@/components/Logo';
 
 // Dynamically import map component (client-side only, no SSR)
 const BusinessMap = dynamic(
@@ -173,8 +174,8 @@ export default function DiscoveryPage() {
         <div className="px-4 sm:px-6 lg:px-12 py-4 lg:py-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3 lg:gap-4">
-              <Link href="/" className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-sm">
-                <span className="text-white font-bold text-lg lg:text-xl">R</span>
+              <Link href="/" className="flex items-center scale-75 lg:scale-90">
+                <Logo size="sm" showText={false} />
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">Find a Business</h1>

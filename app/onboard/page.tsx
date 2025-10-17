@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AddressAutocomplete from '@/components/geocoding/AddressAutocomplete';
 import type { GeocodingResult } from '@/lib/geocoding/nominatim';
+import { Logo } from '@/components/Logo';
 
 type OnboardingStep = 'auth' | 'business' | 'contact' | 'branding' | 'services' | 'availability' | 'rules' | 'details' | 'review';
 
@@ -1342,11 +1343,8 @@ export default function OnboardBusinessPage() {
       <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Logo */}
         <div className="text-center mb-12 pt-8">
-          <div className="inline-flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-green-500 rounded-2xl flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-lg">R</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">Rivo</span>
+          <div className="inline-flex items-center mb-8">
+            <Logo size="sm" />
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 export default function LoginPage() {
   const { login, user, isAuthenticated, isLoading } = useAuth();
@@ -78,18 +79,8 @@ export default function LoginPage() {
         {/* Card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-[28px] shadow-2xl shadow-teal-500/10 p-10 border border-gray-200/60">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/30">
-              <span className="text-white font-bold text-xl">R</span>
-            </div>
-            <div>
-              <h1
-                className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent"
-                style={{ fontFamily: 'Negan, sans-serif', letterSpacing: '0.01em' }}
-              >
-                rivo
-              </h1>
-            </div>
+          <div className="mb-8">
+            <Logo size="sm" />
           </div>
 
           {/* Heading */}

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Logo } from '@/components/Logo';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -12,19 +13,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* SVG Filter to remove red channel */}
-      <svg style={{ display: 'none' }}>
-        <defs>
-          <filter id="remove-red">
-            <feComponentTransfer>
-              <feFuncR type="linear" slope="0"/>
-              <feFuncG type="linear" slope="1" intercept="0.15"/>
-              <feFuncB type="linear" slope="1"/>
-            </feComponentTransfer>
-          </filter>
-        </defs>
-      </svg>
-      
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
         {/* Premium gradient background - subtle, organic */}
@@ -59,9 +47,7 @@ export default function Home() {
         <div className={`relative max-w-6xl mx-auto px-8 text-center transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Logo wordmark - premium */}
           <div className="mb-16 flex justify-center items-center">
-            <h1 className="rivo-logo">
-              rivo
-            </h1>
+            <Logo size="lg" />
           </div>
 
           {/* Headline - with stagger animation */}
@@ -123,37 +109,10 @@ export default function Home() {
         </button>
 
         <style jsx>{`
-          @font-face {
-            font-family: 'ColorTube';
-            src: url('/ColorTube.otf') format('opentype');
-            font-display: swap;
-          }
-          
-          .rivo-logo {
-            font-family: 'ColorTube', sans-serif;
-            font-size: clamp(80px, 14vw, 140px);
-            line-height: 1.4;
-            letter-spacing: 0.01em;
-            background: linear-gradient(to right, #0d9488, #10b981, #0d9488);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 8s ease-in-out infinite;
-            filter: url(#remove-red);
-            margin: 20px 0;
-            padding: 20px 40px;
-            display: block;
-          }
-          
           @keyframes float {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(30px, -30px) scale(1.1); }
             66% { transform: translate(-20px, 20px) scale(0.9); }
-          }
-          @keyframes shimmer {
-            0%, 100% { background-position: 0% center; }
-            50% { background-position: 100% center; }
           }
         `}</style>
       </section>
@@ -353,11 +312,8 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Brand */}
             <div className="flex flex-col items-center md:items-start gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="text-white font-bold">R</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: 'Negan, sans-serif' }}>rivo</span>
+              <div className="flex items-center">
+                <Logo size="sm" showText={false} />
               </div>
               <p className="text-sm text-gray-500">Keep it simple.</p>
             </div>
@@ -381,7 +337,6 @@ export default function Home() {
 
           {/* Bottom bar */}
           <div className="mt-12 pt-8 border-t border-gray-200/60 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-            <p>© 2025 Rivo. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <a href="#" className="hover:text-gray-600 transition-colors">Privacy</a>
               <a href="#" className="hover:text-gray-600 transition-colors">Terms</a>

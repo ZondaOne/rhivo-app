@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 export default function InvestorsPage() {
   return (
@@ -8,11 +9,8 @@ export default function InvestorsPage() {
       {/* Header */}
       <header className="border-b border-gray-200/60 bg-white/95 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-lg">R</span>
-            </div>
-            <span className="text-2xl font-bold text-gray-900 tracking-tight">rivo</span>
+          <Link href="/" className="flex items-center">
+            <Logo size="sm" />
           </Link>
           <Link
             href="/"
@@ -123,8 +121,8 @@ export default function InvestorsPage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-gray-500">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-sm">R</span>
+              <div className="scale-[0.6]">
+                <Logo size="sm" showText={false} />
               </div>
               <span>© 2025 Rivo. Keep it simple.</span>
             </div>
