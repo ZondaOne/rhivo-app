@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Logo } from '@/components/Logo';
+import { Boxes } from '@/components/ui/background-boxes';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -14,34 +15,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* Premium gradient background - subtle, organic */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-teal-50/30 to-white" />
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white">
+        {/* Background Boxes */}
+        <Boxes className="absolute inset-0" />
 
-        {/* Animated ambient orbs - Apple-style */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute top-1/4 left-1/3 w-[600px] h-[600px] bg-gradient-to-br from-teal-400/20 via-green-400/15 to-transparent rounded-full blur-3xl transition-all duration-[3000ms] ease-in-out"
-            style={{
-              animation: 'float 20s ease-in-out infinite',
-              animationDelay: '0s'
-            }}
-          />
-          <div
-            className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-gradient-to-tl from-green-400/15 via-teal-400/10 to-transparent rounded-full blur-3xl transition-all duration-[3000ms] ease-in-out"
-            style={{
-              animation: 'float 25s ease-in-out infinite',
-              animationDelay: '5s'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-gradient-to-br from-teal-300/10 to-transparent rounded-full blur-3xl"
-            style={{
-              animation: 'float 30s ease-in-out infinite',
-              animationDelay: '10s'
-            }}
-          />
-        </div>
+        {/* Gradient overlay to soften the boxes */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/50 to-white/80 pointer-events-none" />
 
         {/* Content - with entrance animation */}
         <div className={`relative max-w-6xl mx-auto px-8 text-center transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -107,14 +86,6 @@ export default function Home() {
             <div className="w-1.5 h-2 bg-gray-400 rounded-full animate-bounce group-hover:bg-gray-600 transition-colors" />
           </div>
         </button>
-
-        <style jsx>{`
-          @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -30px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-          }
-        `}</style>
       </section>
 
       {/* How It Works Section */}
