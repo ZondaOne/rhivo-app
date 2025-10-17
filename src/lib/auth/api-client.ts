@@ -41,8 +41,19 @@ export async function apiRequest<T = any>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+    const errorBody = await response.json().catch(() => ({}));
+
+    // Create an error object that preserves status, code, and message
+    const error: any = new Error(
+      errorBody.message ||
+      errorBody.error ||
+      'Request failed'
+    );
+    error.status = response.status;
+    error.code = errorBody.code;
+    error.details = errorBody.details;
+
+    throw error;
   }
 
   return response.json();

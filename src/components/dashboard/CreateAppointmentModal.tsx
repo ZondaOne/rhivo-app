@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AppointmentStatus } from '@/db/types';
 import { apiRequest } from '@/lib/auth/api-client';
+import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
 
 interface Service {
   id: string;
@@ -73,7 +74,7 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
       }
     } catch (err) {
       console.error('Failed to load services:', err);
-      setError('Failed to load services. Please try again.');
+      setError(mapErrorToUserMessage(err));
     } finally {
       setLoadingServices(false);
     }
@@ -96,8 +97,8 @@ export function CreateAppointmentModal({ isOpen, onClose, onSuccess, defaultDate
       onClose();
       resetForm();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create appointment. Please try again.';
-      setError(message);
+      console.error('Failed to create appointment:', err);
+      setError(mapErrorToUserMessage(err));
     } finally {
       setLoading(false);
     }

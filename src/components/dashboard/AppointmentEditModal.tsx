@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { Appointment } from '@/db/types';
 import { formatTime, snapToGrain, GRAIN_MINUTES } from '@/lib/calendar-utils';
 import { apiRequest } from '@/lib/auth/api-client';
+import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/ui/ToastContainer';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface Service {
   id: string;
@@ -21,9 +25,15 @@ interface AppointmentEditModalProps {
 }
 
 export function AppointmentEditModal({ appointment, onClose, onSave }: AppointmentEditModalProps) {
+  const { toasts, showToast, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [notifyCustomer, setNotifyCustomer] = useState(true);
+
+  // Confirmation dialogs
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState<any>(null);
 
   // Form state
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -62,6 +72,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
       setServices(data);
     } catch (error) {
       console.error('Failed to load services:', error);
+      showToast(mapErrorToUserMessage(error), 'error');
     }
   }
 
@@ -102,51 +113,66 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
     e.preventDefault();
 
     if (!selectedDate || !selectedTime || !selectedServiceId) {
-      alert('Please fill in all required fields');
+      showToast('Please fill in all required fields', 'warning');
       return;
     }
 
+    const newStartTime = new Date(`${selectedDate}T${selectedTime}`);
+    const snappedTime = snapToGrain(newStartTime);
+
+    const originalStart = new Date(appointment.start_time);
+    const timeChanged = snappedTime.getTime() !== originalStart.getTime();
+    const serviceChanged = selectedServiceId !== appointment.service_id;
+
+    if (!timeChanged && !serviceChanged) {
+      // No changes made
+      showToast('No changes to save', 'info');
+      onSave();
+      return;
+    }
+
+    // Store save data and show confirmation
+    setPendingSaveData({
+      appointmentId: appointment.id,
+      newStartTime: snappedTime.toISOString(),
+      serviceId: selectedServiceId !== appointment.service_id ? selectedServiceId : undefined,
+      notifyCustomer,
+      timeChanged,
+      serviceChanged,
+    });
+    setShowSaveConfirm(true);
+  }
+
+  async function confirmSave() {
+    if (!pendingSaveData) return;
+
     setLoading(true);
+    setShowSaveConfirm(false);
 
     try {
-      const newStartTime = new Date(`${selectedDate}T${selectedTime}`);
-      const snappedTime = snapToGrain(newStartTime);
+      const response = await apiRequest<{ success: boolean; appointment?: Appointment }>('/api/appointments/reschedule', {
+        method: 'POST',
+        body: JSON.stringify(pendingSaveData),
+      });
 
-      const originalStart = new Date(appointment.start_time);
-      const timeChanged = snappedTime.getTime() !== originalStart.getTime();
-      const serviceChanged = selectedServiceId !== appointment.service_id;
-
-      if (timeChanged || serviceChanged) {
-        const response = await apiRequest<{ success: boolean; appointment?: Appointment }>('/api/appointments/reschedule', {
-          method: 'POST',
-          body: JSON.stringify({
-            appointmentId: appointment.id,
-            newStartTime: snappedTime.toISOString(),
-            serviceId: selectedServiceId !== appointment.service_id ? selectedServiceId : undefined,
-            notifyCustomer,
-          }),
-        });
-
-        // Pass the updated appointment back to parent
-        onSave(response.appointment);
-      } else {
-        // No changes made
-        onSave();
-      }
+      showToast('Appointment updated successfully', 'success');
+      onSave(response.appointment);
     } catch (error) {
       console.error('Failed to update appointment:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update appointment');
+      showToast(mapErrorToUserMessage(error), 'error');
     } finally {
       setLoading(false);
+      setPendingSaveData(null);
     }
   }
 
-  async function handleDelete() {
-    if (!confirm('Cancel this appointment? Customer will be notified.')) {
-      return;
-    }
+  function handleDelete() {
+    setShowCancelConfirm(true);
+  }
 
+  async function confirmCancel() {
     setLoading(true);
+    setShowCancelConfirm(false);
 
     try {
       await apiRequest(`/api/appointments/${appointment.id}`, {
@@ -154,18 +180,61 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         body: JSON.stringify({ status: 'cancelled' }),
       });
 
+      showToast('Appointment cancelled successfully', 'success');
       onSave();
     } catch (error) {
       console.error('Failed to cancel appointment:', error);
-      alert('Failed to cancel appointment');
+      showToast(mapErrorToUserMessage(error), 'error');
     } finally {
       setLoading(false);
     }
   }
 
 
+  const getSaveConfirmationMessage = () => {
+    if (!pendingSaveData) return '';
+
+    const parts = [];
+    if (pendingSaveData.timeChanged) parts.push('time');
+    if (pendingSaveData.serviceChanged) parts.push('service');
+
+    return `This will change the appointment ${parts.join(' and ')}. ${
+      pendingSaveData.notifyCustomer ? 'The customer will be notified via email.' : ''
+    }`;
+  };
+
   return (
-    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={confirmCancel}
+        title="Cancel Appointment?"
+        message="This will cancel the appointment and notify the customer via email. This action cannot be undone."
+        confirmText="Yes, Cancel Appointment"
+        cancelText="No, Keep It"
+        variant="danger"
+        isLoading={loading}
+      />
+
+      <ConfirmDialog
+        isOpen={showSaveConfirm}
+        onClose={() => {
+          setShowSaveConfirm(false);
+          setPendingSaveData(null);
+        }}
+        onConfirm={confirmSave}
+        title="Save Changes?"
+        message={getSaveConfirmationMessage()}
+        confirmText="Yes, Save Changes"
+        cancelText="Cancel"
+        variant="warning"
+        isLoading={loading}
+      />
+
+      <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100">
@@ -365,5 +434,6 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         </div>
       </div>
     </div>
+    </>
   );
 }

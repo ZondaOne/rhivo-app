@@ -239,21 +239,40 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
       if (error?.code === 'CONFLICT') {
         return NextResponse.json(
-          { message: 'Appointment has been modified, please refresh and try again' },
+          {
+            message: 'Appointment has been modified, please refresh and try again',
+            code: 'CONFLICT'
+          },
           { status: 409 }
         );
       }
 
       if (error instanceof Error && error.message.includes('No available capacity')) {
         return NextResponse.json(
-          { message: 'Selected time slot is fully booked' },
+          {
+            message: `This time slot is fully booked (maximum ${maxSimultaneousBookings} bookings reached). Please choose another time.`,
+            code: 'MAX_SIMULTANEOUS_BOOKINGS_REACHED'
+          },
           { status: 409 }
+        );
+      }
+
+      if (error instanceof Error && error.message.includes('outside business hours')) {
+        return NextResponse.json(
+          {
+            message: 'This time is outside of business hours. Please choose a time during operating hours.',
+            code: 'OUTSIDE_BUSINESS_HOURS'
+          },
+          { status: 400 }
         );
       }
 
       console.error('Reschedule error:', error);
       return NextResponse.json(
-        { message: 'Failed to reschedule appointment' },
+        {
+          message: 'Failed to reschedule appointment. Please try again.',
+          code: 'RESCHEDULE_FAILED'
+        },
         { status: 500 }
       );
     }

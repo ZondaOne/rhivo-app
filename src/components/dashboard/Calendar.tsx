@@ -12,6 +12,9 @@ import { addStackingMetadata, StackedAppointment, groupByStartTime, allocateCasc
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ViewTransition, useViewTransitionDirection } from './ViewTransition';
 import { MonthSkeleton, DaySkeleton, ListSkeleton } from './skeletons';
+import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/ui/ToastContainer';
 
 interface CalendarProps {
   view: CalendarView;
@@ -19,12 +22,6 @@ interface CalendarProps {
   onViewChange?: (view: CalendarView) => void;
   onDateChange?: (date: Date) => void;
   businessId?: string | null;
-}
-
-interface Toast {
-  id: string;
-  message: string;
-  type: 'success' | 'error' | 'info';
 }
 
 interface PendingReschedule {
@@ -40,11 +37,11 @@ interface AppointmentCache {
 }
 
 export function Calendar({ view, currentDate, onViewChange, onDateChange, businessId }: CalendarProps) {
+  const { toasts, showToast, removeToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
-  const [toasts, setToasts] = useState<Toast[]>([]);
   const [pendingReschedule, setPendingReschedule] = useState<PendingReschedule | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [highlightedAppointmentId, setHighlightedAppointmentId] = useState<string | null>(null);
@@ -59,13 +56,6 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
     }
   }, [view, previousView]);
 
-  const showToast = (message: string, type: Toast['type'] = 'info') => {
-    const id = Math.random().toString(36).substring(7);
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
-  };
 
   // URL state management
   useEffect(() => {
@@ -328,8 +318,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
       }
     } catch (error) {
       console.error('Failed to reschedule:', error);
-      const message = error instanceof Error ? error.message : 'Failed to reschedule appointment';
-      showToast(message, 'error');
+      showToast(mapErrorToUserMessage(error), 'error');
 
       // Revert optimistic update on error - invalidate cache
       setAppointmentCache(null);
@@ -354,7 +343,6 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
 
   async function handleEditSave(updatedAppointment?: Appointment) {
     setEditingAppointment(null);
-    showToast('Appointment updated successfully', 'success');
 
     // Update cache with the server-returned appointment data
     if (updatedAppointment) {
@@ -430,23 +418,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
 
   return (
     <>
-      {/* Toast notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`px-4 py-3 rounded-lg shadow-lg border text-sm font-medium animate-slide-in ${
-              toast.type === 'success'
-                ? 'bg-green-50 border-green-200 text-green-800'
-                : toast.type === 'error'
-                ? 'bg-red-50 border-red-200 text-red-800'
-                : 'bg-blue-50 border-blue-200 text-blue-800'
-            }`}
-          >
-            {toast.message}
-          </div>
-        ))}
-      </div>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* Reschedule confirmation modal */}
       {pendingReschedule && (
