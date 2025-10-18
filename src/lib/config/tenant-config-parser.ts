@@ -125,20 +125,35 @@ function formatZodErrors(error: ZodError): string[] {
 function generateWarnings(config: TenantConfig, warnings: string[]): void {
   // Warn if business hours are unusual
   for (const day of config.availability) {
-    if (day.enabled) {
-      const [openHour] = day.open.split(':').map(Number);
-      const [closeHour] = day.close.split(':').map(Number);
+    if (day.enabled && day.slots && day.slots.length > 0) {
+      // Check first slot opening time
+      const firstSlot = day.slots[0];
+      const [openHour] = firstSlot.open.split(':').map(Number);
 
       if (openHour < 6) {
-        warnings.push(`${day.day}: Opening time ${day.open} is very early (before 6 AM)`);
-      }
-      if (closeHour > 23 || (closeHour === 23 && parseInt(day.close.split(':')[1]) > 0)) {
-        warnings.push(`${day.day}: Closing time ${day.close} is very late (after 11 PM)`);
+        warnings.push(`${day.day}: Opening time ${firstSlot.open} is very early (before 6 AM)`);
       }
 
-      const hours = closeHour - openHour;
-      if (hours > 16) {
-        warnings.push(`${day.day}: Business hours span ${hours} hours, which is unusually long`);
+      // Check last slot closing time
+      const lastSlot = day.slots[day.slots.length - 1];
+      const [closeHour, closeMin] = lastSlot.close.split(':').map(Number);
+
+      if (closeHour > 23 || (closeHour === 23 && closeMin > 0)) {
+        warnings.push(`${day.day}: Closing time ${lastSlot.close} is very late (after 11 PM)`);
+      }
+
+      // Calculate total hours across all slots
+      const totalMinutes = day.slots.reduce((sum, slot) => {
+        const [openH, openM] = slot.open.split(':').map(Number);
+        const [closeH, closeM] = slot.close.split(':').map(Number);
+        const openMinutes = openH * 60 + openM;
+        const closeMinutes = closeH * 60 + closeM;
+        return sum + (closeMinutes - openMinutes);
+      }, 0);
+      const totalHours = totalMinutes / 60;
+
+      if (totalHours > 16) {
+        warnings.push(`${day.day}: Business hours span ${totalHours.toFixed(1)} hours, which is unusually long`);
       }
     }
   }

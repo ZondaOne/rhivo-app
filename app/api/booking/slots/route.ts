@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 import { generateTimeSlots } from '@/lib/booking/slot-generator';
 import { getDbClient } from '@/db/client';
+import { parseInTimezone, getEndOfDay } from '@/lib/utils/timezone';
 
 const querySchema = z.object({
   subdomain: z.string().min(1, 'Subdomain is required'),
@@ -91,10 +92,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Parse dates
-    const start = new Date(startDate + 'T00:00:00');
+    // Parse dates in business timezone (critical for correct slot generation)
+    // This ensures that "2025-01-15" means midnight on Jan 15 in the business's timezone,
+    // not midnight in the server's timezone
+    const businessTimezone = config.business.timezone;
+
+    const start = parseInTimezone(startDate, businessTimezone);
     const endDate = rawEndDate || new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const end = new Date(endDate + 'T23:59:59');
+    const end = getEndOfDay(new Date(endDate), businessTimezone);
 
     // Get business from database
     const db = getDbClient();

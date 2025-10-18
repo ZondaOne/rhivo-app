@@ -255,21 +255,45 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
       };
 
       for (const day of config.availability) {
-        await db`
-          INSERT INTO availability (
-            business_id,
-            day_of_week,
-            start_time,
-            end_time,
-            is_closed
-          ) VALUES (
-            ${business.id},
-            ${dayMap[day.day]},
-            ${day.open},
-            ${day.close},
-            ${!day.enabled}
-          )
-        `;
+        // Handle slots array (step 7F1/7F2 changes)
+        // If day has multiple slots, use first slot's open time and last slot's close time for DB
+        if (day.enabled && day.slots && day.slots.length > 0) {
+          const firstSlot = day.slots[0];
+          const lastSlot = day.slots[day.slots.length - 1];
+
+          await db`
+            INSERT INTO availability (
+              business_id,
+              day_of_week,
+              start_time,
+              end_time,
+              is_closed
+            ) VALUES (
+              ${business.id},
+              ${dayMap[day.day]},
+              ${firstSlot.open},
+              ${lastSlot.close},
+              false
+            )
+          `;
+        } else {
+          // Day is disabled (closed)
+          await db`
+            INSERT INTO availability (
+              business_id,
+              day_of_week,
+              start_time,
+              end_time,
+              is_closed
+            ) VALUES (
+              ${business.id},
+              ${dayMap[day.day]},
+              '00:00',
+              '23:59',
+              true
+            )
+          `;
+        }
       }
 
       // Create availability exceptions (holidays, etc.)

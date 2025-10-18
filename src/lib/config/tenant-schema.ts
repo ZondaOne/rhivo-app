@@ -95,16 +95,13 @@ const DayOfWeek = z.enum([
 ]);
 
 /**
- * Daily Availability Schema
+ * Time Slot Schema (for breaks and split shifts)
  */
-const DailyAvailabilitySchema = z.object({
-  day: DayOfWeek,
+const TimeSlotSchema = z.object({
   open: TimeString,
   close: TimeString,
-  enabled: z.boolean().default(true),
 }).refine(
   (data) => {
-    if (!data.enabled) return true;
     const [openHour, openMin] = data.open.split(':').map(Number);
     const [closeHour, closeMin] = data.close.split(':').map(Number);
     const openMinutes = openHour * 60 + openMin;
@@ -112,6 +109,96 @@ const DailyAvailabilitySchema = z.object({
     return closeMinutes > openMinutes;
   },
   { message: 'Close time must be after open time' }
+);
+
+/**
+ * Daily Availability Schema
+ *
+ * Supports two formats:
+ * 1. Legacy format: single open/close times (auto-converted to slots array)
+ * 2. New format: slots array for breaks and split shifts
+ *
+ * Examples:
+ * - Single shift: { day: 'monday', open: '09:00', close: '17:00', enabled: true }
+ * - Lunch break: { day: 'monday', slots: [{open: '09:00', close: '13:00'}, {open: '14:00', close: '18:00'}], enabled: true }
+ * - Split shift: { day: 'friday', slots: [{open: '06:00', close: '10:00'}, {open: '18:00', close: '22:00'}], enabled: true }
+ */
+const DailyAvailabilitySchema = z.object({
+  day: DayOfWeek,
+  // Legacy format: single open/close (optional if slots provided)
+  open: TimeString.optional(),
+  close: TimeString.optional(),
+  // New format: multiple time slots per day
+  slots: z.array(TimeSlotSchema).optional(),
+  enabled: z.boolean().default(true),
+}).transform((data) => {
+  // Backward compatibility: convert single open/close to slots array
+  if (data.open && data.close && !data.slots) {
+    console.info(`[YAML Config] Converting single open/close times for ${data.day} to slots array format`);
+    return {
+      day: data.day,
+      enabled: data.enabled,
+      slots: [{ open: data.open, close: data.close }],
+    };
+  }
+
+  // If slots are provided, use them (remove legacy open/close from output)
+  if (data.slots) {
+    return {
+      day: data.day,
+      enabled: data.enabled,
+      slots: data.slots,
+    };
+  }
+
+  // If neither format is provided and enabled=false, default to empty slots
+  if (!data.enabled) {
+    return {
+      day: data.day,
+      enabled: data.enabled,
+      slots: [],
+    };
+  }
+
+  // Invalid: enabled but no times provided
+  throw new Error(`Day ${data.day} is enabled but has no open/close times or slots defined`);
+}).refine(
+  (data) => {
+    if (!data.enabled) return true;
+    if (!data.slots || data.slots.length === 0) return true;
+
+    // Validate slots are non-overlapping and in chronological order
+    for (let i = 0; i < data.slots.length - 1; i++) {
+      const current = data.slots[i];
+      const next = data.slots[i + 1];
+
+      const [currentCloseHour, currentCloseMin] = current.close.split(':').map(Number);
+      const [nextOpenHour, nextOpenMin] = next.open.split(':').map(Number);
+
+      const currentCloseMinutes = currentCloseHour * 60 + currentCloseMin;
+      const nextOpenMinutes = nextOpenHour * 60 + nextOpenMin;
+
+      if (nextOpenMinutes <= currentCloseMinutes) {
+        return false;
+      }
+    }
+
+    // Validate total daily hours are reasonable (not exceeding 24 hours)
+    const totalMinutes = data.slots.reduce((sum, slot) => {
+      const [openHour, openMin] = slot.open.split(':').map(Number);
+      const [closeHour, closeMin] = slot.close.split(':').map(Number);
+      const openMinutes = openHour * 60 + openMin;
+      const closeMinutes = closeHour * 60 + closeMin;
+      return sum + (closeMinutes - openMinutes);
+    }, 0);
+
+    if (totalMinutes > 24 * 60) {
+      return false;
+    }
+
+    return true;
+  },
+  { message: 'Slots must be non-overlapping, in chronological order, and total hours must not exceed 24 hours per day' }
 );
 
 /**
@@ -382,6 +469,7 @@ export const TenantConfigSchema = z.object({
 export type TenantConfig = z.infer<typeof TenantConfigSchema>;
 export type Service = z.infer<typeof ServiceSchema>;
 export type Category = z.infer<typeof CategorySchema>;
+export type TimeSlot = z.infer<typeof TimeSlotSchema>;
 export type DailyAvailability = z.infer<typeof DailyAvailabilitySchema>;
 export type AvailabilityException = z.infer<typeof AvailabilityExceptionSchema>;
 export type BookingRequirements = z.infer<typeof BookingRequirementsSchema>;

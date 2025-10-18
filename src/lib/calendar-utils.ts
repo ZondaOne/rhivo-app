@@ -1,4 +1,11 @@
 import { Appointment } from '@/db/types';
+import { TenantConfig } from '@/lib/config/tenant-schema';
+import {
+  generateOffTimeIntervals,
+  isTimeAvailable,
+  getIntersectingOffTimes,
+  type OffTimeInterval,
+} from '@/lib/booking/off-time-system';
 
 export type CalendarView = 'month' | 'week' | 'day' | 'list';
 
@@ -339,13 +346,17 @@ export function snapToGrain(time: Date): Date {
 /**
  * Check if drag-and-drop reschedule is valid
  * Automatically snaps to 5-minute grain blocks
+ * Validates against off-time intervals (Step 7f2)
  */
 export function validateReschedule(
   appointment: Appointment,
   newStartTime: Date,
   duration: number,
   existingAppointments: Appointment[],
-  maxSimultaneous: number = 1
+  maxSimultaneous: number = 1,
+  config?: TenantConfig,
+  bufferBefore: number = 0,
+  bufferAfter: number = 0
 ): { valid: boolean; reason?: string; snappedStartTime?: Date } {
   // Snap to 5-minute grain
   const snappedStart = snapToGrain(newStartTime);
@@ -356,6 +367,25 @@ export function validateReschedule(
   // Check if new time is in the past
   if (snappedStart < new Date()) {
     return { valid: false, reason: 'Cannot schedule in the past' };
+  }
+
+  // Check against off-time intervals (breaks, closed periods, holidays) - Step 7f2
+  if (config) {
+    const effectiveStart = new Date(snappedStart);
+    effectiveStart.setMinutes(effectiveStart.getMinutes() - bufferBefore);
+
+    const effectiveEnd = new Date(newEndTime);
+    effectiveEnd.setMinutes(effectiveEnd.getMinutes() + bufferAfter);
+
+    const offTimes = generateOffTimeIntervals(config, snappedStart, newEndTime);
+
+    if (!isTimeAvailable(effectiveStart, effectiveEnd, offTimes)) {
+      const intersecting = getIntersectingOffTimes(effectiveStart, effectiveEnd, offTimes);
+      const reason = intersecting.length > 0
+        ? `Cannot schedule during ${intersecting[0].reason.toLowerCase()}`
+        : 'Time slot conflicts with business hours';
+      return { valid: false, reason };
+    }
   }
 
   // Check for conflicts (using 5min grain block overlap detection)

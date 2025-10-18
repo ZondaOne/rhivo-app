@@ -496,6 +496,11 @@ export default function BookingPage() {
               <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 max-w-md mx-auto">
                 Your appointment has been successfully booked. A confirmation email has been sent to <span className="font-semibold text-gray-900">{guestEmail}</span>
               </p>
+              {config.business.timezone && (
+                <p className="text-xs text-gray-400 mb-4">
+                  All times shown in {config.business.timezone.replace('_', ' ')} timezone
+                </p>
+              )}
 
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 sm:p-6 mb-6 text-left">
                 <div className="flex items-center gap-2 mb-4">
@@ -518,7 +523,7 @@ export default function BookingPage() {
                   <div className="flex justify-between gap-4">
                     <span className="text-gray-500">Time</span>
                     <span className="font-semibold text-gray-900 text-right">
-                      {selectedSlot && formatTime(new Date(selectedSlot.start))}
+                      {selectedSlot && config.business.timezone && formatTimeWithTimezone(new Date(selectedSlot.start), config.business.timezone)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
@@ -1491,6 +1496,19 @@ export default function BookingPage() {
                           const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
                           const isToday = a.day === today;
 
+                          // Format hours from slots array
+                          const formatHours = () => {
+                            if (!a.slots || a.slots.length === 0) return 'Closed';
+
+                            // If single slot, show as range
+                            if (a.slots.length === 1) {
+                              return `${a.slots[0].open} - ${a.slots[0].close}`;
+                            }
+
+                            // If multiple slots (breaks/split shifts), show all ranges
+                            return a.slots.map(slot => `${slot.open}-${slot.close}`).join(', ');
+                          };
+
                           return (
                             <div
                               key={a.day}
@@ -1511,7 +1529,7 @@ export default function BookingPage() {
                               <span className={`text-sm tabular-nums ${
                                 isToday ? 'font-semibold text-teal-900' : 'text-gray-500 font-medium'
                               }`}>
-                                {a.open} - {a.close}
+                                {formatHours()}
                               </span>
                             </div>
                           );
@@ -1554,6 +1572,16 @@ function formatTime(date: Date): string {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
+  });
+}
+
+function formatTimeWithTimezone(date: Date, timezone: string): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: timezone,
+    timeZoneName: 'short'
   });
 }
 

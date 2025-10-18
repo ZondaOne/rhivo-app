@@ -205,7 +205,7 @@
     <task>Implement break-aware slot selection in booking flow: when showing available time slots, clearly indicate why certain times are unavailable (break, closed, holiday).</task>
     <task>Add break information to availability API response: include off-time intervals in /api/booking/slots so frontend can display break times.</task>
     <task>Show break times on public booking page: display business hours with breaks clearly marked (e.g., "9:00 AM - 1:00 PM, 2:00 PM - 6:00 PM").</task>
-    <task>Update appointment validation messages: when booking fails due to break conflict, show clear message "This time conflicts with scheduled break (1:00 PM - 2:00 PM)".</task>
+    <task>Update appointment validation messages: when booking fails due to break conflict, show clear message "This time conflicts with scheduled break (1:00 PM - 2:00 PM)" do you want to continue anyway?.</task>
     <task>Handle edge case: services longer than break duration should not be offered in slots immediately before break if they would extend into break.</task>
     <task>Add business hours summary component: generate human-readable schedule from YAML config including breaks (e.g., "Mon-Fri 9-1, 2-6 | Sat 10-2").</task>
   </tasks>
