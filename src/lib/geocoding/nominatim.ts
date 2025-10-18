@@ -65,11 +65,14 @@ export async function geocodeAddress(
     }
 
     // Call Nominatim API with proper headers
+    // TODO: For future worldwide support, allow country filtering via parameter
+    // Currently optimized for Italy with countrycodes=it
     const params = new URLSearchParams({
       q: query,
       format: 'json',
       addressdetails: '1',
       limit: '1',
+      countrycodes: 'it', // Restrict to Italy for now - TODO: make this configurable for worldwide support
       'accept-language': 'it,en' // Prefer Italian, fallback to English
     });
 
@@ -224,11 +227,13 @@ export async function searchAddresses(
       };
     }
 
+    // TODO: For future worldwide support, allow country filtering via parameter
     const params = new URLSearchParams({
       q: query,
       format: 'json',
       addressdetails: '1',
       limit: Math.min(limit, 10).toString(), // Cap at 10 for performance
+      countrycodes: 'it', // Restrict to Italy for now - TODO: make this configurable for worldwide support
       'accept-language': 'it,en'
     });
 

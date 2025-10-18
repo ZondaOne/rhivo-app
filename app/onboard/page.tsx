@@ -3,59 +3,98 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AddressAutocomplete from '@/components/geocoding/AddressAutocomplete';
+import LocationMapPreview from '@/components/geocoding/LocationMapPreview';
 import type { GeocodingResult } from '@/lib/geocoding/nominatim';
 import { Logo } from '@/components/Logo';
+import ServiceBuilder, { type Category } from '@/components/onboarding/ServiceBuilder';
 
 type OnboardingStep = 'auth' | 'business' | 'contact' | 'branding' | 'services' | 'availability' | 'rules' | 'details' | 'review';
 
-// Validation helpers
+// Validation helpers with detailed, helpful messages
 const validateEmail = (email: string): string | null => {
-  if (!email) return 'Email is required';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Invalid email format';
+  if (!email) return 'Email address is required';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return 'Please enter a valid email address (e.g., you@business.com)';
+  }
   return null;
 };
 
 const validatePassword = (password: string): string | null => {
-  if (!password) return 'Password is required';
-  if (password.length < 8) return 'Password must be at least 8 characters';
+  if (!password) return 'Password is required to secure your account';
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters for security';
+  }
+  // Check for basic strength
+  if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+    return 'Password should contain both letters and numbers';
+  }
   return null;
 };
 
 const validateBusinessName = (name: string): string | null => {
-  if (!name || name.trim().length === 0) return 'Business name is required';
-  if (name.length < 2) return 'Business name must be at least 2 characters';
-  if (name.length > 100) return 'Business name must be less than 100 characters';
+  if (!name || name.trim().length === 0) {
+    return 'Business name is required - this is how customers will find you';
+  }
+  if (name.length < 2) {
+    return 'Business name must be at least 2 characters';
+  }
+  if (name.length > 100) {
+    return 'Business name is too long (maximum 100 characters)';
+  }
   return null;
 };
 
 const validateSubdomain = (subdomain: string): string | null => {
-  if (!subdomain) return 'Subdomain is required';
-  if (!/^[a-z0-9-]+$/.test(subdomain)) return 'Subdomain must contain only lowercase letters, numbers, and hyphens';
-  if (subdomain.length < 3) return 'Subdomain must be at least 3 characters';
-  if (subdomain.length > 63) return 'Subdomain must be less than 63 characters';
-  if (subdomain.startsWith('-') || subdomain.endsWith('-')) return 'Subdomain cannot start or end with a hyphen';
+  if (!subdomain) {
+    return 'Subdomain is required for your booking page URL';
+  }
+  if (!/^[a-z0-9-]+$/.test(subdomain)) {
+    return 'Only lowercase letters, numbers, and hyphens allowed (e.g., bella-salon)';
+  }
+  if (subdomain.length < 3) {
+    return 'Subdomain must be at least 3 characters';
+  }
+  if (subdomain.length > 63) {
+    return 'Subdomain is too long (maximum 63 characters)';
+  }
+  if (subdomain.startsWith('-') || subdomain.endsWith('-')) {
+    return 'Subdomain cannot start or end with a hyphen';
+  }
+  // Check for reserved words
+  const reserved = ['admin', 'api', 'www', 'app', 'dashboard', 'login', 'signup'];
+  if (reserved.includes(subdomain)) {
+    return 'This subdomain is reserved. Please choose another';
+  }
   return null;
 };
 
 const validatePhone = (phone: string): string | null => {
   if (!phone) return null; // Optional
-  if (!/^\+?[1-9]\d{1,14}$/.test(phone.replace(/[\s-]/g, ''))) return 'Invalid phone number format (use international format)';
+  const cleaned = phone.replace(/[\s-]/g, '');
+  if (!/^\+?[1-9]\d{1,14}$/.test(cleaned)) {
+    return 'Use international format (e.g., +39 055 1234567)';
+  }
   return null;
 };
 
 const validateUrl = (url: string): string | null => {
   if (!url) return null; // Optional
   try {
-    new URL(url);
+    const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+    if (!parsed.protocol.startsWith('http')) {
+      return 'URL must start with http:// or https://';
+    }
     return null;
   } catch {
-    return 'Invalid URL format';
+    return 'Please enter a valid URL (e.g., https://example.com)';
   }
 };
 
 const validateHexColor = (color: string): string | null => {
   if (!color) return 'Color is required';
-  if (!/^#[0-9A-Fa-f]{6}$/.test(color)) return 'Invalid hex color format';
+  if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
+    return 'Invalid color format. Use hex format (e.g., #10b981)';
+  }
   return null;
 };
 
@@ -91,6 +130,7 @@ export default function OnboardBusinessPage() {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [addressSelected, setAddressSelected] = useState(false);
+  const [showMapPreview, setShowMapPreview] = useState(false);
 
   // Validation errors
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -105,17 +145,29 @@ export default function OnboardBusinessPage() {
   const [countryOpen, setCountryOpen] = useState(false);
 
   // Services
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  // Availability
+  // Availability - support for multiple time slots per day (for breaks)
+  const [availabilityMode, setAvailabilityMode] = useState<'simple' | 'advanced'>('simple');
+  const [simpleAvailability, setSimpleAvailability] = useState({
+    weekdaysEnabled: true,
+    weekdayStart: '09:00',
+    weekdayEnd: '17:00',
+    saturdayEnabled: false,
+    saturdayStart: '10:00',
+    saturdayEnd: '14:00',
+    sundayEnabled: false,
+    sundayStart: '10:00',
+    sundayEnd: '14:00',
+  });
   const [availability, setAvailability] = useState([
-    { day: 'monday', open: '09:00', close: '17:00', enabled: true },
-    { day: 'tuesday', open: '09:00', close: '17:00', enabled: true },
-    { day: 'wednesday', open: '09:00', close: '17:00', enabled: true },
-    { day: 'thursday', open: '09:00', close: '17:00', enabled: true },
-    { day: 'friday', open: '09:00', close: '17:00', enabled: true },
-    { day: 'saturday', open: '10:00', close: '14:00', enabled: false },
-    { day: 'sunday', open: '10:00', close: '14:00', enabled: false },
+    { day: 'monday', slots: [{ open: '09:00', close: '17:00' }], enabled: true },
+    { day: 'tuesday', slots: [{ open: '09:00', close: '17:00' }], enabled: true },
+    { day: 'wednesday', slots: [{ open: '09:00', close: '17:00' }], enabled: true },
+    { day: 'thursday', slots: [{ open: '09:00', close: '17:00' }], enabled: true },
+    { day: 'friday', slots: [{ open: '09:00', close: '17:00' }], enabled: true },
+    { day: 'saturday', slots: [{ open: '10:00', close: '14:00' }], enabled: false },
+    { day: 'sunday', slots: [{ open: '10:00', close: '14:00' }], enabled: false },
   ]);
 
   // Booking rules
@@ -166,10 +218,18 @@ export default function OnboardBusinessPage() {
         break;
 
       case 'contact':
-        if (!street.trim()) errors.street = 'Street address is required';
-        if (!city.trim()) errors.city = 'City is required';
-        if (!state.trim()) errors.state = 'State/Province is required';
-        if (!postalCode.trim()) errors.postalCode = 'Postal code is required';
+        if (!street.trim()) {
+          errors.street = 'Street address is required for customer directions';
+        }
+        if (!city.trim()) {
+          errors.city = 'City is required for location display';
+        }
+        if (!state.trim()) {
+          errors.state = 'State/Province is required';
+        }
+        if (!postalCode.trim()) {
+          errors.postalCode = 'Postal code is required for accurate geocoding';
+        }
 
         const phoneError = validatePhone(phone);
         if (phoneError) errors.phone = phoneError;
@@ -178,7 +238,7 @@ export default function OnboardBusinessPage() {
         if (websiteError) errors.website = websiteError;
 
         if (!latitude || !longitude) {
-          errors.address = 'Please select an address from the autocomplete suggestions to geocode your location';
+          errors.address = 'Please select an address from the autocomplete dropdown to set your map location. This is required for business discovery.';
         }
         break;
 
@@ -190,22 +250,78 @@ export default function OnboardBusinessPage() {
         if (secondaryColorError) errors.secondaryColor = secondaryColorError;
         break;
 
+      case 'services':
+        // Services are optional but validate if provided
+        if (categories.length > 0) {
+          for (const category of categories) {
+            if (!category.name.trim()) {
+              errors.services = 'All categories must have a name';
+              break;
+            }
+            if (category.services.length === 0) {
+              errors.services = `Category "${category.name}" must have at least one service`;
+              break;
+            }
+            for (const service of category.services) {
+              if (!service.name.trim()) {
+                errors.services = `All services in "${category.name}" must have a name`;
+                break;
+              }
+              if (service.duration < 5) {
+                errors.services = `Service "${service.name}" duration must be at least 5 minutes`;
+                break;
+              }
+              if (service.duration % 5 !== 0) {
+                errors.services = `Service "${service.name}" duration must be a multiple of 5 minutes`;
+                break;
+              }
+              if (service.price < 0) {
+                errors.services = `Service "${service.name}" price cannot be negative`;
+                break;
+              }
+            }
+          }
+        }
+        break;
+
       case 'availability':
-        const enabledDays = availability.filter(d => d.enabled);
+        const finalAvailability = getAvailabilityForSubmit();
+        const enabledDays = finalAvailability.filter(d => d.enabled);
         if (enabledDays.length === 0) {
-          errors.availability = 'You must be available at least one day per week';
+          errors.availability = 'You must be open at least one day per week to accept bookings';
+        }
+        // Check for valid time ranges
+        for (const day of finalAvailability) {
+          if (day.enabled) {
+            for (const slot of day.slots) {
+              const [openHour, openMin] = slot.open.split(':').map(Number);
+              const [closeHour, closeMin] = slot.close.split(':').map(Number);
+              const openMinutes = openHour * 60 + openMin;
+              const closeMinutes = closeHour * 60 + closeMin;
+              if (closeMinutes <= openMinutes) {
+                errors.availability = `${day.day}: Closing time must be after opening time`;
+                break;
+              }
+            }
+          }
         }
         break;
 
       case 'rules':
         if (timeSlotDuration < 5 || timeSlotDuration > 480) {
-          errors.timeSlotDuration = 'Time slot duration must be between 5 and 480 minutes';
+          errors.timeSlotDuration = 'Time slot must be between 5 minutes and 8 hours (480 minutes)';
+        }
+        if (timeSlotDuration % 5 !== 0) {
+          errors.timeSlotDuration = 'Time slot duration must be a multiple of 5 minutes';
         }
         if (maxSimultaneousBookings < 1) {
-          errors.maxSimultaneousBookings = 'Must allow at least 1 booking per slot';
+          errors.maxSimultaneousBookings = 'Must allow at least 1 booking per time slot';
+        }
+        if (maxSimultaneousBookings > 100) {
+          errors.maxSimultaneousBookings = 'Maximum 100 simultaneous bookings allowed';
         }
         if (advanceBookingDays < 1 || advanceBookingDays > 365) {
-          errors.advanceBookingDays = 'Advance booking days must be between 1 and 365';
+          errors.advanceBookingDays = 'Advance booking must be between 1 and 365 days';
         }
         break;
     }
@@ -599,14 +715,55 @@ export default function OnboardBusinessPage() {
             Business Address
             {validationErrors.address && <span className="text-red-600 text-xs ml-2">{validationErrors.address}</span>}
           </label>
+
+          {!addressSelected && (
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-blue-900">
+                  Type your address below and select it from the dropdown. This will automatically fill in all fields and set your map location for customer discovery.
+                </p>
+              </div>
+            </div>
+          )}
+
           <AddressAutocomplete
             onAddressSelect={handleAddressSelect}
-            placeholder="Start typing your business address..."
+            placeholder="Start typing your business address in Italy..."
             showCoordinatesPreview={true}
             className="mb-2"
           />
-          <p className="text-xs text-gray-500">
-            Select an address from the suggestions to automatically fill in your location details
+
+          {addressSelected && latitude && longitude && (
+            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-green-900">Location set successfully</p>
+                    <p className="text-xs text-green-700">{latitude.toFixed(6)}, {longitude.toFixed(6)}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowMapPreview(true)}
+                  className="px-3 py-1.5 bg-white border border-green-300 text-green-700 rounded-lg text-sm font-medium hover:bg-green-50 transition-colors flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  View Map
+                </button>
+              </div>
+            </div>
+          )}
+
+          <p className="text-xs text-gray-500 mt-2">
+            Currently optimized for Italian addresses. Worldwide support coming soon.
           </p>
         </div>
 
@@ -823,12 +980,87 @@ export default function OnboardBusinessPage() {
         <p className="text-gray-600">What services do you offer?</p>
       </div>
 
-      <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-2xl">
-        <p className="text-gray-500 mb-4">Service builder coming soon</p>
-        <p className="text-sm text-gray-400">You can skip this for now and add services later</p>
+      {validationErrors.services && (
+        <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+          <p className="text-sm font-semibold text-red-900">{validationErrors.services}</p>
+        </div>
+      )}
+
+      <ServiceBuilder categories={categories} onChange={setCategories} />
+
+      <div className="text-center text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-xl p-4">
+        You can skip this step and add services later in your dashboard
       </div>
     </div>
   );
+
+  const addTimeSlot = (dayIndex: number) => {
+    const newAvailability = [...availability];
+    newAvailability[dayIndex].slots.push({ open: '14:00', close: '18:00' });
+    setAvailability(newAvailability);
+  };
+
+  const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
+    const newAvailability = [...availability];
+    if (newAvailability[dayIndex].slots.length > 1) {
+      newAvailability[dayIndex].slots.splice(slotIndex, 1);
+      setAvailability(newAvailability);
+    }
+  };
+
+  const switchToAdvanced = () => {
+    // Convert simple mode to advanced mode
+    const newAvailability = availability.map((day) => {
+      if (['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].includes(day.day)) {
+        return {
+          ...day,
+          enabled: simpleAvailability.weekdaysEnabled,
+          slots: [{ open: simpleAvailability.weekdayStart, close: simpleAvailability.weekdayEnd }],
+        };
+      } else if (day.day === 'saturday') {
+        return {
+          ...day,
+          enabled: simpleAvailability.saturdayEnabled,
+          slots: [{ open: simpleAvailability.saturdayStart, close: simpleAvailability.saturdayEnd }],
+        };
+      } else {
+        return {
+          ...day,
+          enabled: simpleAvailability.sundayEnabled,
+          slots: [{ open: simpleAvailability.sundayStart, close: simpleAvailability.sundayEnd }],
+        };
+      }
+    });
+    setAvailability(newAvailability);
+    setAvailabilityMode('advanced');
+  };
+
+  const getAvailabilityForSubmit = () => {
+    if (availabilityMode === 'simple') {
+      return availability.map((day) => {
+        if (['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].includes(day.day)) {
+          return {
+            ...day,
+            enabled: simpleAvailability.weekdaysEnabled,
+            slots: [{ open: simpleAvailability.weekdayStart, close: simpleAvailability.weekdayEnd }],
+          };
+        } else if (day.day === 'saturday') {
+          return {
+            ...day,
+            enabled: simpleAvailability.saturdayEnabled,
+            slots: [{ open: simpleAvailability.saturdayStart, close: simpleAvailability.saturdayEnd }],
+          };
+        } else {
+          return {
+            ...day,
+            enabled: simpleAvailability.sundayEnabled,
+            slots: [{ open: simpleAvailability.sundayStart, close: simpleAvailability.sundayEnd }],
+          };
+        }
+      });
+    }
+    return availability;
+  };
 
   const renderAvailabilityStep = () => (
     <div className="space-y-6">
@@ -837,53 +1069,239 @@ export default function OnboardBusinessPage() {
         <p className="text-gray-600">When are you open for bookings?</p>
       </div>
 
-      <div className="space-y-3">
-        {availability?.map((day, index) => (
-          <div key={day.day} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl">
-            <div className="w-32">
-              <span className="text-sm font-medium text-gray-700 capitalize">{day.day}</span>
+      {/* Mode Toggle */}
+      <div className="flex gap-2 bg-gray-100 p-1 rounded-2xl mb-6">
+        <button
+          type="button"
+          onClick={() => setAvailabilityMode('simple')}
+          className={`flex-1 px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            availabilityMode === 'simple' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Simple Setup
+        </button>
+        <button
+          type="button"
+          onClick={switchToAdvanced}
+          className={`flex-1 px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            availabilityMode === 'advanced' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Advanced (per day)
+        </button>
+      </div>
+
+      {availabilityMode === 'simple' ? (
+        /* Simple Mode */
+        <div className="space-y-4">
+          {/* Weekdays */}
+          <div className="border-2 border-gray-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Monday - Friday</h3>
+                <p className="text-sm text-gray-500">Set hours for all weekdays</p>
+              </div>
+              <label className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={simpleAvailability.weekdaysEnabled}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, weekdaysEnabled: e.target.checked })}
+                  className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
+                />
+                <span className="text-sm font-medium text-gray-700">Open</span>
+              </label>
             </div>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={day.enabled}
-                onChange={(e) => {
-                  const newAvailability = [...availability];
-                  newAvailability[index].enabled = e.target.checked;
-                  setAvailability(newAvailability);
-                }}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="text-sm text-gray-600">Open</span>
-            </label>
-            {day.enabled && (
-              <>
+            {simpleAvailability.weekdaysEnabled && (
+              <div className="flex items-center gap-3">
                 <input
                   type="time"
-                  value={day.open}
-                  onChange={(e) => {
-                    const newAvailability = [...availability];
-                    newAvailability[index].open = e.target.value;
-                    setAvailability(newAvailability);
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                  value={simpleAvailability.weekdayStart}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, weekdayStart: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
                 />
-                <span className="text-gray-500">to</span>
+                <span className="text-gray-500 text-sm font-medium">to</span>
                 <input
                   type="time"
-                  value={day.close}
-                  onChange={(e) => {
-                    const newAvailability = [...availability];
-                    newAvailability[index].close = e.target.value;
-                    setAvailability(newAvailability);
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                  value={simpleAvailability.weekdayEnd}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, weekdayEnd: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
                 />
-              </>
+              </div>
             )}
           </div>
-        ))}
-      </div>
+
+          {/* Saturday */}
+          <div className="border-2 border-gray-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Saturday</h3>
+                <p className="text-sm text-gray-500">Weekend hours</p>
+              </div>
+              <label className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={simpleAvailability.saturdayEnabled}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, saturdayEnabled: e.target.checked })}
+                  className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
+                />
+                <span className="text-sm font-medium text-gray-700">Open</span>
+              </label>
+            </div>
+            {simpleAvailability.saturdayEnabled && (
+              <div className="flex items-center gap-3">
+                <input
+                  type="time"
+                  value={simpleAvailability.saturdayStart}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, saturdayStart: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
+                />
+                <span className="text-gray-500 text-sm font-medium">to</span>
+                <input
+                  type="time"
+                  value={simpleAvailability.saturdayEnd}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, saturdayEnd: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Sunday */}
+          <div className="border-2 border-gray-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Sunday</h3>
+                <p className="text-sm text-gray-500">Weekend hours</p>
+              </div>
+              <label className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={simpleAvailability.sundayEnabled}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, sundayEnabled: e.target.checked })}
+                  className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
+                />
+                <span className="text-sm font-medium text-gray-700">Open</span>
+              </label>
+            </div>
+            {simpleAvailability.sundayEnabled && (
+              <div className="flex items-center gap-3">
+                <input
+                  type="time"
+                  value={simpleAvailability.sundayStart}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, sundayStart: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
+                />
+                <span className="text-gray-500 text-sm font-medium">to</span>
+                <input
+                  type="time"
+                  value={simpleAvailability.sundayEnd}
+                  onChange={(e) => setSimpleAvailability({ ...simpleAvailability, sundayEnd: e.target.value })}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="text-center text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-xl p-4">
+            Need different hours for each day or lunch breaks? Switch to <strong>Advanced mode</strong>.
+          </div>
+        </div>
+      ) : (
+        /* Advanced Mode */
+        <div className="space-y-3">
+          {availability?.map((day, dayIndex) => (
+            <div key={day.day} className="border-2 border-gray-200 rounded-2xl overflow-hidden">
+              {/* Day header */}
+              <div className="flex items-center gap-4 p-4 bg-gray-50">
+                <div className="w-28">
+                  <span className="text-sm font-semibold text-gray-900 capitalize">{day.day}</span>
+                </div>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={day.enabled}
+                    onChange={(e) => {
+                      const newAvailability = [...availability];
+                      newAvailability[dayIndex].enabled = e.target.checked;
+                      setAvailability(newAvailability);
+                    }}
+                    className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Open</span>
+                </label>
+              </div>
+
+              {/* Time slots */}
+              {day.enabled && (
+                <div className="p-4 space-y-3">
+                  {day.slots.map((slot, slotIndex) => (
+                    <div key={slotIndex} className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={slot.open}
+                            onChange={(e) => {
+                              const newAvailability = [...availability];
+                              newAvailability[dayIndex].slots[slotIndex].open = e.target.value;
+                              setAvailability(newAvailability);
+                            }}
+                            className="px-3 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
+                          />
+                          <span className="text-gray-500 text-sm">to</span>
+                          <input
+                            type="time"
+                            value={slot.close}
+                            onChange={(e) => {
+                              const newAvailability = [...availability];
+                              newAvailability[dayIndex].slots[slotIndex].close = e.target.value;
+                              setAvailability(newAvailability);
+                            }}
+                            className="px-3 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-medium"
+                          />
+                        </div>
+                        {slotIndex > 0 && (
+                          <span className="text-xs text-gray-500 ml-2">
+                            (Break shift)
+                          </span>
+                        )}
+                      </div>
+                      {day.slots.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeTimeSlot(dayIndex, slotIndex)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600 transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Add break button */}
+                  <button
+                    type="button"
+                    onClick={() => addTimeSlot(dayIndex)}
+                    className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs font-semibold text-gray-500 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add break (split shift)
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <div className="text-center text-sm text-gray-500 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p className="font-medium text-blue-900 mb-1">Tip: Add breaks for lunch or split shifts</p>
+            <p className="text-blue-700">For example: 9:00-13:00 and 14:00-18:00 for a lunch break</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -891,48 +1309,75 @@ export default function OnboardBusinessPage() {
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-3">Booking Rules</h2>
-        <p className="text-gray-600">Configure how bookings work</p>
+        <p className="text-gray-600">Configure how bookings work for your business</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Time slot duration (minutes)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Time slot duration (minutes)
+            {validationErrors.timeSlotDuration && (
+              <span className="text-red-600 text-xs ml-2">{validationErrors.timeSlotDuration}</span>
+            )}
+          </label>
           <input
             type="number"
             value={timeSlotDuration}
             onChange={(e) => setTimeSlotDuration(Number(e.target.value))}
-            min={15}
-            max={120}
-            step={15}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            min={5}
+            max={480}
+            step={5}
+            className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              validationErrors.timeSlotDuration ? 'border-red-300 bg-red-50' : 'border-gray-300'
+            }`}
           />
-          <p className="text-sm text-gray-500 mt-1">How long is each booking slot?</p>
+          <p className="text-sm text-gray-500 mt-1">
+            How often time slots appear in your calendar (e.g., 30 = slots every 30 minutes). Must be a multiple of 5.
+          </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Max simultaneous bookings</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Max simultaneous bookings per slot
+            {validationErrors.maxSimultaneousBookings && (
+              <span className="text-red-600 text-xs ml-2">{validationErrors.maxSimultaneousBookings}</span>
+            )}
+          </label>
           <input
             type="number"
             value={maxSimultaneousBookings}
             onChange={(e) => setMaxSimultaneousBookings(Number(e.target.value))}
             min={1}
-            max={10}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            max={100}
+            className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              validationErrors.maxSimultaneousBookings ? 'border-red-300 bg-red-50' : 'border-gray-300'
+            }`}
           />
-          <p className="text-sm text-gray-500 mt-1">How many appointments can overlap?</p>
+          <p className="text-sm text-gray-500 mt-1">
+            How many customers can book the same time slot (useful for group classes or multiple staff members). Can be customized per service later.
+          </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Advance booking days</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Advance booking window (days)
+            {validationErrors.advanceBookingDays && (
+              <span className="text-red-600 text-xs ml-2">{validationErrors.advanceBookingDays}</span>
+            )}
+          </label>
           <input
             type="number"
             value={advanceBookingDays}
             onChange={(e) => setAdvanceBookingDays(Number(e.target.value))}
             min={1}
             max={365}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              validationErrors.advanceBookingDays ? 'border-red-300 bg-red-50' : 'border-gray-300'
+            }`}
           />
-          <p className="text-sm text-gray-500 mt-1">How far in advance can customers book?</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Maximum days in the future customers can book (e.g., 30 = customers can book up to 30 days ahead)
+          </p>
         </div>
 
         <div className="pt-4 border-t border-gray-200">
@@ -943,27 +1388,27 @@ export default function OnboardBusinessPage() {
                 type="checkbox"
                 checked={requireEmail}
                 onChange={(e) => setRequireEmail(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
               />
-              <span className="text-sm text-gray-700">Require email address</span>
+              <span className="text-sm font-medium text-gray-700">Require email address</span>
             </label>
             <label className="flex items-center gap-3">
               <input
                 type="checkbox"
                 checked={requirePhone}
                 onChange={(e) => setRequirePhone(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
               />
-              <span className="text-sm text-gray-700">Require phone number</span>
+              <span className="text-sm font-medium text-gray-700">Require phone number</span>
             </label>
             <label className="flex items-center gap-3">
               <input
                 type="checkbox"
                 checked={allowGuestBooking}
                 onChange={(e) => setAllowGuestBooking(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                className="w-5 h-5 rounded-md border-2 border-gray-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-0 transition-all"
               />
-              <span className="text-sm text-gray-700">Allow guest booking (no account required)</span>
+              <span className="text-sm font-medium text-gray-700">Allow guest booking (no account required)</span>
             </label>
           </div>
         </div>
@@ -997,84 +1442,6 @@ export default function OnboardBusinessPage() {
               />
               <p className="text-sm text-gray-500 mt-1">How far in advance customers must book (e.g., 60 = 1 hour)</p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max bookings per customer per day
-              </label>
-              <input
-                type="number"
-                value={maxBookingsPerCustomerPerDay}
-                onChange={(e) => setMaxBookingsPerCustomerPerDay(Number(e.target.value))}
-                min={1}
-                max={10}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Cancellation & Rescheduling */}
-        <div className="border-2 border-gray-200 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Cancellation & Rescheduling</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cancellation deadline (hours before)
-              </label>
-              <input
-                type="number"
-                value={cancellationDeadlineHours}
-                onChange={(e) => setCancellationDeadlineHours(Number(e.target.value))}
-                min={0}
-                step={1}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reschedule deadline (hours before)
-              </label>
-              <input
-                type="number"
-                value={rescheduleDeadlineHours}
-                onChange={(e) => setRescheduleDeadlineHours(Number(e.target.value))}
-                min={0}
-                step={1}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Refund policy</label>
-              <select
-                value={refundPolicy}
-                onChange={(e) => setRefundPolicy(e.target.value as 'full' | 'partial' | 'none')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              >
-                <option value="full">Full refund</option>
-                <option value="partial">Partial refund</option>
-                <option value="none">No refund</option>
-              </select>
-            </div>
-
-            {refundPolicy === 'partial' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Partial refund percentage
-                </label>
-                <input
-                  type="number"
-                  value={partialRefundPercentage}
-                  onChange={(e) => setPartialRefundPercentage(Number(e.target.value))}
-                  min={0}
-                  max={100}
-                  step={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
-              </div>
-            )}
           </div>
         </div>
 
@@ -1093,40 +1460,6 @@ export default function OnboardBusinessPage() {
               step={1}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
-          </div>
-        </div>
-
-        {/* Business Metadata */}
-        <div className="border-2 border-gray-200 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Business Amenities</h3>
-          <div className="space-y-2">
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={parkingAvailable}
-                onChange={(e) => setParkingAvailable(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="text-sm text-gray-700">Parking available</span>
-            </label>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={wheelchairAccessible}
-                onChange={(e) => setWheelchairAccessible(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="text-sm text-gray-700">Wheelchair accessible</span>
-            </label>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={acceptsWalkIns}
-                onChange={(e) => setAcceptsWalkIns(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="text-sm text-gray-700">Accepts walk-ins</span>
-            </label>
           </div>
         </div>
 
@@ -1183,6 +1516,29 @@ export default function OnboardBusinessPage() {
           </dl>
         </div>
 
+        {categories.length > 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Services</h3>
+            <div className="space-y-3">
+              {categories.map((category) => (
+                <div key={category.id}>
+                  <p className="text-sm font-semibold text-gray-900">{category.name}</p>
+                  <ul className="mt-1 space-y-1">
+                    {category.services.map((service) => (
+                      <li key={service.id} className="text-sm text-gray-600 flex items-center gap-2">
+                        {service.color && (
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: service.color }} />
+                        )}
+                        {service.name} — {service.duration}min — €{service.price.toFixed(2)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Settings</h3>
           <dl className="space-y-2 text-sm">
@@ -1197,9 +1553,17 @@ export default function OnboardBusinessPage() {
             <div className="flex justify-between">
               <dt className="text-gray-600">Open days:</dt>
               <dd className="font-medium text-gray-900">
-                {availability.filter(d => d.enabled).length} days/week
+                {getAvailabilityForSubmit().filter(d => d.enabled).length} days/week
               </dd>
             </div>
+            {availabilityMode === 'advanced' && (
+              <div className="flex justify-between">
+                <dt className="text-gray-600">Split shifts:</dt>
+                <dd className="font-medium text-gray-900">
+                  {availability.filter(d => d.enabled && d.slots.length > 1).length} days
+                </dd>
+              </div>
+            )}
           </dl>
         </div>
       </div>
@@ -1225,6 +1589,15 @@ export default function OnboardBusinessPage() {
     setError(null);
 
     try {
+      // Convert euros to cents for services
+      const categoriesWithCents = categories.map(category => ({
+        ...category,
+        services: category.services.map(service => ({
+          ...service,
+          price: Math.round(service.price * 100), // Convert euros to cents
+        })),
+      }));
+
       const formData = {
         // Auth
         email,
@@ -1253,11 +1626,11 @@ export default function OnboardBusinessPage() {
         primaryColor,
         secondaryColor,
 
-        // Services
-        categories,
+        // Services (with prices in cents)
+        categories: categoriesWithCents,
 
-        // Availability
-        availability,
+        // Availability (get the correct data based on mode)
+        availability: getAvailabilityForSubmit(),
 
         // Booking rules
         timeSlotDuration,
@@ -1425,6 +1798,17 @@ export default function OnboardBusinessPage() {
           </div>
         </div>
       </div>
+
+      {/* Map Preview Modal */}
+      {showMapPreview && latitude && longitude && (
+        <LocationMapPreview
+          latitude={latitude}
+          longitude={longitude}
+          businessName={businessName}
+          address={`${street}, ${city}, ${state}`}
+          onClose={() => setShowMapPreview(false)}
+        />
+      )}
     </div>
   );
 }

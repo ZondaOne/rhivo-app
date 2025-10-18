@@ -163,6 +163,56 @@
   <acceptance>Services with any 5min-multiple duration work correctly with any timeSlotDuration. Slot availability accurately reflects occupied time using grain block overlap detection. No double-bookings occur. YAML auto-rounds non-multiples of 5 with info logs. Drag-and-drop snaps to 5min grid.</acceptance>
 </step>
 
+<step number="7f1">
+  <title>Shift breaks and split shifts in YAML schema</title>
+  <tasks>
+    <task>Extend YAML availability schema to support multiple time slots per day for breaks and split shifts.</task>
+    <task>Replace single open/close times with slots array containing {open, close} pairs in DailyAvailabilitySchema.</task>
+    <task>Update tenant-schema.ts: modify DailyAvailabilitySchema to accept slots: array of TimeSlotSchema with open/close times.</task>
+    <task>Maintain backward compatibility: if old format (single open/close) is detected, auto-convert to slots array with single entry.</task>
+    <task>Add validation: slots must be non-overlapping and in chronological order, each slot's close > open, total daily hours reasonable.</task>
+    <task>Update onboarding flow availability step to support multiple time slots per day (already implemented in UI as advanced mode).</task>
+    <task>Migrate existing YAML configs to new slots format: convert single open/close to slots: [{open, close}] array.</task>
+    <task>Document break/split shift examples in YAML: lunch break (9-13, 14-18), split shift (6-10, 18-22), etc.</task>
+  </tasks>
+  <deliverables>Updated tenant-schema.ts with slots array support, backward compatibility transformer, YAML validation for multiple slots, migration script for existing configs, break/split shift YAML examples, onboarding integration.</deliverables>
+  <acceptance>YAML configs can define multiple time slots per day. Validation prevents overlapping or invalid time ranges. Existing configs with single open/close auto-convert to slots array. Onboarding UI (advanced mode) generates correct YAML with multiple slots. All break scenarios work: lunch breaks, split shifts, multiple breaks per day.</acceptance>
+</step>
+
+<step number="7f2">
+  <title>Unified off-time system for slot generation</title>
+  <tasks>
+    <task>Design unified off-time representation: treat breaks, closed days, holidays, and unavailable exceptions as "unavailable time intervals".</task>
+    <task>Create OffTimeInterval interface: {start: DateTime, end: DateTime, reason: string, type: 'closed_day' | 'break' | 'holiday' | 'exception'}.</task>
+    <task>Build generateOffTimeIntervals() function that aggregates all off-time sources for a date range: closed days (availability.enabled=false), breaks (gaps between slots), holidays (availabilityExceptions.closed=true), custom exceptions.</task>
+    <task>Refactor slot-generator.ts to use unified off-time system: before generating slots, compute all off-time intervals for the day, skip slot generation during off-time periods.</task>
+    <task>Implement interval intersection detection: check if potential booking slot [start, end) intersects with any off-time interval using grain-block precision.</task>
+    <task>Handle break transitions: ensure bookings cannot start before break and end after break (must finish before break or start after break).</task>
+    <task>Add off-time validation to appointment creation/rescheduling: reject bookings that would span across breaks or closed periods.</task>
+    <task>Optimize off-time checking: pre-compute daily off-time intervals and cache, use binary search or interval tree for fast overlap detection.</task>
+    <task>Export isTimeAvailable() utility function: given business config, date, start/end times, returns boolean indicating if time range is available (not in off-time).</task>
+    <task>Update all booking validation points to use unified off-time system: reservation creation, appointment commit, drag-and-drop reschedule, manual appointment entry.</task>
+  </tasks>
+  <deliverables>OffTimeInterval interface and type definitions, generateOffTimeIntervals() function, refactored slot-generator.ts using unified system, isTimeAvailable() utility, interval intersection logic, off-time caching strategy, updated booking validation across all endpoints.</deliverables>
+  <acceptance>Slot generation correctly excludes all off-time: closed days, breaks between slots, holidays, exceptions. Bookings cannot span across breaks (must complete before or start after). Drag-and-drop validates against off-time intervals. Manual appointment creation rejects times during breaks or closed periods. Unified system treats all unavailable time consistently. Performance remains acceptable with complex availability patterns (multiple breaks, many exceptions). All off-time sources (slots gaps, exceptions, closures) handled by same logic.</acceptance>
+</step>
+
+<step number="7f3">
+  <title>Break time visualization and booking UX</title>
+  <tasks>
+    <task>Add visual break indicators to calendar views: show grayed-out or hatched areas during break periods in day and week views.</task>
+    <task>Display break labels in timeline: subtle "Lunch Break", "Closed", "Holiday" text overlays on off-time blocks.</task>
+    <task>Implement break-aware slot selection in booking flow: when showing available time slots, clearly indicate why certain times are unavailable (break, closed, holiday).</task>
+    <task>Add break information to availability API response: include off-time intervals in /api/booking/slots so frontend can display break times.</task>
+    <task>Show break times on public booking page: display business hours with breaks clearly marked (e.g., "9:00 AM - 1:00 PM, 2:00 PM - 6:00 PM").</task>
+    <task>Update appointment validation messages: when booking fails due to break conflict, show clear message "This time conflicts with scheduled break (1:00 PM - 2:00 PM)".</task>
+    <task>Handle edge case: services longer than break duration should not be offered in slots immediately before break if they would extend into break.</task>
+    <task>Add business hours summary component: generate human-readable schedule from YAML config including breaks (e.g., "Mon-Fri 9-1, 2-6 | Sat 10-2").</task>
+  </tasks>
+  <deliverables>Break visualization in calendar UI, break labels and styling, updated booking slot API with off-time data, business hours display component, improved validation error messages, edge case handling for pre-break slots.</deliverables>
+  <acceptance>Calendar views clearly show break periods as unavailable time. Booking flow displays breaks and explains why slots are unavailable. Validation errors reference specific break times. Services cannot be booked if they would extend into breaks. Public booking page shows accurate business hours including breaks. Business hours summary is human-readable and accurate.</acceptance>
+</step>
+
 <step number="7g">
   <title>Appointment drag-and-drop rescheduling with validation</title>
   <tasks>
