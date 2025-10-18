@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
     let appointmentWithDetails;
 
     try {
-      const updated = await appointmentManager.updateAppointment({
+      await appointmentManager.updateAppointment({
         appointmentId: body.appointmentId,
         slotStart: newStart,
         slotEnd: newEnd,
@@ -236,8 +236,8 @@ export async function POST(request: NextRequest) {
           );
         }
       }
-    } catch (error: any) {
-      if (error?.code === 'CONFLICT') {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'CONFLICT') {
         return NextResponse.json(
           {
             message: 'Appointment has been modified, please refresh and try again',

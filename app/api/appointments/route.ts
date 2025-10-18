@@ -88,9 +88,9 @@ export async function GET(request: NextRequest) {
       ORDER BY a.slot_start ASC
     `;
 
-    const appointments = rows.map((row: any) => {
-      const slotStart = new Date(row.slot_start);
-      const slotEnd = new Date(row.slot_end);
+    const appointments = rows.map((row) => {
+      const slotStart = new Date(row.slot_start as string);
+      const slotEnd = new Date(row.slot_end as string);
       const durationMinutes = Math.max(5, Math.round((slotEnd.getTime() - slotStart.getTime()) / (1000 * 60)));
 
       return {
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         start_time: slotStart.toISOString(),
         end_time: slotEnd.toISOString(),
         duration: durationMinutes,
-        status: STATUS_DB_TO_UI[row.status] ?? row.status,
+        status: STATUS_DB_TO_UI[row.status as string] ?? row.status,
         customer_name: row.customer_name ?? row.guest_email ?? 'Guest',
         customer_email: row.customer_email ?? row.guest_email ?? null,
         customer_phone: row.customer_phone ?? row.guest_phone ?? null,

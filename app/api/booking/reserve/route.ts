@@ -100,9 +100,9 @@ export async function POST(request: NextRequest) {
     const config = configResult.config;
 
     // Find the service in YAML config to get capacity
-    let serviceConfig = null;
+    let serviceConfig: { id: string; maxSimultaneousBookings?: number } | null = null;
     for (const category of config.categories) {
-      const found = category.services.find((s: any) => s.id === service.external_id);
+      const found = category.services.find((s) => s.id === service.external_id);
       if (found) {
         serviceConfig = found;
         break;
@@ -171,8 +171,8 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-  } catch (error: any) {
-    if (error.message.includes('no longer available')) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('no longer available')) {
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 409 }

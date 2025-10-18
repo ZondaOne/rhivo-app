@@ -60,9 +60,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Find the service in YAML config to get capacity
-    let serviceConfig = null;
+    let serviceConfig: { id: string; maxSimultaneousBookings?: number } | null = null;
     for (const category of config.categories) {
-      const found = category.services.find((s: any) => s.id === service.external_id);
+      const found = category.services.find((s) => s.id === service.external_id);
       if (found) {
         serviceConfig = found;
         break;
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       slotStart: data.slotStart,
       slotEnd: data.slotEnd
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Invalid request parameters', details: error.issues },

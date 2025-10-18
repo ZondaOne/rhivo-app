@@ -7,7 +7,16 @@ export default function OnboardBusinessPage() {
   const [ownerEmail, setOwnerEmail] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    success: boolean;
+    businessId?: string;
+    subdomain?: string;
+    temporaryPassword?: string;
+    verificationUrl?: string;
+    bookingPageUrl?: string;
+    warnings?: string[];
+    errors?: string[];
+  } | null>(null);
 
   const availableConfigs = [
     'config/tenants/wellness-spa.yaml',
