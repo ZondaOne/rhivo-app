@@ -180,3 +180,95 @@
 .booking-page .brand-main-cta {
   background: var(--gradient-brand);
 }
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  /* Hide scrollbar for mobile date scroll */
+  .mobile-date-scroll {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  .mobile-date-scroll::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* Add scroll padding for better snap experience */
+  .mobile-date-scroll {
+    scroll-padding: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Enhanced tap targets for mobile time slots */
+  .booking-page .brand-slot {
+    min-height: 52px;
+    font-size: 15px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth scroll behavior */
+  .mobile-date-scroll {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Utility class for hiding scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Enhanced mobile interactions */
+@media (max-width: 640px) {
+  /* Better touch feedback for date buttons */
+  .booking-page .brand-date-selected {
+    box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb, 20 184 166), 0.3);
+    transform: scale(1.05);
+  }
+
+  /* Improved time slot buttons on mobile */
+  .booking-page .brand-slot:active {
+    background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.1) !important;
+    border-color: var(--brand-primary, #14b8a6) !important;
+    transform: scale(0.95);
+  }
+
+  /* Scroll indicator hint for date selector */
+  .mobile-date-scroll::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 8px;
+    width: 40px;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+  }
+
+  /* Date scroll container needs relative positioning for pseudo-element */
+  .mobile-date-scroll {
+    position: relative;
+  }
+}
+
+/* Improved active states for all buttons */
+.booking-page button:active {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Better visual hierarchy for mobile time of day headers */
+@media (max-width: 640px) {
+  .booking-page .text-xs.font-bold.text-gray-700 {
+    font-size: 0.8125rem; /* 13px */
+    padding: 0.5rem 0.25rem;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.02), transparent);
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+    border-radius: 0.5rem;
+  }
+}

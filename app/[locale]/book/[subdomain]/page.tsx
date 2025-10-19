@@ -786,22 +786,110 @@ export default function BookingPage() {
                   <div className="mb-5 sm:mb-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
                       <h3 className="text-sm sm:text-base font-semibold text-gray-900">{t('datetime.selectDate')}</h3>
-                      <div className="flex items-center gap-3 text-[10px] sm:text-xs">
-                        <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs overflow-x-auto pb-1 sm:pb-0">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-green-100 border border-green-300"></div>
                           <span className="text-gray-600">{t('datetime.available')}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-yellow-100 border border-yellow-300"></div>
                           <span className="text-gray-600">{t('datetime.limited')}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-orange-100 border border-orange-300"></div>
                           <span className="text-gray-600">{t('datetime.busy')}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+                    {/* Mobile: Horizontal scroll calendar */}
+                    <div className="block sm:hidden">
+                      <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide mobile-date-scroll">
+                        {availableDates.map((date, idx) => {
+                          const dayOfWeek = getDayOfWeek(date);
+                          const dayAvail = config.availability.find(a => a.day === dayOfWeek);
+
+                          // Check for exceptions
+                          const dateString = formatDateYYYYMMDD(date);
+                          const exception = config.availabilityExceptions.find(e => e.date === dateString);
+                          const isClosed = exception?.closed || false;
+
+                          // Get capacity data for this date
+                          const capacityData = dateCapacityMap.get(dateString);
+                          const capacityPct = capacityData?.percentage || 0;
+
+                          // Date is available if: day is enabled, not closed, and has future available slots
+                          const isAvailable = (dayAvail?.enabled || false) && !isClosed && (capacityData?.hasAvailableSlots !== false);
+                          const isSelected = selectedDate && formatDateYYYYMMDD(date) === formatDateYYYYMMDD(selectedDate);
+
+                          // Determine background color based on capacity
+                          const getCapacityBgStyle = () => {
+                            if (!isAvailable) return 'bg-gray-100';
+                            if (!selectedService) return 'bg-white';
+                            if (!capacityData) return 'bg-gray-50';
+
+                            if (isSelected) return 'brand-date-selected';
+
+                            if (capacityPct <= 30) {
+                              return 'bg-green-50 active:bg-green-100';
+                            } else if (capacityPct <= 60) {
+                              return 'bg-yellow-50 active:bg-yellow-100';
+                            } else {
+                              return 'bg-orange-50 active:bg-orange-100';
+                            }
+                          };
+
+                          const getBorderStyle = () => {
+                            if (!isAvailable) return 'border-gray-200';
+                            if (!selectedService) return 'border-gray-200';
+                            if (!capacityData) return 'border-gray-200';
+
+                            if (isSelected) return '';
+
+                            if (capacityPct <= 30) {
+                              return 'border-green-200';
+                            } else if (capacityPct <= 60) {
+                              return 'border-yellow-200';
+                            } else {
+                              return 'border-orange-200';
+                            }
+                          };
+
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => isAvailable && setSelectedDate(date)}
+                              disabled={!isAvailable}
+                              className={`flex-shrink-0 w-[100px] p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center snap-center ${getCapacityBgStyle()} ${getBorderStyle()} ${
+                                !isAvailable ? 'opacity-40 cursor-not-allowed' : 'active:scale-95'
+                              }`}
+                            >
+                              <div className={`text-xs font-bold uppercase tracking-wide mb-2 ${
+                                isSelected ? 'brand-date-today' : isAvailable ? 'text-gray-500' : 'text-gray-400'
+                              }`}>
+                                {formatDayShort(date, locale)}
+                              </div>
+                              <div className={`text-3xl font-bold mb-1 ${
+                                isSelected ? 'text-gray-900' : isAvailable ? 'text-gray-900' : 'text-gray-400'
+                              }`}>
+                                {date.getDate()}
+                              </div>
+                              <div className={`text-[10px] font-medium ${
+                                isSelected ? 'text-gray-700' : isAvailable ? 'text-gray-500' : 'text-gray-400'
+                              }`}>
+                                {date.toLocaleDateString(locale, { month: 'short' })}
+                              </div>
+                              {!isAvailable && (
+                                <div className="text-[9px] text-gray-400 mt-1.5">
+                                  {isClosed ? t('details.closed') : t('details.notAvailable')}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Desktop/Tablet: Grid calendar */}
+                    <div className="hidden sm:grid grid-cols-5 lg:grid-cols-7 gap-2">
                       {availableDates.map((date, idx) => {
                         const dayOfWeek = getDayOfWeek(date);
                         const dayAvail = config.availability.find(a => a.day === dayOfWeek);
@@ -857,7 +945,7 @@ export default function BookingPage() {
                             key={idx}
                             onClick={() => isAvailable && setSelectedDate(date)}
                             disabled={!isAvailable}
-                            className={`p-3 sm:p-3.5 rounded-xl border-2 transition-all text-center min-h-[70px] sm:min-h-[76px] flex flex-col items-center justify-center ${getCapacityBgStyle()} ${getBorderStyle()} ${
+                            className={`p-3.5 rounded-xl border-2 transition-all text-center min-h-[76px] flex flex-col items-center justify-center ${getCapacityBgStyle()} ${getBorderStyle()} ${
                               !isAvailable ? 'opacity-40 cursor-not-allowed' : 'active:scale-95'
                             }`}
                             title={
@@ -868,18 +956,18 @@ export default function BookingPage() {
                                 : undefined
                             }
                           >
-                            <div className={`text-[11px] sm:text-xs font-semibold uppercase tracking-wide ${
+                            <div className={`text-xs font-semibold uppercase tracking-wide ${
                               isSelected ? 'brand-date-today' : isAvailable ? 'text-gray-500' : 'text-gray-400'
                             }`}>
                               {formatDayShort(date, locale).slice(0, 3)}
                             </div>
-                            <div className={`text-lg sm:text-xl font-bold mt-1 ${
+                            <div className={`text-xl font-bold mt-1 ${
                               isSelected ? 'text-gray-900' : isAvailable ? 'text-gray-900' : 'text-gray-400'
                             }`}>
                               {date.getDate()}
                             </div>
                             {!isAvailable && (
-                              <div className="text-[9px] sm:text-[10px] text-gray-400 mt-0.5">
+                              <div className="text-[10px] text-gray-400 mt-0.5">
                                 {isClosed ? t('details.closed') : t('details.notAvailable')}
                               </div>
                             )}
@@ -907,7 +995,7 @@ export default function BookingPage() {
                           <p className="text-xs sm:text-sm text-gray-400 mt-1.5 sm:mt-2">{t('datetime.tryAnotherDate')}</p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-4 sm:space-y-5">
                           {/* Group slots by time of day for better UX */}
                           {(() => {
                             // Group slots: Morning (6-12), Afternoon (12-17), Evening (17-22)
@@ -928,13 +1016,29 @@ export default function BookingPage() {
                               <>
                                 {morning.length > 0 && (
                                   <div>
-                                    <div className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 flex items-center gap-2">
-                                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2 px-1">
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                       </svg>
                                       {t('datetime.morning')}
+                                      <span className="text-[10px] font-medium text-gray-500 normal-case tracking-normal">
+                                        ({morning.length} {morning.length === 1 ? 'slot' : 'slots'})
+                                      </span>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    {/* Mobile: 3 columns with larger buttons */}
+                                    <div className="grid grid-cols-3 sm:hidden gap-2.5">
+                                      {morning.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSlotSelect(slot)}
+                                          className="px-3 py-4 rounded-2xl border-2 border-gray-200 bg-white brand-slot transition-all text-center font-bold text-gray-900 active:scale-95"
+                                        >
+                                          <div className="text-base">{formatTime(new Date(slot.start), locale)}</div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                    {/* Desktop/Tablet: 6 columns */}
+                                    <div className="hidden sm:grid grid-cols-4 lg:grid-cols-6 gap-2">
                                       {morning.map((slot, idx) => (
                                         <button
                                           key={idx}
@@ -950,13 +1054,29 @@ export default function BookingPage() {
 
                                 {afternoon.length > 0 && (
                                   <div>
-                                    <div className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 flex items-center gap-2">
-                                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2 px-1">
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                       </svg>
                                       {t('datetime.afternoon')}
+                                      <span className="text-[10px] font-medium text-gray-500 normal-case tracking-normal">
+                                        ({afternoon.length} {afternoon.length === 1 ? 'slot' : 'slots'})
+                                      </span>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    {/* Mobile: 3 columns with larger buttons */}
+                                    <div className="grid grid-cols-3 sm:hidden gap-2.5">
+                                      {afternoon.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSlotSelect(slot)}
+                                          className="px-3 py-4 rounded-2xl border-2 border-gray-200 bg-white brand-slot transition-all text-center font-bold text-gray-900 active:scale-95"
+                                        >
+                                          <div className="text-base">{formatTime(new Date(slot.start), locale)}</div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                    {/* Desktop/Tablet: 6 columns */}
+                                    <div className="hidden sm:grid grid-cols-4 lg:grid-cols-6 gap-2">
                                       {afternoon.map((slot, idx) => (
                                         <button
                                           key={idx}
@@ -972,13 +1092,29 @@ export default function BookingPage() {
 
                                 {evening.length > 0 && (
                                   <div>
-                                    <div className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 flex items-center gap-2">
-                                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2 px-1">
+                                      <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                                       </svg>
                                       {t('datetime.evening')}
+                                      <span className="text-[10px] font-medium text-gray-500 normal-case tracking-normal">
+                                        ({evening.length} {evening.length === 1 ? 'slot' : 'slots'})
+                                      </span>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    {/* Mobile: 3 columns with larger buttons */}
+                                    <div className="grid grid-cols-3 sm:hidden gap-2.5">
+                                      {evening.map((slot, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handleSlotSelect(slot)}
+                                          className="px-3 py-4 rounded-2xl border-2 border-gray-200 bg-white brand-slot transition-all text-center font-bold text-gray-900 active:scale-95"
+                                        >
+                                          <div className="text-base">{formatTime(new Date(slot.start), locale)}</div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                    {/* Desktop/Tablet: 6 columns */}
+                                    <div className="hidden sm:grid grid-cols-4 lg:grid-cols-6 gap-2">
                                       {evening.map((slot, idx) => (
                                         <button
                                           key={idx}
