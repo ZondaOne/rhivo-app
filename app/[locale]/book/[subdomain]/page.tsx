@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { TenantConfig, Category, Service } from '@/lib/config/tenant-schema';
 import { v4 as uuidv4 } from 'uuid';
+import { applyBrandColors, removeBrandColors } from '@/lib/theme/brand-colors';
+import './brand-theme.css';
 
 interface TimeSlot {
   start: string;
@@ -70,6 +72,14 @@ export default function BookingPage() {
           if (data.config.categories.length > 0) {
             setSelectedCategory(data.config.categories[0]);
           }
+          
+          // Apply brand colors from the configuration
+          if (data.config.branding?.primaryColor && data.config.branding?.secondaryColor) {
+            applyBrandColors({
+              primary: data.config.branding.primaryColor,
+              secondary: data.config.branding.secondaryColor,
+            });
+          }
         } else {
           setError(data.error || t('loadFailed'));
         }
@@ -79,6 +89,11 @@ export default function BookingPage() {
         console.error(err);
       })
       .finally(() => setLoading(false));
+    
+    // Cleanup: remove brand colors when component unmounts
+    return () => {
+      removeBrandColors();
+    };
   }, [subdomain, t]);
 
   // State for date capacity data
@@ -400,7 +415,7 @@ export default function BookingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-teal-600 border-t-transparent mx-auto mb-3 sm:mb-4"></div>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 brand-spinner mx-auto mb-3 sm:mb-4"></div>
           <p className="text-sm sm:text-base text-gray-500">{t('loading')}</p>
         </div>
       </div>
@@ -418,7 +433,7 @@ export default function BookingPage() {
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 tracking-tight">{t('errorTitle')}</h1>
           <p className="text-sm sm:text-base text-gray-500 mb-6">{error || t('errorMessage')}</p>
-          <a href={`/${locale}`} className="inline-flex items-center text-sm font-semibold text-teal-600 hover:text-teal-700">
+          <a href={`/${locale}`} className="inline-flex items-center text-sm font-semibold brand-link">
             {t('returnHome')}
           </a>
         </div>
@@ -441,7 +456,7 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white booking-page">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
         <div className="px-4 sm:px-6 lg:px-12 py-5">
@@ -454,7 +469,7 @@ export default function BookingPage() {
                   className="h-10 sm:h-12 w-auto rounded-2xl shadow-sm"
                 />
               ) : (
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-teal-500 to-green-500 rounded-2xl flex items-center justify-center shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 brand-logo-gradient rounded-2xl flex items-center justify-center shadow-sm">
                   <span className="text-white font-bold text-lg sm:text-xl">
                     {config.business.name.charAt(0).toUpperCase()}
                   </span>
@@ -491,8 +506,8 @@ export default function BookingPage() {
           // Confirmation Screen
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-2xl border border-gray-200/60 p-6 sm:p-8 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-teal-100 to-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-20 h-20 brand-success-icon rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
@@ -549,7 +564,7 @@ export default function BookingPage() {
                 <div className="text-center mb-6">
                   <a
                     href={`/${locale}/book/manage`}
-                    className="text-xs sm:text-sm text-teal-600 hover:text-teal-700 font-medium"
+                    className="text-xs sm:text-sm brand-link font-medium"
                   >
                     {t('confirmation.manageLink')}
                   </a>
@@ -558,7 +573,7 @@ export default function BookingPage() {
 
               <button
                 onClick={() => window.location.reload()}
-                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all"
+                className="w-full sm:w-auto px-6 py-3 brand-button text-white rounded-2xl font-semibold transition-all"
               >
                 {t('confirmation.newBooking')}
               </button>
@@ -570,11 +585,14 @@ export default function BookingPage() {
             <div className="mb-6 sm:mb-8">
               <div className="flex items-center justify-center gap-3 sm:gap-4">
                 <div className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 ${currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
-                    currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details'
-                      ? 'bg-teal-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-400'
-                  }`}>
+                  <div 
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
+                      currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details'
+                        ? 'text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}
+                    style={currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details' ? { backgroundColor: 'var(--brand-primary)' } : undefined}
+                  >
                     {selectedService ? '✓' : '1'}
                   </div>
                   <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center sm:text-left">{t('steps.service')}</span>
@@ -583,11 +601,14 @@ export default function BookingPage() {
                 <div className="h-0.5 w-6 sm:w-12 lg:w-16 bg-gray-200 flex-shrink-0 mt-0 sm:mt-0"></div>
 
                 <div className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 ${currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
-                    currentStep === 'datetime' || currentStep === 'details'
-                      ? 'bg-teal-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-400'
-                  }`}>
+                  <div 
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
+                      currentStep === 'datetime' || currentStep === 'details'
+                        ? 'text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}
+                    style={currentStep === 'datetime' || currentStep === 'details' ? { backgroundColor: 'var(--brand-primary)' } : undefined}
+                  >
                     {selectedSlot ? '✓' : '2'}
                   </div>
                   <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center sm:text-left">{t('steps.datetime')}</span>
@@ -596,11 +617,14 @@ export default function BookingPage() {
                 <div className="h-0.5 w-6 sm:w-12 lg:w-16 bg-gray-200 flex-shrink-0 mt-0 sm:mt-0"></div>
 
                 <div className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 ${currentStep === 'details' ? '' : 'opacity-40'}`}>
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
-                    currentStep === 'details'
-                      ? 'bg-teal-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-400'
-                  }`}>
+                  <div 
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
+                      currentStep === 'details'
+                        ? 'text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}
+                    style={currentStep === 'details' ? { backgroundColor: 'var(--brand-primary)' } : undefined}
+                  >
                     3
                   </div>
                   <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center sm:text-left">{t('steps.details')}</span>
@@ -615,7 +639,7 @@ export default function BookingPage() {
                   {/* Categories */}
                   <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
                     <div className="flex items-center gap-2 mb-4 sm:mb-5">
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         1
                       </div>
                       <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 tracking-tight">{t('service.title')}</h2>
@@ -629,10 +653,10 @@ export default function BookingPage() {
                             setSelectedService(null);
                             setCurrentStep('service');
                           }}
-                          className={`text-left p-4 sm:p-5 rounded-xl transition-all min-h-[72px] sm:min-h-[80px] ${
+                          className={`text-left p-4 sm:p-5 rounded-xl transition-all min-h-[72px] sm:min-h-[80px] border-2 ${
                             selectedCategory?.id === category.id
-                              ? 'bg-gray-50 border-2 border-teal-600 shadow-sm'
-                              : 'bg-white border-2 border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]'
+                              ? 'brand-selected shadow-sm'
+                              : 'bg-white border-gray-200 brand-hoverable hover:shadow-sm active:scale-[0.98]'
                           }`}
                         >
                           <div className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{category.name}</div>
@@ -651,7 +675,7 @@ export default function BookingPage() {
                     <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: 'var(--brand-primary)' }}>
                             2
                           </div>
                           <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 tracking-tight">{t('service.subtitle')}</h2>
@@ -675,8 +699,8 @@ export default function BookingPage() {
                               onClick={() => handleServiceSelect(service)}
                               className={`w-full text-left p-4 sm:p-5 rounded-xl border-2 transition-all hover:shadow-sm active:scale-[0.99] ${
                                 selectedService?.id === service.id
-                                  ? 'border-teal-600 bg-gray-50'
-                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                                  ? 'brand-selected'
+                                  : 'border-gray-200 bg-white brand-hoverable'
                               }`}
                             >
                               <div className="flex items-start justify-between gap-3">
@@ -717,7 +741,7 @@ export default function BookingPage() {
                 <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         2
                       </div>
                       <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 tracking-tight">{t('datetime.title')}</h2>
@@ -804,7 +828,7 @@ export default function BookingPage() {
                           if (!selectedService) return 'bg-white'; // No service selected yet
                           if (!capacityData) return 'bg-gray-50'; // Loading or no data
 
-                          if (isSelected) return 'bg-teal-50';
+                          if (isSelected) return 'brand-date-selected';
 
                           if (capacityPct <= 30) {
                             return 'bg-green-50 hover:bg-green-100';
@@ -820,7 +844,7 @@ export default function BookingPage() {
                           if (!selectedService) return 'border-gray-200';
                           if (!capacityData) return 'border-gray-200';
 
-                          if (isSelected) return 'border-teal-600';
+                          if (isSelected) return '';
 
                           if (capacityPct <= 30) {
                             return 'border-green-200 hover:border-green-400';
@@ -848,7 +872,7 @@ export default function BookingPage() {
                             }
                           >
                             <div className={`text-[11px] sm:text-xs font-semibold uppercase tracking-wide ${
-                              isSelected ? 'text-teal-600' : isAvailable ? 'text-gray-500' : 'text-gray-400'
+                              isSelected ? 'brand-date-today' : isAvailable ? 'text-gray-500' : 'text-gray-400'
                             }`}>
                               {formatDayShort(date, locale).slice(0, 3)}
                             </div>
@@ -874,7 +898,7 @@ export default function BookingPage() {
                       <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4">{t('datetime.selectTime')}</h3>
                       {loadingSlots ? (
                         <div className="flex flex-col items-center justify-center py-10 sm:py-12">
-                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-teal-600 border-t-transparent mb-3"></div>
+                          <div className="animate-spin rounded-full h-10 w-10 border-4 brand-spinner mb-3"></div>
                           <p className="text-sm text-gray-500">{t('datetime.loadingSlots')}</p>
                         </div>
                       ) : availableSlots.length === 0 ? (
@@ -918,7 +942,7 @@ export default function BookingPage() {
                                         <button
                                           key={idx}
                                           onClick={() => handleSlotSelect(slot)}
-                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
+                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white brand-slot transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
                                         >
                                           {formatTime(new Date(slot.start), locale)}
                                         </button>
@@ -940,7 +964,7 @@ export default function BookingPage() {
                                         <button
                                           key={idx}
                                           onClick={() => handleSlotSelect(slot)}
-                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
+                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white brand-slot transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
                                         >
                                           {formatTime(new Date(slot.start), locale)}
                                         </button>
@@ -962,7 +986,7 @@ export default function BookingPage() {
                                         <button
                                           key={idx}
                                           onClick={() => handleSlotSelect(slot)}
-                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
+                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white brand-slot transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
                                         >
                                           {formatTime(new Date(slot.start), locale)}
                                         </button>
@@ -984,7 +1008,7 @@ export default function BookingPage() {
                 <div className="bg-white rounded-2xl border border-gray-200/60 p-6 lg:p-8">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         3
                       </div>
                       <h2 className="text-xl font-bold text-gray-900 tracking-tight">{t('details.title')}</h2>
@@ -1057,7 +1081,7 @@ export default function BookingPage() {
                               id="name"
                               value={guestName}
                               onChange={(e) => setGuestName(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                               placeholder={t('details.namePlaceholder')}
                               required
                             />
@@ -1081,7 +1105,7 @@ export default function BookingPage() {
                               id="email"
                               value={guestEmail}
                               onChange={(e) => setGuestEmail(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                               placeholder={t('details.emailPlaceholder')}
                               required
                             />
@@ -1105,7 +1129,7 @@ export default function BookingPage() {
                               id="phone"
                               value={guestPhone}
                               onChange={(e) => setGuestPhone(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                               placeholder={t('details.phonePlaceholder')}
                             />
                           </div>
@@ -1126,7 +1150,7 @@ export default function BookingPage() {
                               rows={4}
                               maxLength={field.maxLength}
                               placeholder={field.placeholder}
-                              className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all resize-none text-gray-900 placeholder:text-gray-400 text-sm"
+                              className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all resize-none text-gray-900 placeholder:text-gray-400 text-sm"
                             />
                           ) : field.type === 'select' ? (
                             <div className="relative">
@@ -1134,7 +1158,7 @@ export default function BookingPage() {
                                 id={field.id}
                                 value={customFieldValues[field.id] || ''}
                                 onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
-                                className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 appearance-none cursor-pointer text-sm"
+                                className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 appearance-none cursor-pointer text-sm"
                               >
                                 <option value="" className="text-gray-400">Select an option</option>
                                 {field.options?.map((option) => (
@@ -1157,7 +1181,7 @@ export default function BookingPage() {
                               onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
                               maxLength={field.maxLength}
                               placeholder={field.placeholder}
-                              className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             />
                           )}
                         </div>
@@ -1167,8 +1191,8 @@ export default function BookingPage() {
 
                   {bookingType === 'login' && !showSignupForm && (
                     <div className="space-y-6 mb-8">
-                      <div className="bg-teal-50 border border-teal-200/60 rounded-xl p-5">
-                        <p className="text-sm text-teal-800 leading-relaxed">
+                      <div className="brand-info-box border rounded-xl p-5">
+                        <p className="text-sm brand-info-text leading-relaxed">
                           <strong>Log in</strong> to your account for faster bookings and to view your appointment history.
                         </p>
                       </div>
@@ -1188,7 +1212,7 @@ export default function BookingPage() {
                             id="login-identifier"
                             value={guestEmail}
                             onChange={(e) => setGuestEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             placeholder={t('details.emailOrPhoneLoginPlaceholder')}
                             required
                           />
@@ -1210,7 +1234,7 @@ export default function BookingPage() {
                             id="login-password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             placeholder={t('details.passwordPlaceholder')}
                             required
                           />
@@ -1224,7 +1248,7 @@ export default function BookingPage() {
                         <button
                           type="button"
                           onClick={() => setShowSignupForm(true)}
-                          className="w-full px-5 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200/60"
+                          className="w-full px-5 py-2.5 text-sm font-semibold brand-button-secondary rounded-xl transition-all border"
                         >
                           {t('details.createAccountButton')}
                         </button>
@@ -1234,8 +1258,8 @@ export default function BookingPage() {
 
                   {bookingType === 'login' && showSignupForm && (
                     <div className="space-y-6 mb-8">
-                      <div className="bg-teal-50 border border-teal-200/60 rounded-xl p-5">
-                        <p className="text-sm text-teal-800 leading-relaxed">
+                      <div className="brand-info-box border rounded-xl p-5">
+                        <p className="text-sm brand-info-text leading-relaxed">
                           {t('details.signupBenefit')}
                         </p>
                       </div>
@@ -1255,7 +1279,7 @@ export default function BookingPage() {
                             id="signup-email"
                             value={guestEmail}
                             onChange={(e) => setGuestEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             placeholder={t('details.emailPlaceholder')}
                           />
                         </div>
@@ -1276,7 +1300,7 @@ export default function BookingPage() {
                             id="signup-phone"
                             value={guestPhone}
                             onChange={(e) => setGuestPhone(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             placeholder={t('details.phonePlaceholder')}
                           />
                         </div>
@@ -1298,7 +1322,7 @@ export default function BookingPage() {
                             id="signup-password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             placeholder={t('details.passwordPlaceholderMin')}
                             required
                             minLength={8}
@@ -1322,7 +1346,7 @@ export default function BookingPage() {
                               id="signup-name"
                               value={guestName}
                               onChange={(e) => setGuestName(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none  transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                               placeholder={t('details.namePlaceholder')}
                             />
                           </div>
@@ -1336,7 +1360,7 @@ export default function BookingPage() {
                         <button
                           type="button"
                           onClick={() => setShowSignupForm(false)}
-                          className="w-full px-5 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200/60"
+                          className="w-full px-5 py-2.5 text-sm font-semibold brand-button-secondary rounded-xl transition-all border"
                         >
                           {t('details.loginLink')}
                         </button>
@@ -1352,8 +1376,8 @@ export default function BookingPage() {
                     <div className="space-y-4">
                       {/* Service */}
                       <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-10 h-10 brand-icon-bg rounded-xl flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6h.008v.008H6V6z" />
                           </svg>
@@ -1366,8 +1390,8 @@ export default function BookingPage() {
 
                       {/* Date & Time */}
                       <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-10 h-10 brand-icon-bg rounded-xl flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                           </svg>
                         </div>
@@ -1408,7 +1432,7 @@ export default function BookingPage() {
                     <button
                       onClick={handleBooking}
                       disabled={reserving || confirming}
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl text-sm font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
+                      className="flex-1 px-6 py-3 brand-main-cta text-white rounded-2xl text-sm font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
                     >
                       {reserving || confirming ? (
                         <>
@@ -1462,7 +1486,7 @@ export default function BookingPage() {
                           ].join(', '))}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all"
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white brand-cta-small rounded-xl transition-all"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -1534,12 +1558,12 @@ export default function BookingPage() {
                             <div
                               key={a.day}
                               className={`flex justify-between items-center gap-4 py-2 px-3 rounded-lg transition-colors ${
-                                isToday ? 'bg-teal-50 border border-teal-100' : ''
+                                isToday ? 'brand-today-indicator' : ''
                               }`}
                             >
                               <div className="flex items-center gap-2">
                                 {isToday && (
-                                  <div className="w-2 h-2 rounded-full bg-teal-600"></div>
+                                  <div className="w-2 h-2 rounded-full brand-today-dot"></div>
                                 )}
                                 <span className={`text-sm capitalize ${
                                   isToday ? 'font-semibold text-gray-900' : 'text-gray-700'
@@ -1548,7 +1572,7 @@ export default function BookingPage() {
                                 </span>
                               </div>
                               <span className={`text-sm tabular-nums ${
-                                isToday ? 'font-semibold text-teal-900' : 'text-gray-500 font-medium'
+                                isToday ? 'font-semibold brand-today-text' : 'text-gray-500 font-medium'
                               }`}>
                                 {formatHours()}
                               </span>

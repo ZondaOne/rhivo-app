@@ -1,0 +1,182 @@
+/**
+ * Dynamic Brand Theme for Booking Pages
+ * 
+ * This CSS file uses CSS custom properties (variables) that are set dynamically
+ * by JavaScript based on each business's brand colors from their YAML configuration.
+ * 
+ * Variables available:
+ * - --brand-primary: Main brand color
+ * - --brand-primary-rgb: RGB values for opacity usage
+ * - --brand-primary-hover: Darker shade for hover states
+ * - --brand-primary-light: Lighter shade
+ * - --brand-primary-lighter: Even lighter shade
+ * - --brand-secondary: Secondary brand color
+ * - --brand-secondary-rgb: RGB values for opacity usage
+ * - --brand-secondary-hover: Darker shade for hover states
+ * - --brand-secondary-light: Lighter shade
+ */
+
+/* Override Tailwind's teal colors with brand colors in booking context */
+.booking-page {
+  /* Loading spinner */
+  --tw-spin-border-brand: var(--brand-primary, #14b8a6);
+  
+  /* Gradient backgrounds */
+  --gradient-brand: linear-gradient(to right, var(--brand-primary, #14b8a6), var(--brand-secondary, #10b981));
+}
+
+/* Loading spinner with brand color */
+.booking-page .brand-spinner {
+  border-color: var(--brand-primary, #14b8a6);
+  border-top-color: transparent;
+}
+
+/* Links with brand color */
+.booking-page .brand-link {
+  color: var(--brand-primary, #14b8a6);
+}
+
+.booking-page .brand-link:hover {
+  color: var(--brand-primary-hover, #0d9488);
+}
+
+/* Buttons with brand gradient */
+.booking-page .brand-button {
+  background: var(--gradient-brand);
+}
+
+.booking-page .brand-button:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: scale(1.02);
+}
+
+/* Logo gradient fallback with brand colors */
+.booking-page .brand-logo-gradient {
+  background: var(--gradient-brand);
+}
+
+/* Step indicator with brand color */
+.booking-page .brand-step-active {
+  background-color: var(--brand-primary, #14b8a6);
+  color: white;
+}
+
+/* Selected category/service with brand color */
+.booking-page .brand-selected {
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.05);
+  border-color: var(--brand-primary, #14b8a6) !important;
+}
+
+/* Hover state for selectable items (categories, services) */
+.booking-page .brand-hoverable:hover {
+  border-color: var(--brand-primary, #14b8a6) !important;
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.05);
+}
+
+/* Date selector with brand colors */
+.booking-page .brand-date-selected {
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.1);
+  border-color: var(--brand-primary, #14b8a6) !important;
+}
+
+.booking-page .brand-date-today {
+  color: var(--brand-primary, #14b8a6);
+}
+
+/* Time slot hover with brand color */
+.booking-page .brand-slot:hover {
+  border-color: var(--brand-primary, #14b8a6) !important;
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.05);
+}
+
+/* Form focus states with brand color - Override Tailwind defaults */
+.booking-page input:focus,
+.booking-page select:focus,
+.booking-page textarea:focus {
+  border-color: var(--brand-primary, #14b8a6) !important;
+  --tw-ring-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.2);
+  --tw-ring-opacity: 1;
+  box-shadow: 0 0 0 1px rgba(var(--brand-primary-rgb, 20 184 166), 0.2);
+}
+
+/* Info boxes with brand color */
+.booking-page .brand-info-box {
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.05);
+  border-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.2);
+}
+
+.booking-page .brand-info-text {
+  color: var(--brand-primary, #14b8a6);
+}
+
+/* Secondary button with brand color */
+.booking-page .brand-button-secondary {
+  color: var(--brand-primary, #14b8a6);
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.05);
+  border-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.2);
+}
+
+.booking-page .brand-button-secondary:hover {
+  color: var(--brand-primary-hover, #0d9488);
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.1);
+}
+
+/* Get directions button with brand color */
+.booking-page .brand-cta-button {
+  background-color: var(--brand-primary, #14b8a6);
+  color: white;
+}
+
+.booking-page .brand-cta-button:hover {
+  background-color: var(--brand-primary-hover, #0d9488);
+}
+
+/* Today indicator in business hours */
+.booking-page .brand-today-indicator {
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.1);
+  border-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.3);
+}
+
+.booking-page .brand-today-text {
+  color: var(--brand-primary, #14b8a6);
+}
+
+.booking-page .brand-today-dot {
+  background-color: var(--brand-primary, #14b8a6);
+}
+
+/* Confirmation check icon background */
+.booking-page .brand-success-icon {
+  background: linear-gradient(135deg, 
+    rgba(var(--brand-primary-rgb, 20 184 166), 0.1), 
+    rgba(var(--brand-secondary-rgb, 16 185 129), 0.1)
+  );
+}
+
+.booking-page .brand-success-icon svg {
+  color: var(--brand-primary, #14b8a6);
+}
+
+/* Booking summary icon backgrounds */
+.booking-page .brand-icon-bg {
+  background-color: rgba(var(--brand-primary-rgb, 20 184 166), 0.1);
+}
+
+.booking-page .brand-icon-bg svg {
+  color: var(--brand-primary, #14b8a6);
+}
+
+/* "Get Directions" and similar CTA buttons */
+.booking-page .brand-cta-small {
+  background-color: var(--brand-primary, #14b8a6);
+  color: white;
+}
+
+.booking-page .brand-cta-small:hover {
+  background-color: var(--brand-primary-hover, #0d9488);
+}
+
+/* Final booking button */
+.booking-page .brand-main-cta {
+  background: var(--gradient-brand);
+}
