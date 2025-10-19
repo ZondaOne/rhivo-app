@@ -510,5 +510,124 @@
       "verificationEmail": "Success! Please check your email ({{email}}) to verify your account.",
       "redirecting": "Redirecting to dashboard..."
     }
+  },
+  "auth": {
+    "common": {
+      "backToHome": "Back to home",
+      "email": "Email address",
+      "emailPlaceholder": "you@business.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "secureAuth": "Secure authentication",
+      "loading": "Loading...",
+      "or": "or"
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your business account",
+      "forgotPassword": "Forgot?",
+      "signInButton": "Sign in",
+      "signingIn": "Signing in...",
+      "newToRivo": "New to Rivo?",
+      "registerBusiness": "Register your business",
+      "customerLoginError": "This login is for business owners only. Customers should use the customer login.",
+      "loginFailed": "Login failed"
+    },
+    "signup": {
+      "title": "Create owner account",
+      "subtitle": "Sign up your business and owner user",
+      "ownerName": "Owner name",
+      "businessName": "Business name",
+      "businessPhone": "Business phone",
+      "phonePlaceholder": "+1…",
+      "timezone": "Timezone",
+      "createButton": "Create account",
+      "creating": "Creating…",
+      "signupFailed": "Signup failed",
+      "accountCreated": "Account created",
+      "verificationInstructions": "For development, a verification URL is returned below. Open it to verify, then sign in:",
+      "afterVerifying": "After verifying, go to",
+      "loginLink": "Login"
+    },
+    "forgotPassword": {
+      "title": "Forgot password?",
+      "subtitle": "Enter your email and we'll send you a link to reset your password.",
+      "sendButton": "Send reset link",
+      "sending": "Sending...",
+      "backToLogin": "Back to login",
+      "rememberPassword": "Remember your password?",
+      "sendFailed": "Failed to send reset email",
+      "checkEmail": {
+        "title": "Check your email",
+        "message": "If an account exists with <strong>{{email}}</strong>, you will receive a password reset link.",
+        "expiry": "The link will expire in 1 hour.",
+        "backButton": "Back to login"
+      }
+    },
+    "resetPassword": {
+      "title": "Reset your password",
+      "subtitle": "Choose a new password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "resetButton": "Reset password",
+      "resetting": "Resetting password...",
+      "backToLogin": "Back to login",
+      "rememberPassword": "Remember your password?",
+      "invalidToken": "Invalid or missing reset token",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "resetFailed": "Failed to reset password",
+      "success": {
+        "title": "Password reset successful",
+        "message": "You can now login with your new password.",
+        "redirecting": "Redirecting to login..."
+      },
+      "requirements": {
+        "title": "Password must contain:",
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "number": "One number"
+      },
+      "validationTitle": "Password requirements:"
+    },
+    "changePassword": {
+      "title": "Change password",
+      "subtitle": "Update your account password.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "changeButton": "Change password",
+      "changing": "Changing password...",
+      "cancelButton": "Cancel and return to dashboard",
+      "required": {
+        "title": "Password change required",
+        "message": "You must change your temporary password before continuing."
+      },
+      "passwordsDoNotMatch": "New passwords do not match",
+      "samePassword": "New password must be different from current password",
+      "changeFailed": "Failed to change password",
+      "success": {
+        "title": "Password changed successfully",
+        "messageRequired": "Your temporary password has been updated. You can now access your dashboard.",
+        "messageOptional": "Your password has been updated successfully.",
+        "redirecting": "Redirecting to dashboard..."
+      },
+      "requirements": {
+        "title": "Password must contain:",
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "lowercase": "One lowercase letter",
+        "number": "One number"
+      },
+      "validationTitle": "Password requirements:"
+    },
+    "verifyEmail": {
+      "title": "Verify your email",
+      "verifying": "Verifying token…",
+      "success": "Email verified. You can now sign in.",
+      "failed": "Verification failed",
+      "missingToken": "Missing verification token",
+      "goToLogin": "Go to Login"
+    }
   }
 }

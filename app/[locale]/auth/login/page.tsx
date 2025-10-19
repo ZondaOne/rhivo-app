@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function LoginPage() {
   const t = useTranslations('auth');
+  const locale = useLocale();
   const { login, user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -44,19 +45,19 @@ export default function LoginPage() {
         setError(t('login.customerLoginError'));
         // Log them out
         setTimeout(() => {
-          router.push('/customer/login');
+          router.push(`/${locale}/customer/login`);
         }, 2000);
         return;
       }
 
       // Owner or staff - redirect appropriately
       if (user.requires_password_change) {
-        router.push('/auth/change-password');
+        router.push(`/${locale}/auth/change-password`);
       } else {
         router.push('/dashboard');
       }
     }
-  }, [isAuthenticated, user, pending, isLoading, router, t]);
+  }, [isAuthenticated, user, pending, isLoading, router, t, locale]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-teal-50/30 to-white flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
@@ -82,7 +83,7 @@ export default function LoginPage() {
       <div className={`w-full max-w-md relative transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         {/* Back to home */}
         <Link
-          href="/"
+          href={`/${locale}`}
           className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6 sm:mb-8 group active:scale-95"
         >
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -123,7 +124,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700">{t('common.password')}</label>
                 <Link
-                  href="/auth/forgot-password"
+                  href={`/${locale}/auth/forgot-password`}
                   className="text-xs sm:text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors active:scale-95"
                 >
                   {t('login.forgotPassword')}
@@ -181,7 +182,7 @@ export default function LoginPage() {
           <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-gray-200/60 text-center">
             <p className="text-xs sm:text-sm text-gray-600">
               {t('login.newToRivo')}{' '}
-              <Link href="/onboard" className="text-teal-600 hover:text-teal-700 font-semibold transition-colors">
+              <Link href={`/${locale}/onboard`} className="text-teal-600 hover:text-teal-700 font-semibold transition-colors">
                 {t('login.registerBusiness')}
               </Link>
             </p>

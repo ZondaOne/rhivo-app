@@ -511,5 +511,124 @@
       "verificationEmail": "¡Éxito! Por favor revisa tu correo ({{email}}) para verificar tu cuenta.",
       "redirecting": "Redirigiendo al panel..."
     }
+  },
+  "auth": {
+    "common": {
+      "backToHome": "Volver al inicio",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@negocio.com",
+      "password": "Contraseña",
+      "passwordPlaceholder": "••••••••",
+      "secureAuth": "Autenticación segura",
+      "loading": "Cargando...",
+      "or": "o"
+    },
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión en tu cuenta de negocio",
+      "forgotPassword": "¿Olvidaste?",
+      "signInButton": "Iniciar sesión",
+      "signingIn": "Iniciando sesión...",
+      "newToRivo": "¿Nuevo en Rivo?",
+      "registerBusiness": "Registra tu negocio",
+      "customerLoginError": "Este inicio de sesión es solo para propietarios de negocios. Los clientes deben usar el inicio de sesión de clientes.",
+      "loginFailed": "Error al iniciar sesión"
+    },
+    "signup": {
+      "title": "Crear cuenta de propietario",
+      "subtitle": "Registra tu negocio y usuario propietario",
+      "ownerName": "Nombre del propietario",
+      "businessName": "Nombre del negocio",
+      "businessPhone": "Teléfono del negocio",
+      "phonePlaceholder": "+34…",
+      "timezone": "Zona horaria",
+      "createButton": "Crear cuenta",
+      "creating": "Creando…",
+      "signupFailed": "Error al registrarse",
+      "accountCreated": "Cuenta creada",
+      "verificationInstructions": "Para desarrollo, se devuelve una URL de verificación a continuación. Ábrela para verificar, luego inicia sesión:",
+      "afterVerifying": "Después de verificar, ve a",
+      "loginLink": "Iniciar sesión"
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+      "sendButton": "Enviar enlace de restablecimiento",
+      "sending": "Enviando...",
+      "backToLogin": "Volver a inicio de sesión",
+      "rememberPassword": "¿Recuerdas tu contraseña?",
+      "sendFailed": "Error al enviar correo de restablecimiento",
+      "checkEmail": {
+        "title": "Revisa tu correo",
+        "message": "Si existe una cuenta con <strong>{{email}}</strong>, recibirás un enlace para restablecer tu contraseña.",
+        "expiry": "El enlace expirará en 1 hora.",
+        "backButton": "Volver a inicio de sesión"
+      }
+    },
+    "resetPassword": {
+      "title": "Restablece tu contraseña",
+      "subtitle": "Elige una nueva contraseña para tu cuenta.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "resetButton": "Restablecer contraseña",
+      "resetting": "Restableciendo contraseña...",
+      "backToLogin": "Volver a inicio de sesión",
+      "rememberPassword": "¿Recuerdas tu contraseña?",
+      "invalidToken": "Token de restablecimiento inválido o faltante",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "resetFailed": "Error al restablecer contraseña",
+      "success": {
+        "title": "Contraseña restablecida exitosamente",
+        "message": "Ahora puedes iniciar sesión con tu nueva contraseña.",
+        "redirecting": "Redirigiendo a inicio de sesión..."
+      },
+      "requirements": {
+        "title": "La contraseña debe contener:",
+        "minLength": "Al menos 8 caracteres",
+        "uppercase": "Una letra mayúscula",
+        "lowercase": "Una letra minúscula",
+        "number": "Un número"
+      },
+      "validationTitle": "Requisitos de contraseña:"
+    },
+    "changePassword": {
+      "title": "Cambiar contraseña",
+      "subtitle": "Actualiza la contraseña de tu cuenta.",
+      "currentPassword": "Contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "changeButton": "Cambiar contraseña",
+      "changing": "Cambiando contraseña...",
+      "cancelButton": "Cancelar y volver al panel",
+      "required": {
+        "title": "Cambio de contraseña requerido",
+        "message": "Debes cambiar tu contraseña temporal antes de continuar."
+      },
+      "passwordsDoNotMatch": "Las nuevas contraseñas no coinciden",
+      "samePassword": "La nueva contraseña debe ser diferente de la contraseña actual",
+      "changeFailed": "Error al cambiar contraseña",
+      "success": {
+        "title": "Contraseña cambiada exitosamente",
+        "messageRequired": "Tu contraseña temporal ha sido actualizada. Ahora puedes acceder a tu panel.",
+        "messageOptional": "Tu contraseña ha sido actualizada exitosamente.",
+        "redirecting": "Redirigiendo al panel..."
+      },
+      "requirements": {
+        "title": "La contraseña debe contener:",
+        "minLength": "Al menos 8 caracteres",
+        "uppercase": "Una letra mayúscula",
+        "lowercase": "Una letra minúscula",
+        "number": "Un número"
+      },
+      "validationTitle": "Requisitos de contraseña:"
+    },
+    "verifyEmail": {
+      "title": "Verifica tu correo",
+      "verifying": "Verificando token…",
+      "success": "Correo verificado. Ahora puedes iniciar sesión.",
+      "failed": "Error en verificación",
+      "missingToken": "Token de verificación faltante",
+      "goToLogin": "Ir a Iniciar sesión"
+    }
   }
 }
