@@ -197,3 +197,65 @@ input[type="range"].slider-thumb:focus::-moz-range-thumb {
     background: #e5e7eb;
   }
 }
+
+/* Custom select dropdown styling */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* iOS select styling fix */
+@supports (-webkit-touch-callout: none) {
+  select {
+    background-color: transparent;
+  }
+  
+  select option {
+    background-color: white;
+    color: #111827;
+    padding: 12px;
+    font-size: 16px;
+  }
+}
+
+/* Android select styling */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  select:focus {
+    background-color: white;
+  }
+  
+  select option {
+    background-color: white;
+    color: #111827;
+    padding: 12px 16px;
+    font-weight: 500;
+  }
+  
+  select option:checked {
+    background: linear-gradient(#0d9488, #0d9488);
+    background-color: #0d9488 !important;
+    color: white !important;
+  }
+}
+
+/* Prevent zoom on iOS when focusing inputs */
+@media screen and (max-width: 768px) {
+  select,
+  input[type="text"],
+  input[type="search"] {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe area padding for iOS devices with notches */
+.safe-area-bottom {
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+  .safe-area-bottom {
+    padding-bottom: 1.5rem;
+  }
+}
+

@@ -89,6 +89,11 @@
       "viewAndBook": "Visualizza e Prenota",
       "moreCategories": "altro"
     },
+    "map": {
+      "services": "Servizi",
+      "viewAndBook": "Visualizza e Prenota",
+      "close": "Chiudi"
+    },
     "loading": {
       "map": "Caricamento mappa...",
       "businesses": "Caricamento attività..."

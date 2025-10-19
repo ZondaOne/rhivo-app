@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-lea
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useTranslations } from 'next-intl';
 
 // Minimal custom marker icon with larger hit area
 const createCustomIcon = (color: string = '#14b8a6', isHovered: boolean = false) => {
@@ -105,6 +106,7 @@ interface BusinessModalProps {
 
 function BusinessModal({ business, onClose, onClick }: BusinessModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const t = useTranslations('discovery.map');
 
   useEffect(() => {
     // Trigger animation after mount
@@ -189,7 +191,7 @@ function BusinessModal({ business, onClose, onClick }: BusinessModalProps) {
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Close"
+                aria-label={t('close')}
               >
                 <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -203,7 +205,7 @@ function BusinessModal({ business, onClose, onClick }: BusinessModalProps) {
 
             {business.categories.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Services</h3>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('services')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {business.categories.map((cat) => (
                     <span
@@ -221,7 +223,7 @@ function BusinessModal({ business, onClose, onClick }: BusinessModalProps) {
               onClick={onClick}
               className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              View & Book
+              {t('viewAndBook')}
             </button>
           </div>
         </div>
@@ -233,6 +235,7 @@ function BusinessModal({ business, onClose, onClick }: BusinessModalProps) {
 // Mobile bottom sheet
 function MobileBottomSheet({ business, onClose, onClick }: { business: Business; onClose: () => void; onClick: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
+  const t = useTranslations('discovery.map');
 
   useEffect(() => {
     // Trigger animation after mount
@@ -289,7 +292,7 @@ function MobileBottomSheet({ business, onClose, onClick }: { business: Business;
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                aria-label="Close"
+                aria-label={t('close')}
               >
                 <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -320,7 +323,7 @@ function MobileBottomSheet({ business, onClose, onClick }: { business: Business;
               onClick={onClick}
               className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all active:scale-[0.98]"
             >
-              View & Book
+              {t('viewAndBook')}
             </button>
           </div>
         </div>
@@ -448,6 +451,7 @@ export default function BusinessMap({ businesses, onBusinessClick }: BusinessMap
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const t = useTranslations('discovery.loading');
 
   // Add coordinates: prioritize YAML lat/long, fallback to city coordinates
   const businessesWithCoords = businesses.map(business => {
@@ -496,7 +500,7 @@ export default function BusinessMap({ businesses, onBusinessClick }: BusinessMap
       <div className="w-full h-full bg-gray-100 rounded-2xl flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading map...</p>
+          <p className="text-gray-500">{t('map')}</p>
         </div>
       </div>
     );

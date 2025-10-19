@@ -89,6 +89,11 @@
       "viewAndBook": "View & Book",
       "moreCategories": "more"
     },
+    "map": {
+      "services": "Services",
+      "viewAndBook": "View & Book",
+      "close": "Close"
+    },
     "loading": {
       "map": "Loading map...",
       "businesses": "Loading businesses..."

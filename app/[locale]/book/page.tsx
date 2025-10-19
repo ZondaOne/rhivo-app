@@ -232,10 +232,10 @@ export default function DiscoveryPage() {
       <div className="border-b border-gray-200/60 bg-gray-50">
         <div className="px-4 sm:px-6 lg:px-12 py-4 lg:py-6">
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex flex-1 w-full items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
                 {/* Search Input */}
-                <div className="relative flex-1 w-full">
+                <div className="relative flex-1 min-w-0">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -251,30 +251,38 @@ export default function DiscoveryPage() {
                 </div>
 
                 {/* City Selector */}
-                <div className="relative w-full sm:w-auto">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="relative flex-shrink-0">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                     <select
                         value={selectedCities[0] || ''}
                         onChange={(e) => setSelectedCities(e.target.value ? [e.target.value] : [])}
-                        className="w-full pl-11 pr-8 py-3 bg-gray-100 border-none rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-base font-semibold text-gray-700"
+                        className="w-full sm:w-48 pl-11 pr-10 py-3 bg-gray-100 border-none rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-base font-semibold text-gray-700 cursor-pointer hover:bg-gray-200"
+                        style={{
+                          backgroundImage: 'none',
+                        }}
                     >
-                        <option value="">{t('search.allCities')}</option>
+                        <option value="" className="bg-white text-gray-900 py-2">{t('search.allCities')}</option>
                         {allCities.map(city => (
-                            <option key={city} value={city}>{city}</option>
+                            <option key={city} value={city} className="bg-white text-gray-900 py-2">{city}</option>
                         ))}
                     </select>
                 </div>
               </div>
               {/* Filter Button */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`relative px-4 lg:px-6 py-3 rounded-xl font-semibold text-base transition-all flex items-center gap-2 ${
+                    className={`w-full sm:w-auto relative px-4 lg:px-6 py-3 rounded-xl font-semibold text-base transition-all flex items-center justify-center gap-2 ${
                     showFilters || activeFiltersCount > 0
                         ? 'bg-teal-600 text-white shadow-lg'
                         : 'bg-white text-gray-700 border border-gray-200 hover:border-teal-600'
@@ -283,29 +291,56 @@ export default function DiscoveryPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
-                    <span className="hidden sm:inline">{t('filters.button')}</span>
+                    <span>{t('filters.button')}</span>
                     {activeFiltersCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                         {activeFiltersCount}
                     </span>
                     )}
                 </button>
+                
+                {/* Backdrop for mobile */}
+                {showFilters && (
+                  <div
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 sm:hidden"
+                    onClick={() => setShowFilters(false)}
+                    aria-hidden="true"
+                  />
+                )}
+                
                 {/* Filter Panel Dropdown */}
                 <div
-                  className={`absolute top-full right-0 mt-2 w-80 origin-top-right transition-all duration-200 ease-out z-10 ${
-                    showFilters ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                  }`}>
-                  <div className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-2xl">
+                  className={`fixed sm:absolute bottom-0 sm:bottom-auto inset-x-0 sm:inset-x-auto sm:top-full sm:right-0 sm:left-auto w-full sm:w-80 rounded-t-3xl sm:rounded-2xl sm:mt-2 origin-bottom sm:origin-top-right transition-all duration-300 ease-out z-50 ${
+                    showFilters ? 'translate-y-0 opacity-100' : 'translate-y-full sm:translate-y-0 opacity-0 sm:scale-95 pointer-events-none'
+                  }`}
+                >
+                  <div className="bg-white rounded-t-3xl sm:rounded-2xl border-t sm:border border-gray-200/60 p-6 pb-8 sm:pb-6 sm:shadow-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto safe-area-bottom">
+                    {/* Mobile drawer handle */}
+                    <div className="sm:hidden flex justify-center mb-4 -mt-2">
+                      <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                    </div>
+                    
                     <div className="flex items-center justify-between mb-5">
                       <h3 className="text-xl font-bold text-gray-900 tracking-tight">{t('filters.title')}</h3>
-                      {activeFiltersCount > 0 && (
+                      <div className="flex items-center gap-2">
+                        {activeFiltersCount > 0 && (
+                          <button
+                            onClick={clearAllFilters}
+                            className="px-4 py-1.5 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+                          >
+                            {t('filters.clearAll')}
+                          </button>
+                        )}
                         <button
-                          onClick={clearAllFilters}
-                          className="px-4 py-1.5 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+                          onClick={() => setShowFilters(false)}
+                          className="sm:hidden p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                          aria-label="Close filters"
                         >
-                          {t('filters.clearAll')}
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
                         </button>
-                      )}
+                      </div>
                     </div>
 
                     <div className="grid gap-x-8 gap-y-6 sm:grid-cols-1 lg:grid-cols-1">
