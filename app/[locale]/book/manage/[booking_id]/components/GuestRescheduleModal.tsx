@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface TimeSlot {
   start: string;
@@ -36,6 +37,9 @@ export default function GuestRescheduleModal({
   onClose,
   onSuccess,
 }: GuestRescheduleModalProps) {
+  const t = useTranslations('manageBooking.reschedule');
+  const tDetails = useTranslations('manageBooking.details');
+  const locale = useLocale();
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -66,7 +70,7 @@ export default function GuestRescheduleModal({
     try {
       // Validate serviceId before making request
       if (!serviceId || serviceId === 'unknown') {
-        throw new Error('Service information is missing. Please try booking again or contact support.');
+        throw new Error(t('serviceMissing'));
       }
 
       const response = await fetch(
@@ -76,12 +80,12 @@ export default function GuestRescheduleModal({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch available slots');
+        throw new Error(data.error || t('loadSlotsError'));
       }
 
       setAvailableSlots(data.slots || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load available slots');
+      setError(err.message || t('loadSlotsError'));
     } finally {
       setLoadingSlots(false);
     }
@@ -89,7 +93,7 @@ export default function GuestRescheduleModal({
 
   async function handleReschedule() {
     if (!selectedSlot) {
-      alert('Please select a time slot');
+      alert(t('selectSlotError'));
       return;
     }
 
@@ -112,7 +116,7 @@ export default function GuestRescheduleModal({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to reschedule appointment');
+        throw new Error(data.error || t('rescheduleError'));
       }
 
       // Check if token was invalidated
@@ -126,7 +130,7 @@ export default function GuestRescheduleModal({
         onClose();
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Failed to reschedule appointment');
+      setError(err.message || t('rescheduleError'));
     } finally {
       setLoading(false);
     }
@@ -134,7 +138,7 @@ export default function GuestRescheduleModal({
 
   function formatTime(isoString: string): string {
     const date = new Date(isoString);
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString(locale, {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -143,7 +147,7 @@ export default function GuestRescheduleModal({
 
   function formatDate(isoString: string): string {
     const date = new Date(isoString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale, {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -162,26 +166,26 @@ export default function GuestRescheduleModal({
   if (loading === false && tokenInvalidated && !error) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
+        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8 text-center">
           <div className="mb-4 flex justify-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Appointment Rescheduled!</h2>
-          <p className="text-gray-600 mb-4">
-            Your appointment has been successfully rescheduled. A confirmation email has been sent to you.
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('successTitle')}</h2>
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
+            {t('successMessage')}
           </p>
-          <p className="text-sm text-gray-500 mb-6">
-            Note: Your access link has been refreshed. To make further changes, please request a new access link from the manage booking page.
+          <p className="text-xs sm:text-sm text-gray-500 mb-6">
+            {t('successNote')}
           </p>
           <button
             onClick={onClose}
             className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl hover:from-teal-700 hover:to-green-700 transition font-medium"
           >
-            Close
+            {t('closeButton')}
           </button>
         </div>
       </div>
@@ -192,12 +196,12 @@ export default function GuestRescheduleModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
-          <h2 className="text-xl font-semibold text-gray-900">Reschedule Appointment</h2>
+        <div className="sticky top-0 bg-white border-b px-4 sm:px-6 py-4 flex justify-between items-center rounded-t-2xl">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('title')}</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
-            aria-label="Close"
+            aria-label={t('closeButton')}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -206,29 +210,29 @@ export default function GuestRescheduleModal({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Current Appointment Info */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Current Appointment</h3>
-            <p className="text-gray-900 font-medium">{serviceName} • {duration} min</p>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">{t('currentAppointment')}</h3>
+            <p className="text-gray-900 font-medium text-sm sm:text-base">{serviceName} • {duration} {tDetails('minutes')}</p>
             <p className="text-gray-600 text-sm mt-1">
               {formatDate(currentStartTime)} at {formatTime(currentStartTime)}
             </p>
             <p className="text-gray-500 text-xs mt-1">
-              Booking ID: <span className="font-mono">{bookingId}</span>
+              {tDetails('bookingIdLabel')}: <span className="font-mono">{bookingId}</span>
             </p>
           </div>
 
           {/* Important Notice */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex gap-3">
-              <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
+            <div className="flex gap-2 sm:gap-3">
+              <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
-                <p className="text-sm font-medium text-amber-900">Important</p>
-                <p className="text-sm text-amber-700 mt-1">
-                  After rescheduling, your access link will be refreshed for security. You'll need to request a new link to make any additional changes.
+                <p className="text-sm font-medium text-amber-900">{t('importantTitle')}</p>
+                <p className="text-xs sm:text-sm text-amber-700 mt-1">
+                  {t('importantMessage')}
                 </p>
               </div>
             </div>
@@ -237,7 +241,7 @@ export default function GuestRescheduleModal({
           {/* Date Selector */}
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
-              Select New Date
+              {t('selectDate')}
             </label>
             <input
               type="date"
@@ -246,36 +250,36 @@ export default function GuestRescheduleModal({
               onChange={(e) => setSelectedDate(e.target.value)}
               min={minDate}
               max={maxDateStr}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
 
           {/* Available Slots */}
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Available Time Slots for {formatDate(selectedDate + 'T00:00:00')}
+              {t('availableSlots')} {formatDate(selectedDate + 'T00:00:00')}
             </h3>
 
             {loadingSlots && (
-              <div className="text-center py-8 text-gray-600">
-                Loading available slots...
+              <div className="text-center py-8 text-gray-600 text-sm sm:text-base">
+                {t('loadingSlots')}
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 text-red-700 text-sm sm:text-base">
                 {error}
               </div>
             )}
 
             {!loadingSlots && !error && availableSlots.length === 0 && (
-              <div className="text-center py-8 text-gray-600">
-                No available slots for this date. Try another date.
+              <div className="text-center py-8 text-gray-600 text-sm sm:text-base">
+                {t('noSlots')}
               </div>
             )}
 
             {!loadingSlots && !error && availableSlots.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
                 {availableSlots
                   .filter(slot => slot.available)
                   .map((slot, index) => {
@@ -288,7 +292,7 @@ export default function GuestRescheduleModal({
                         key={index}
                         onClick={() => setSelectedSlot(slot)}
                         disabled={isCurrent}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                        className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
                           isCurrent
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             : isSelected
@@ -297,7 +301,7 @@ export default function GuestRescheduleModal({
                         }`}
                       >
                         {formatTime(slot.start)}
-                        {isCurrent && <span className="block text-xs">(current)</span>}
+                        {isCurrent && <span className="block text-xs">({t('currentSlot')})</span>}
                       </button>
                     );
                   })}
@@ -307,32 +311,32 @@ export default function GuestRescheduleModal({
 
           {/* Selected Slot Summary */}
           {selectedSlot && (
-            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-teal-900 mb-1">New Appointment Time</h3>
-              <p className="text-teal-800">
+            <div className="bg-teal-50 border border-teal-200 rounded-lg p-3 sm:p-4">
+              <h3 className="text-sm font-medium text-teal-900 mb-1">{t('newAppointment')}</h3>
+              <p className="text-teal-800 text-sm sm:text-base">
                 {formatDate(selectedSlot.start)} at {formatTime(selectedSlot.start)} - {formatTime(selectedSlot.end)}
               </p>
-              <p className="text-teal-700 text-sm mt-1">
-                {serviceName} • {duration} min
+              <p className="text-teal-700 text-xs sm:text-sm mt-1">
+                {serviceName} • {duration} {tDetails('minutes')}
               </p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end gap-3 rounded-b-2xl">
+        <div className="sticky bottom-0 bg-gray-50 border-t px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-end gap-3 rounded-b-2xl">
           <button
             onClick={onClose}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
+            className="w-full sm:w-auto px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium text-sm sm:text-base"
           >
-            Cancel
+            {t('cancelButton')}
           </button>
           <button
             onClick={handleReschedule}
             disabled={!selectedSlot || loading}
-            className="px-6 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-lg hover:from-teal-700 hover:to-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-lg hover:from-teal-700 hover:to-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
-            {loading ? 'Rescheduling...' : 'Confirm Reschedule'}
+            {loading ? t('confirmingButton') : t('confirmButton')}
           </button>
         </div>
       </div>

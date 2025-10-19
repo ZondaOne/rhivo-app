@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { TenantConfig, Category, Service } from '@/lib/config/tenant-schema';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,6 +19,9 @@ interface TimeSlot {
 type BookingStep = 'service' | 'datetime' | 'details' | 'confirmation';
 
 export default function BookingPage() {
+  const t = useTranslations('booking');
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const params = useParams();
   const searchParams = useSearchParams();
   const subdomain = params?.subdomain as string || searchParams?.get('business');
@@ -53,7 +57,7 @@ export default function BookingPage() {
   // Load tenant configuration
   useEffect(() => {
     if (!subdomain) {
-      setError('No business specified');
+      setError(t('noBusinessSpecified'));
       setLoading(false);
       return;
     }
@@ -67,15 +71,15 @@ export default function BookingPage() {
             setSelectedCategory(data.config.categories[0]);
           }
         } else {
-          setError(data.error || 'Failed to load business configuration');
+          setError(data.error || t('loadFailed'));
         }
       })
       .catch(err => {
-        setError('Failed to load booking page');
+        setError(t('loadPageFailed'));
         console.error(err);
       })
       .finally(() => setLoading(false));
-  }, [subdomain]);
+  }, [subdomain, t]);
 
   // State for date capacity data
   const [dateCapacityMap, setDateCapacityMap] = useState<Map<string, { available: number; total: number; percentage: number; hasAvailableSlots: boolean }>>(new Map());
@@ -176,12 +180,12 @@ export default function BookingPage() {
 
           setAvailableSlots(filteredSlots);
         } else {
-          setError(data.error || 'Failed to load available slots');
+          setError(data.error || t('details.loadSlotsFailed'));
         }
       })
       .catch(err => {
         console.error('Failed to load slots:', err);
-        setError('Failed to load available slots');
+        setError(t('details.loadSlotsFailed'));
       })
       .finally(() => setLoadingSlots(false));
   }, [selectedService, selectedDate, subdomain]);
@@ -211,11 +215,11 @@ export default function BookingPage() {
     // Handle signup first if user chose that option
     if (bookingType === 'login' && showSignupForm) {
       if (!guestEmail && !guestPhone) {
-        setError('Please provide at least an email or phone number');
+        setError(t('details.emailOrPhoneRequired'));
         return;
       }
       if (!password || password.length < 8) {
-        setError('Password must be at least 8 characters');
+        setError(t('details.passwordMinLength'));
         return;
       }
 
@@ -234,13 +238,13 @@ export default function BookingPage() {
         const signupData = await signupRes.json();
 
         if (!signupRes.ok) {
-          throw new Error(signupData.error || 'Signup failed');
+          throw new Error(signupData.error || t('details.signupFailed'));
         }
 
         // Account created successfully, now proceed with booking
         // The user info is already in the form fields, continue with booking flow
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Signup failed';
+        const message = err instanceof Error ? err.message : t('details.signupFailed');
         setError(message);
         return;
       }
@@ -249,11 +253,11 @@ export default function BookingPage() {
     // Handle login if user chose that option
     if (bookingType === 'login' && !showSignupForm) {
       if (!guestEmail.trim()) {
-        setError('Email or phone is required');
+        setError(t('details.emailOrPhoneLoginRequired'));
         return;
       }
       if (!password) {
-        setError('Password is required');
+        setError(t('details.passwordRequired'));
         return;
       }
 
@@ -271,12 +275,12 @@ export default function BookingPage() {
         const loginData = await loginRes.json();
 
         if (!loginRes.ok) {
-          throw new Error(loginData.error || 'Login failed');
+          throw new Error(loginData.error || t('details.loginFailed'));
         }
 
         // Check if user is a customer
         if (loginData.user.role !== 'customer') {
-          setError('This login is for customers only. Business owners should use the owner login.');
+          setError(t('details.customerOnly'));
           return;
         }
 
@@ -287,7 +291,7 @@ export default function BookingPage() {
 
         // Continue with booking flow
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Login failed';
+        const message = err instanceof Error ? err.message : t('details.loginFailed');
         setError(message);
         return;
       }
@@ -296,22 +300,22 @@ export default function BookingPage() {
     // Validate required fields for guest booking
     if (bookingType === 'guest') {
       if (config.bookingRequirements.requireName && !guestName.trim()) {
-        setError('Name is required');
+        setError(t('details.nameRequired'));
         return;
       }
       if (config.bookingRequirements.requireEmail && !guestEmail.trim()) {
-        setError('Email is required');
+        setError(t('details.emailRequired'));
         return;
       }
       if (config.bookingRequirements.requirePhone && !guestPhone.trim()) {
-        setError('Phone is required');
+        setError(t('details.phoneRequired'));
         return;
       }
 
       // Validate custom fields
       for (const field of config.bookingRequirements.customFields) {
         if (field.required && !customFieldValues[field.id]?.trim()) {
-          setError(`${field.label} is required`);
+          setError(`${field.label} ${t('details.fieldRequired')}`);
           return;
         }
       }
@@ -325,7 +329,7 @@ export default function BookingPage() {
       const businessData = await businessResult.json();
 
       if (!businessData.success) {
-        throw new Error('Failed to get business information');
+        throw new Error(t('details.businessInfoFailed'));
       }
 
       // Get business ID from database
@@ -336,7 +340,7 @@ export default function BookingPage() {
         const businessInfo = await businessInfoRes.json();
         businessId = businessInfo.id;
       } else {
-        throw new Error('Failed to get business ID');
+        throw new Error(t('details.businessIdFailed'));
       }
 
       const idempotencyKey = uuidv4();
@@ -354,7 +358,7 @@ export default function BookingPage() {
       const reserveData = await reserveRes.json();
 
       if (!reserveData.success) {
-        throw new Error(reserveData.error || 'Failed to reserve slot');
+        throw new Error(reserveData.error || t('details.reserveSlotFailed'));
       }
 
       setReservationId(reserveData.reservationId);
@@ -375,7 +379,7 @@ export default function BookingPage() {
       const commitData = await commitRes.json();
 
       if (!commitData.success) {
-        throw new Error(commitData.error || 'Failed to confirm booking');
+        throw new Error(commitData.error || t('details.confirmBookingFailed'));
       }
 
       setAppointmentId(commitData.appointment.id);
@@ -387,17 +391,17 @@ export default function BookingPage() {
     } catch (err) {
       setReserving(false);
       setConfirming(false);
-      const message = err instanceof Error ? err.message : 'Failed to complete booking';
+      const message = err instanceof Error ? err.message : t('details.bookingFailed');
       setError(message);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-teal-600 border-t-transparent mx-auto mb-3 sm:mb-4"></div>
-          <p className="text-sm sm:text-base text-gray-500">Loading booking page...</p>
+          <p className="text-sm sm:text-base text-gray-500">{t('loading')}</p>
         </div>
       </div>
     );
@@ -412,10 +416,10 @@ export default function BookingPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 tracking-tight">Business Not Found</h1>
-          <p className="text-sm sm:text-base text-gray-500 mb-6">{error || 'This booking page is not available'}</p>
-          <a href="/" className="inline-flex items-center text-sm font-semibold text-teal-600 hover:text-teal-700">
-            Return to Home
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 tracking-tight">{t('errorTitle')}</h1>
+          <p className="text-sm sm:text-base text-gray-500 mb-6">{error || t('errorMessage')}</p>
+          <a href={`/${locale}`} className="inline-flex items-center text-sm font-semibold text-teal-600 hover:text-teal-700">
+            {t('returnHome')}
           </a>
         </div>
       </div>
@@ -492,13 +496,13 @@ export default function BookingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">Booking Confirmed!</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">{t('confirmation.title')}</h2>
               <p className="text-sm sm:text-base text-gray-500 mb-6 sm:mb-8 max-w-md mx-auto">
-                Your appointment has been successfully booked. A confirmation email has been sent to <span className="font-semibold text-gray-900">{guestEmail}</span>
+                {t('confirmation.message')} <span className="font-semibold text-gray-900">{guestEmail}</span>
               </p>
               {config.business.timezone && (
                 <p className="text-xs text-gray-400 mb-4">
-                  All times shown in {config.business.timezone.replace('_', ' ')} timezone
+                  {t('confirmation.timezone')} {config.business.timezone.replace('_', ' ')}
                 </p>
               )}
 
@@ -507,33 +511,27 @@ export default function BookingPage() {
                   <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <h3 className="text-base font-semibold text-gray-900">Appointment Details</h3>
+                  <h3 className="text-base font-semibold text-gray-900">{t('confirmation.bookingDetails')}</h3>
                 </div>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between gap-4">
-                    <span className="text-gray-500">Service</span>
+                    <span className="text-gray-500">{t('confirmation.service')}</span>
                     <span className="font-semibold text-gray-900 text-right">{selectedService?.name}</span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-gray-500">Date</span>
+                    <span className="text-gray-500">{t('confirmation.dateTime')}</span>
                     <span className="font-semibold text-gray-900 text-right">
-                      {selectedSlot && formatDateFull(new Date(selectedSlot.start))}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-gray-500">Time</span>
-                    <span className="font-semibold text-gray-900 text-right">
-                      {selectedSlot && config.business.timezone && formatTimeWithTimezone(new Date(selectedSlot.start), config.business.timezone)}
+                      {selectedSlot && formatDateFull(new Date(selectedSlot.start), locale)} {t('confirmation.at')} {selectedSlot && config.business.timezone && formatTimeWithTimezone(new Date(selectedSlot.start), config.business.timezone, locale)}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-gray-500">Duration</span>
-                    <span className="font-semibold text-gray-900 text-right">{selectedService?.duration} min</span>
+                    <span className="font-semibold text-gray-900 text-right">{selectedService?.duration} {t('confirmation.duration')}</span>
                   </div>
                   <div className="flex justify-between gap-4 border-t border-gray-200 pt-3 mt-3">
-                    <span className="text-gray-900 font-semibold">Total</span>
+                    <span className="text-gray-900 font-semibold">{t('confirmation.total')}</span>
                     <span className="text-lg font-bold text-gray-900 text-right">
-                      {selectedService && `${(selectedService.price / 100).toFixed(2)} ${config.business.currency}`}
+                      {selectedService && selectedService.price > 0 ? `${(selectedService.price / 100).toFixed(2)} ${config.business.currency}` : t('details.free')}
                     </span>
                   </div>
                 </div>
@@ -541,23 +539,28 @@ export default function BookingPage() {
 
               {bookingId && (
                 <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 my-6 text-center">
-                  <p className="text-sm text-gray-600 mb-1">Your Booking ID is:</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('confirmation.bookingId')}:</p>
                   <p className="text-xl font-bold text-gray-900 tracking-wider">{bookingId}</p>
-                  <p className="text-xs text-gray-500 mt-2">Keep this ID for your records. You will need it to manage your booking.</p>
+                  <p className="text-xs text-gray-500 mt-2">{t('confirmation.manageDescription')}</p>
                 </div>
               )}
 
               {cancellationToken && config.cancellationPolicy.allowCancellation && (
-                <p className="text-xs sm:text-sm text-gray-500 mb-6">
-                  Need to cancel? Use the link in your confirmation email or contact us directly.
-                </p>
+                <div className="text-center mb-6">
+                  <a
+                    href={`/${locale}/book/manage`}
+                    className="text-xs sm:text-sm text-teal-600 hover:text-teal-700 font-medium"
+                  >
+                    {t('confirmation.manageLink')}
+                  </a>
+                </div>
               )}
 
               <button
                 onClick={() => window.location.reload()}
                 className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all"
               >
-                Book Another Appointment
+                {t('confirmation.newBooking')}
               </button>
             </div>
           </div>
@@ -565,42 +568,42 @@ export default function BookingPage() {
           <>
             {/* Step Indicator */}
             <div className="mb-6 sm:mb-8">
-              <div className="flex items-center justify-center gap-2 sm:gap-3">
-                <div className={`flex items-center gap-2 ${currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+              <div className="flex items-center justify-center gap-3 sm:gap-4">
+                <div className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 ${currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
                     currentStep === 'service' || currentStep === 'datetime' || currentStep === 'details'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-teal-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-400'
                   }`}>
                     {selectedService ? '✓' : '1'}
                   </div>
-                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Service</span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center sm:text-left">{t('steps.service')}</span>
                 </div>
 
-                <div className="h-0.5 w-8 sm:w-16 bg-gray-200"></div>
+                <div className="h-0.5 w-6 sm:w-12 lg:w-16 bg-gray-200 flex-shrink-0 mt-0 sm:mt-0"></div>
 
-                <div className={`flex items-center gap-2 ${currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                <div className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 ${currentStep === 'datetime' || currentStep === 'details' ? '' : 'opacity-40'}`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
                     currentStep === 'datetime' || currentStep === 'details'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-teal-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-400'
                   }`}>
                     {selectedSlot ? '✓' : '2'}
                   </div>
-                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Date & Time</span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center sm:text-left">{t('steps.datetime')}</span>
                 </div>
 
-                <div className="h-0.5 w-8 sm:w-16 bg-gray-200"></div>
+                <div className="h-0.5 w-6 sm:w-12 lg:w-16 bg-gray-200 flex-shrink-0 mt-0 sm:mt-0"></div>
 
-                <div className={`flex items-center gap-2 ${currentStep === 'details' ? '' : 'opacity-40'}`}>
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                <div className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 ${currentStep === 'details' ? '' : 'opacity-40'}`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-sm sm:text-base font-semibold transition-all ${
                     currentStep === 'details'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-teal-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-400'
                   }`}>
                     3
                   </div>
-                  <span className="hidden sm:inline text-sm font-semibold text-gray-900">Details</span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-900 text-center sm:text-left">{t('steps.details')}</span>
                 </div>
               </div>
             </div>
@@ -610,14 +613,14 @@ export default function BookingPage() {
               {(currentStep === 'service' || currentStep === 'datetime') && !selectedService && (
                 <div className="space-y-6">
                   {/* Categories */}
-                  <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                  <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
+                    <div className="flex items-center gap-2 mb-4 sm:mb-5">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                         1
                       </div>
-                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Choose a Category</h2>
+                      <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 tracking-tight">{t('service.title')}</h2>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {config.categories.map((category) => (
                         <button
                           key={category.id}
@@ -626,15 +629,15 @@ export default function BookingPage() {
                             setSelectedService(null);
                             setCurrentStep('service');
                           }}
-                          className={`text-left p-4 rounded-xl transition-all ${
+                          className={`text-left p-4 sm:p-5 rounded-xl transition-all min-h-[72px] sm:min-h-[80px] ${
                             selectedCategory?.id === category.id
                               ? 'bg-gray-50 border-2 border-teal-600 shadow-sm'
-                              : 'bg-white border-2 border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                              : 'bg-white border-2 border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]'
                           }`}
                         >
-                          <div className="font-semibold text-gray-900 mb-1">{category.name}</div>
+                          <div className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{category.name}</div>
                           {category.description && (
-                            <div className="text-xs text-gray-500 line-clamp-2">
+                            <div className="text-xs sm:text-sm text-gray-500 line-clamp-2">
                               {category.description}
                             </div>
                           )}
@@ -645,22 +648,22 @@ export default function BookingPage() {
 
                   {/* Services */}
                   {selectedCategory && (
-                    <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
-                      <div className="flex items-center justify-between mb-4">
+                    <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                             2
                           </div>
-                          <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Select a Service</h2>
+                          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 tracking-tight">{t('service.subtitle')}</h2>
                         </div>
                         <button
                           onClick={() => {
                             setSelectedCategory(null);
                             setSelectedService(null);
                           }}
-                          className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                          className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 font-medium self-start sm:self-auto px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-all"
                         >
-                          Change category
+                          {t('datetime.change')}
                         </button>
                       </div>
                       <div className="space-y-3">
@@ -670,7 +673,7 @@ export default function BookingPage() {
                             <button
                               key={service.id}
                               onClick={() => handleServiceSelect(service)}
-                              className={`w-full text-left p-4 rounded-xl border-2 transition-all hover:shadow-sm ${
+                              className={`w-full text-left p-4 sm:p-5 rounded-xl border-2 transition-all hover:shadow-sm active:scale-[0.99] ${
                                 selectedService?.id === service.id
                                   ? 'border-teal-600 bg-gray-50'
                                   : 'border-gray-200 bg-white hover:border-gray-300'
@@ -678,26 +681,26 @@ export default function BookingPage() {
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-semibold text-gray-900 mb-1">{service.name}</div>
+                                  <div className="font-semibold text-gray-900 mb-1.5 text-sm sm:text-base">{service.name}</div>
                                   {service.description && (
-                                    <div className="text-sm text-gray-500 mb-2 line-clamp-2">{service.description}</div>
+                                    <div className="text-xs sm:text-sm text-gray-500 mb-3 line-clamp-2">{service.description}</div>
                                   )}
-                                  <div className="flex items-center gap-3 text-sm">
+                                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
                                     <div className="flex items-center gap-1.5 text-gray-600">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                       </svg>
-                                      {service.duration} min
+                                      <span className="whitespace-nowrap">{service.duration} {t('service.duration')}</span>
                                     </div>
-                                    <span className="text-gray-300">•</span>
-                                    <div className="font-bold text-gray-900">
-                                      {(service.price / 100).toFixed(2)} {config.business.currency}
+                                    <span className="text-gray-300 hidden sm:inline">•</span>
+                                    <div className="font-bold text-gray-900 whitespace-nowrap">
+                                      {service.price > 0 ? `${(service.price / 100).toFixed(2)} ${config.business.currency}` : t('details.free')}
                                     </div>
                                   </div>
                                 </div>
                                 {service.color && (
                                   <div
-                                    className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
+                                    className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex-shrink-0 mt-1"
                                     style={{ backgroundColor: service.color }}
                                   />
                                 )}
@@ -711,13 +714,13 @@ export default function BookingPage() {
               )}
 
               {currentStep === 'datetime' && selectedService && (
-                <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
-                  <div className="flex items-center justify-between mb-5">
+                <div className="bg-white rounded-2xl border border-gray-200/60 p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                         2
                       </div>
-                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Pick Date & Time</h2>
+                      <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 tracking-tight">{t('datetime.title')}</h2>
                     </div>
                     <button
                       onClick={() => {
@@ -726,22 +729,23 @@ export default function BookingPage() {
                         setSelectedSlot(null);
                         setCurrentStep('service');
                       }}
-                      className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                      className="text-xs sm:text-sm text-gray-500 hover:text-gray-700 font-medium self-start sm:self-auto px-3 py-1.5 hover:bg-gray-50 rounded-lg transition-all"
                     >
-                      Change service
+                      {t('datetime.change')}
                     </button>
                   </div>
 
                   {/* Selected Service Summary */}
-                  <div className="mb-5 p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                  <div className="mb-5 sm:mb-6 p-4 bg-gray-50 border border-gray-100 rounded-xl">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 mb-1">{selectedService.name}</div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <span>{selectedService.duration} min</span>
-                          <span>•</span>
-                          <span className="font-bold text-gray-900">
-                            {(selectedService.price / 100).toFixed(2)} {config.business.currency}
+                        <div className="text-xs text-gray-500 mb-1.5">{t('datetime.selectedService')}</div>
+                        <div className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{selectedService.name}</div>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                          <span className="whitespace-nowrap">{selectedService.duration} {t('service.duration')}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span className="font-bold text-gray-900 whitespace-nowrap">
+                            {selectedService.price > 0 ? `${(selectedService.price / 100).toFixed(2)} ${config.business.currency}` : t('details.free')}
                           </span>
                         </div>
                       </div>
@@ -758,25 +762,25 @@ export default function BookingPage() {
                   )}
 
                   {/* Date Selection */}
-                  <div className="mb-4 sm:mb-6">
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">Choose a Date</h3>
-                      <div className="flex items-center gap-2 text-xs">
+                  <div className="mb-5 sm:mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">{t('datetime.selectDate')}</h3>
+                      <div className="flex items-center gap-3 text-[10px] sm:text-xs">
                         <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-green-100 border border-green-300"></div>
-                          <span className="text-gray-600">Low</span>
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-green-100 border border-green-300"></div>
+                          <span className="text-gray-600">{t('datetime.available')}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-yellow-100 border border-yellow-300"></div>
-                          <span className="text-gray-600">Mid</span>
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-yellow-100 border border-yellow-300"></div>
+                          <span className="text-gray-600">{t('datetime.limited')}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-orange-100 border border-orange-300"></div>
-                          <span className="text-gray-600">High</span>
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-orange-100 border border-orange-300"></div>
+                          <span className="text-gray-600">{t('datetime.busy')}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-1.5 sm:gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
                       {availableDates.map((date, idx) => {
                         const dayOfWeek = getDayOfWeek(date);
                         const dayAvail = config.availability.find(a => a.day === dayOfWeek);
@@ -832,30 +836,30 @@ export default function BookingPage() {
                             key={idx}
                             onClick={() => isAvailable && setSelectedDate(date)}
                             disabled={!isAvailable}
-                            className={`p-2 sm:p-3 rounded-xl border-2 transition-all text-center ${getCapacityBgStyle()} ${getBorderStyle()} ${
-                              !isAvailable ? 'opacity-40 cursor-not-allowed' : ''
+                            className={`p-3 sm:p-3.5 rounded-xl border-2 transition-all text-center min-h-[70px] sm:min-h-[76px] flex flex-col items-center justify-center ${getCapacityBgStyle()} ${getBorderStyle()} ${
+                              !isAvailable ? 'opacity-40 cursor-not-allowed' : 'active:scale-95'
                             }`}
                             title={
                               !isAvailable
-                                ? (isClosed ? 'Closed' : 'Unavailable')
+                                ? (isClosed ? t('details.closed') : t('details.unavailable'))
                                 : capacityData
                                 ? `${Math.round((capacityData.available / capacityData.total) * 100)}% available`
                                 : undefined
                             }
                           >
-                            <div className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wide ${
+                            <div className={`text-[11px] sm:text-xs font-semibold uppercase tracking-wide ${
                               isSelected ? 'text-teal-600' : isAvailable ? 'text-gray-500' : 'text-gray-400'
                             }`}>
-                              {formatDayShort(date).slice(0, 3)}
+                              {formatDayShort(date, locale).slice(0, 3)}
                             </div>
-                            <div className={`text-base sm:text-lg font-bold mt-0.5 sm:mt-1 ${
+                            <div className={`text-lg sm:text-xl font-bold mt-1 ${
                               isSelected ? 'text-gray-900' : isAvailable ? 'text-gray-900' : 'text-gray-400'
                             }`}>
                               {date.getDate()}
                             </div>
                             {!isAvailable && (
-                              <div className="text-[10px] text-gray-400 mt-0.5">
-                                {isClosed ? 'Closed' : 'N/A'}
+                              <div className="text-[9px] sm:text-[10px] text-gray-400 mt-0.5">
+                                {isClosed ? t('details.closed') : t('details.notAvailable')}
                               </div>
                             )}
                           </button>
@@ -867,18 +871,19 @@ export default function BookingPage() {
                   {/* Time Slots */}
                   {selectedDate && (
                     <div>
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 sm:mb-3">Available Times</h3>
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4">{t('datetime.selectTime')}</h3>
                       {loadingSlots ? (
-                        <div className="flex items-center justify-center py-8 sm:py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-4 border-teal-600 border-t-transparent"></div>
+                        <div className="flex flex-col items-center justify-center py-10 sm:py-12">
+                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-teal-600 border-t-transparent mb-3"></div>
+                          <p className="text-sm text-gray-500">{t('datetime.loadingSlots')}</p>
                         </div>
                       ) : availableSlots.length === 0 ? (
-                        <div className="text-center py-8 sm:py-12">
-                          <svg className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="text-center py-10 sm:py-12">
+                          <svg className="w-14 h-14 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <p className="text-sm sm:text-base text-gray-500">No available slots for this date</p>
-                          <p className="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">Please select another date</p>
+                          <p className="text-sm sm:text-base text-gray-500 font-medium">{t('datetime.noSlotsAvailable')}</p>
+                          <p className="text-xs sm:text-sm text-gray-400 mt-1.5 sm:mt-2">{t('datetime.tryAnotherDate')}</p>
                         </div>
                       ) : (
                         <div className="space-y-4">
@@ -902,20 +907,20 @@ export default function BookingPage() {
                               <>
                                 {morning.length > 0 && (
                                   <div>
-                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+                                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                       </svg>
-                                      Morning
+                                      {t('datetime.morning')}
                                     </div>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                                       {morning.map((slot, idx) => (
                                         <button
                                           key={idx}
                                           onClick={() => handleSlotSelect(slot)}
-                                          className="px-3 py-2.5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900"
+                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
                                         >
-                                          {formatTime(new Date(slot.start))}
+                                          {formatTime(new Date(slot.start), locale)}
                                         </button>
                                       ))}
                                     </div>
@@ -924,20 +929,20 @@ export default function BookingPage() {
 
                                 {afternoon.length > 0 && (
                                   <div>
-                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+                                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                       </svg>
-                                      Afternoon
+                                      {t('datetime.afternoon')}
                                     </div>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                                       {afternoon.map((slot, idx) => (
                                         <button
                                           key={idx}
                                           onClick={() => handleSlotSelect(slot)}
-                                          className="px-3 py-2.5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900"
+                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
                                         >
-                                          {formatTime(new Date(slot.start))}
+                                          {formatTime(new Date(slot.start), locale)}
                                         </button>
                                       ))}
                                     </div>
@@ -946,20 +951,20 @@ export default function BookingPage() {
 
                                 {evening.length > 0 && (
                                   <div>
-                                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 flex items-center gap-2">
+                                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                                       </svg>
-                                      Evening
+                                      {t('datetime.evening')}
                                     </div>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                                       {evening.map((slot, idx) => (
                                         <button
                                           key={idx}
                                           onClick={() => handleSlotSelect(slot)}
-                                          className="px-3 py-2.5 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900"
+                                          className="px-3 py-3 rounded-xl border-2 border-gray-200 bg-white hover:border-teal-600 hover:bg-teal-50 transition-all text-center text-sm font-semibold text-gray-900 active:scale-95 min-h-[44px]"
                                         >
-                                          {formatTime(new Date(slot.start))}
+                                          {formatTime(new Date(slot.start), locale)}
                                         </button>
                                       ))}
                                     </div>
@@ -976,66 +981,70 @@ export default function BookingPage() {
               )}
 
               {currentStep === 'details' && selectedSlot && (
-                <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                <div className="bg-white rounded-2xl border border-gray-200/60 p-6 lg:p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
                         3
                       </div>
-                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Your Information</h2>
+                      <h2 className="text-xl font-bold text-gray-900 tracking-tight">{t('details.title')}</h2>
                     </div>
                     <button
                       onClick={() => {
                         setSelectedSlot(null);
                         setCurrentStep('datetime');
                       }}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200"
+                      className="w-full sm:w-auto px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all border border-gray-200/60"
                     >
-                      Change time
+                      {t('datetime.change')}
                     </button>
                   </div>
 
                   {error && (
-                    <div className="mb-4 sm:mb-6 bg-red-50 border border-red-200 text-red-800 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl flex items-start gap-2 sm:gap-3">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-start gap-3">
+                      <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <div className="flex-1 text-xs sm:text-sm leading-relaxed">{error}</div>
+                      <div className="flex-1 text-sm leading-relaxed">{error}</div>
                     </div>
                   )}
 
                   {/* Booking Type Selection */}
-                  <div className="mb-6">
-                    <div className="grid grid-cols-2 gap-2 p-1.5 bg-gray-100 rounded-xl">
+                  <div className="mb-8">
+                    <label className="block text-sm font-semibold text-gray-900 mb-3">{t('details.bookAs')}</label>
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 rounded-2xl">
                       <button
                         onClick={() => {
                           setBookingType('guest');
                           setShowSignupForm(false);
                         }}
-                        className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                          bookingType === 'guest' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
+                        className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all ${
+                          bookingType === 'guest' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'
                         }`}>
-                        Book as Guest
+                        {t('details.guest')}
                       </button>
                       <button
                         onClick={() => {
                           setBookingType('login');
                           setShowSignupForm(false);
                         }}
-                        className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                          bookingType === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-200'
+                        className={`px-6 py-2.5 text-sm font-semibold rounded-xl transition-all ${
+                          bookingType === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'
                         }`}>
-                        {showSignupForm ? 'Sign Up' : 'Log In'}
+                        {t('details.login')}
                       </button>
                     </div>
+                    <p className="text-xs text-gray-500 mt-2.5">
+                      {bookingType === 'guest' ? t('details.guestDescription') : t('details.loginDescription')}
+                    </p>
                   </div>
 
                   {bookingType === 'guest' && (
-                    <div className="space-y-5 mb-6">
+                    <div className="space-y-6 mb-8">
                       {config.bookingRequirements.requireName && (
                         <div>
-                          <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
-                            Name <span className="text-red-500">*</span>
+                          <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                            {t('details.name')} <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1048,8 +1057,8 @@ export default function BookingPage() {
                               id="name"
                               value={guestName}
                               onChange={(e) => setGuestName(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                              placeholder="Enter your full name"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              placeholder={t('details.namePlaceholder')}
                               required
                             />
                           </div>
@@ -1058,8 +1067,8 @@ export default function BookingPage() {
 
                       {config.bookingRequirements.requireEmail && (
                         <div>
-                          <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
-                            Email <span className="text-red-500">*</span>
+                          <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                            {t('details.email')} <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1072,8 +1081,8 @@ export default function BookingPage() {
                               id="email"
                               value={guestEmail}
                               onChange={(e) => setGuestEmail(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                              placeholder="your.email@example.com"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              placeholder={t('details.emailPlaceholder')}
                               required
                             />
                           </div>
@@ -1082,8 +1091,8 @@ export default function BookingPage() {
 
                       {config.bookingRequirements.requirePhone && (
                         <div>
-                          <label htmlFor="phone" className="block text-sm font-semibold text-gray-900 mb-2">
-                            Phone {config.bookingRequirements.requirePhone && <span className="text-red-500">*</span>}
+                          <label htmlFor="phone" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                            {t('details.phone')} {config.bookingRequirements.requirePhone && <span className="text-red-500">*</span>}
                           </label>
                           <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1096,16 +1105,17 @@ export default function BookingPage() {
                               id="phone"
                               value={guestPhone}
                               onChange={(e) => setGuestPhone(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                              placeholder="+1 (555) 000-0000"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              placeholder={t('details.phonePlaceholder')}
                             />
                           </div>
                         </div>
                       )}
 
-                      {config.bookingRequirements.customFields.map((field) => (
+                      {/* Custom fields - temporarily hidden */}
+                      {/* {config.bookingRequirements.customFields.map((field) => (
                         <div key={field.id}>
-                          <label htmlFor={field.id} className="block text-sm font-semibold text-gray-900 mb-2">
+                          <label htmlFor={field.id} className="block text-sm font-semibold text-gray-900 mb-2.5">
                             {field.label} {field.required && <span className="text-red-500">*</span>}
                           </label>
                           {field.type === 'textarea' ? (
@@ -1116,7 +1126,7 @@ export default function BookingPage() {
                               rows={4}
                               maxLength={field.maxLength}
                               placeholder={field.placeholder}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all resize-none text-gray-900 placeholder:text-gray-400"
+                              className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all resize-none text-gray-900 placeholder:text-gray-400 text-sm"
                             />
                           ) : field.type === 'select' ? (
                             <div className="relative">
@@ -1124,7 +1134,7 @@ export default function BookingPage() {
                                 id={field.id}
                                 value={customFieldValues[field.id] || ''}
                                 onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
-                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 appearance-none cursor-pointer"
+                                className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 appearance-none cursor-pointer text-sm"
                               >
                                 <option value="" className="text-gray-400">Select an option</option>
                                 {field.options?.map((option) => (
@@ -1147,24 +1157,24 @@ export default function BookingPage() {
                               onChange={(e) => setCustomFieldValues({ ...customFieldValues, [field.id]: e.target.value })}
                               maxLength={field.maxLength}
                               placeholder={field.placeholder}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
+                              className="w-full px-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
                             />
                           )}
                         </div>
-                      ))}
+                      ))} */}
                     </div>
                   )}
 
                   {bookingType === 'login' && !showSignupForm && (
-                    <div className="space-y-5 mb-6">
-                      <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mb-4">
-                        <p className="text-sm text-teal-800">
+                    <div className="space-y-6 mb-8">
+                      <div className="bg-teal-50 border border-teal-200/60 rounded-xl p-5">
+                        <p className="text-sm text-teal-800 leading-relaxed">
                           <strong>Log in</strong> to your account for faster bookings and to view your appointment history.
                         </p>
                       </div>
 
                       <div>
-                        <label htmlFor="login-identifier" className="block text-sm font-semibold text-gray-900 mb-2">
+                        <label htmlFor="login-identifier" className="block text-sm font-semibold text-gray-900 mb-2.5">
                           Email or Phone <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -1178,15 +1188,15 @@ export default function BookingPage() {
                             id="login-identifier"
                             value={guestEmail}
                             onChange={(e) => setGuestEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="your@email.com or +1234567890"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            placeholder={t('details.emailOrPhoneLoginPlaceholder')}
                             required
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label htmlFor="login-password" className="block text-sm font-semibold text-gray-900 mb-2">
+                        <label htmlFor="login-password" className="block text-sm font-semibold text-gray-900 mb-2.5">
                           Password <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -1200,39 +1210,39 @@ export default function BookingPage() {
                             id="login-password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="Enter your password"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            placeholder={t('details.passwordPlaceholder')}
                             required
                           />
                         </div>
                       </div>
 
-                      <div className="border-t border-gray-200 pt-4">
+                      <div className="border-t border-gray-200/60 pt-5">
                         <p className="text-sm text-gray-600 text-center mb-3">
-                          Don't have an account?
+                          {t('details.signupPrompt')}
                         </p>
                         <button
                           type="button"
                           onClick={() => setShowSignupForm(true)}
-                          className="w-full px-4 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200"
+                          className="w-full px-5 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200/60"
                         >
-                          Create an account
+                          {t('details.createAccountButton')}
                         </button>
                       </div>
                     </div>
                   )}
 
                   {bookingType === 'login' && showSignupForm && (
-                    <div className="space-y-5 mb-6">
-                      <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mb-4">
-                        <p className="text-sm text-teal-800">
-                          <strong>Create an account</strong> to track all your bookings in one place and rebook faster next time.
+                    <div className="space-y-6 mb-8">
+                      <div className="bg-teal-50 border border-teal-200/60 rounded-xl p-5">
+                        <p className="text-sm text-teal-800 leading-relaxed">
+                          {t('details.signupBenefit')}
                         </p>
                       </div>
 
                       <div>
-                        <label htmlFor="signup-email" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Email <span className="text-gray-400 text-xs">(optional)</span>
+                        <label htmlFor="signup-email" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                          {t('details.email')} <span className="text-gray-400 text-xs">({t('details.optional')})</span>
                         </label>
                         <div className="relative">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1245,15 +1255,15 @@ export default function BookingPage() {
                             id="signup-email"
                             value={guestEmail}
                             onChange={(e) => setGuestEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="your@email.com"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            placeholder={t('details.emailPlaceholder')}
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label htmlFor="signup-phone" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Phone <span className="text-gray-400 text-xs">(optional)</span>
+                        <label htmlFor="signup-phone" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                          {t('details.phone')} <span className="text-gray-400 text-xs">({t('details.optional')})</span>
                         </label>
                         <div className="relative">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1266,16 +1276,16 @@ export default function BookingPage() {
                             id="signup-phone"
                             value={guestPhone}
                             onChange={(e) => setGuestPhone(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="+1 (555) 000-0000"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            placeholder={t('details.phonePlaceholder')}
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1.5">Provide at least email or phone (or both)</p>
+                        <p className="text-xs text-gray-500 mt-2">{t('details.provideEmailOrPhone')}</p>
                       </div>
 
                       <div>
-                        <label htmlFor="signup-password" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Password <span className="text-red-500">*</span>
+                        <label htmlFor="signup-password" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                          {t('details.password')} <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1288,8 +1298,8 @@ export default function BookingPage() {
                             id="signup-password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                            placeholder="Min 8 characters"
+                            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                            placeholder={t('details.passwordPlaceholderMin')}
                             required
                             minLength={8}
                           />
@@ -1298,8 +1308,8 @@ export default function BookingPage() {
 
                       {config.bookingRequirements.requireName && (
                         <div>
-                          <label htmlFor="signup-name" className="block text-sm font-semibold text-gray-900 mb-2">
-                            Name <span className="text-gray-400 text-xs">(optional)</span>
+                          <label htmlFor="signup-name" className="block text-sm font-semibold text-gray-900 mb-2.5">
+                            {t('details.name')} <span className="text-gray-400 text-xs">({t('details.optional')})</span>
                           </label>
                           <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1312,23 +1322,23 @@ export default function BookingPage() {
                               id="signup-name"
                               value={guestName}
                               onChange={(e) => setGuestName(e.target.value)}
-                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all text-gray-900 placeholder:text-gray-400"
-                              placeholder="Your full name"
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200/60 rounded-xl focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600/20 transition-all text-gray-900 placeholder:text-gray-400 text-sm"
+                              placeholder={t('details.namePlaceholder')}
                             />
                           </div>
                         </div>
                       )}
 
-                      <div className="border-t border-gray-200 pt-4">
+                      <div className="border-t border-gray-200/60 pt-5">
                         <p className="text-sm text-gray-600 text-center mb-3">
-                          Already have an account?
+                          {t('details.loginPrompt')}
                         </p>
                         <button
                           type="button"
                           onClick={() => setShowSignupForm(false)}
-                          className="w-full px-4 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200"
+                          className="w-full px-5 py-2.5 text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all border border-teal-200/60"
                         >
-                          Log in instead
+                          {t('details.loginLink')}
                         </button>
                       </div>
                     </div>
@@ -1336,72 +1346,83 @@ export default function BookingPage() {
 
 
                   {/* Booking Summary */}
-                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <h3 className="text-base font-semibold text-gray-900">Booking Summary</h3>
-                    </div>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between gap-4">
-                        <span className="text-gray-500">Service</span>
-                        <span className="font-semibold text-gray-900 text-right">{selectedService?.name}</span>
+                  <div className="bg-white border border-gray-200/60 rounded-2xl p-6 mb-8">
+                    <h3 className="text-lg font-bold text-gray-900 mb-6">{tc('bookingSummary')}</h3>
+
+                    <div className="space-y-4">
+                      {/* Service */}
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6h.008v.008H6V6z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-gray-500 mb-1">{t('details.service')}</div>
+                          <div className="text-sm font-semibold text-gray-900">{selectedService?.name}</div>
+                        </div>
                       </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="text-gray-500">Date</span>
-                        <span className="font-semibold text-gray-900 text-right">
-                          {selectedSlot && formatDateFull(new Date(selectedSlot.start))}
-                        </span>
+
+                      {/* Date & Time */}
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-gray-500 mb-1">{t('details.date')} & {t('details.time')}</div>
+                          <div className="text-sm font-semibold text-gray-900">
+                            {selectedSlot && formatDateFull(new Date(selectedSlot.start), locale)}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-0.5">
+                            {selectedSlot && formatTime(new Date(selectedSlot.start), locale)} • {selectedService?.duration} {t('service.duration')}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="text-gray-500">Time</span>
-                        <span className="font-semibold text-gray-900 text-right">
-                          {selectedSlot && formatTime(new Date(selectedSlot.start))}
-                        </span>
+
+                      {/* Price */}
+                      <div className="border-t border-gray-100 pt-4 mt-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-gray-900">{t('details.total')}</span>
+                          <span className="text-2xl font-bold text-gray-900">
+                            {selectedService && `${(selectedService.price / 100).toFixed(2)} ${config.business.currency}`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-3 leading-relaxed">
+                          {t('details.paymentNotice')}
+                        </p>
                       </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="text-gray-500">Duration</span>
-                        <span className="font-semibold text-gray-900 text-right">{selectedService?.duration} min</span>
-                      </div>
-                      <div className="flex justify-between gap-4 border-t border-gray-200 pt-3 mt-3">
-                        <span className="text-gray-900 font-semibold">Total</span>
-                        <span className="text-lg font-bold text-gray-900 text-right">
-                          {selectedService && `${(selectedService.price / 100).toFixed(2)} ${config.business.currency}`}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-xs text-gray-500 text-center">
-                      You will pay at the time of your appointment. No payment is required now.
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => setCurrentStep('datetime')}
                       disabled={reserving || confirming}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200"
+                      className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/60"
                     >
-                      Back
+                      {t('details.back')}
                     </button>
                     <button
                       onClick={handleBooking}
                       disabled={reserving || confirming}
-                      className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl text-sm font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl text-sm font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
                     >
                       {reserving || confirming ? (
                         <>
-                          <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24">
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          {reserving ? 'Reserving...' : 'Confirming...'}
+                          {reserving ? t('details.reserving') : t('details.confirming')}
                         </>
                       ) : (
                         <>
-                          {bookingType === 'login' && showSignupForm && 'Create Account & Book'}
-                          {bookingType === 'login' && !showSignupForm && 'Log In & Book'}
-                          {bookingType === 'guest' && 'Confirm Booking'}
+                          {bookingType === 'login' && showSignupForm && t('details.createAccountAndBook')}
+                          {bookingType === 'login' && !showSignupForm && t('details.logInAndBook')}
+                          {bookingType === 'guest' && t('details.confirmBooking')}
                         </>
                       )}
                     </button>
@@ -1419,13 +1440,13 @@ export default function BookingPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                       </svg>
-                      <h3 className="text-sm font-semibold text-gray-900">Location & Contact</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">{t('confirmation.locationAndContact')}</h3>
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-6">
                       {/* Address */}
                       <div>
-                        <div className="text-sm font-semibold text-gray-900 mb-2">Address</div>
+                        <div className="text-sm font-semibold text-gray-900 mb-2">{t('details.address')}</div>
                         <div className="text-sm text-gray-500 space-y-1 mb-4">
                           <div>{config.contact.address.street}</div>
                           <div>{config.contact.address.city}, {config.contact.address.state} {config.contact.address.postalCode}</div>
@@ -1446,13 +1467,13 @@ export default function BookingPage() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                           </svg>
-                          Get Directions
+                          {t('details.getDirections')}
                         </a>
                       </div>
 
                       {/* Contact Info */}
                       <div>
-                        <div className="text-sm font-semibold text-gray-900 mb-3">Get in Touch</div>
+                        <div className="text-sm font-semibold text-gray-900 mb-3">{t('details.getInTouch')}</div>
                         <div className="space-y-3">
                           <a
                             href={`tel:${config.contact.phone}`}
@@ -1487,7 +1508,7 @@ export default function BookingPage() {
                       <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <h3 className="text-sm font-semibold text-gray-900">Business Hours</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">{t('details.businessHours')}</h3>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
                       {config.availability
@@ -1498,7 +1519,7 @@ export default function BookingPage() {
 
                           // Format hours from slots array
                           const formatHours = () => {
-                            if (!a.slots || a.slots.length === 0) return 'Closed';
+                            if (!a.slots || a.slots.length === 0) return t('details.closed');
 
                             // If single slot, show as range
                             if (a.slots.length === 1) {
@@ -1554,12 +1575,12 @@ function formatDateYYYYMMDD(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function formatDayShort(date: Date): string {
-  return date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+function formatDayShort(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, { weekday: 'short' }).toUpperCase();
 }
 
-function formatDateFull(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+function formatDateFull(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -1567,16 +1588,16 @@ function formatDateFull(date: Date): string {
   });
 }
 
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
+function formatTime(date: Date, locale: string): string {
+  return date.toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
   });
 }
 
-function formatTimeWithTimezone(date: Date, timezone: string): string {
-  return date.toLocaleTimeString('en-US', {
+function formatTimeWithTimezone(date: Date, timezone: string, locale: string): string {
+  return date.toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
