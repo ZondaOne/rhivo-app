@@ -1,72 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { verifyAccessToken } from '@/lib/auth/tokens';
+import { createHash } from 'crypto';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 import { generateTimeSlots } from '@/lib/booking/slot-generator';
 import { validateBookingTime, snapToGrain } from '@/lib/booking/validation';
 import { getDbClient } from '@/db/client';
 import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
-import { NotificationService } from '@/lib/notifications/notification-service';
 import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { v4 as uuidv4 } from 'uuid';
 
 const sql = neon(process.env.DATABASE_URL!);
 
 /**
- * POST /api/customer/appointments/[id]/reschedule
+ * POST /api/booking/guest-appointment/[booking_id]/reschedule
  *
- * Reschedule a confirmed appointment to a new time slot.
- *
- * Unified flow for both authenticated customers (JWT) and guests (future: guest token).
+ * Reschedule a confirmed appointment using guest token authentication.
+ * Mirrors the customer reschedule flow but uses guest_token_hash for auth.
  *
  * Request body:
  * {
+ *   "token": "abc123...",
  *   "newSlotStart": "2025-10-16T10:00:00Z",
  *   "newSlotEnd": "2025-10-16T11:00:00Z"
  * }
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ booking_id: string }> }
 ) {
   try {
-    const appointmentId = params.id;
-
-    // Get authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-
-    // Verify JWT
-    let payload;
-    try {
-      payload = verifyAccessToken(token);
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      );
-    }
-
-    // Verify user is a customer
-    if (payload.role !== 'customer') {
-      return NextResponse.json(
-        { error: 'This endpoint is for customers only' },
-        { status: 403 }
-      );
-    }
-
-    const customerId = payload.sub;
+    const { booking_id } = await params;
+    const bookingId = booking_id.toUpperCase();
 
     // Parse request body
     const body = await request.json();
-    const { newSlotStart, newSlotEnd } = body;
+    const { token, newSlotStart, newSlotEnd } = body;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Missing guest access token' },
+        { status: 401 }
+      );
+    }
 
     if (!newSlotStart || !newSlotEnd) {
       return NextResponse.json(
@@ -97,7 +72,10 @@ export async function POST(
     newStart = snapToGrain(newStart);
     newEnd = snapToGrain(newEnd);
 
-    // Fetch current appointment with business, service, customer details, and buffer times
+    // Hash the token for comparison
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+
+    // Fetch appointment with guest token verification and buffer times
     const [appointment] = await sql`
       SELECT
         a.id,
@@ -109,6 +87,10 @@ export async function POST(
         a.updated_at,
         a.business_id,
         a.service_id,
+        a.guest_email,
+        a.guest_phone,
+        a.guest_token_hash,
+        a.guest_token_expires_at,
         b.subdomain,
         b.timezone as business_timezone,
         s.duration_minutes,
@@ -116,15 +98,11 @@ export async function POST(
         s.name as service_name,
         s.price_cents,
         s.buffer_before_minutes,
-        s.buffer_after_minutes,
-        u.name as customer_name,
-        u.email as customer_email,
-        u.phone as customer_phone
+        s.buffer_after_minutes
       FROM appointments a
       JOIN businesses b ON a.business_id = b.id
       JOIN services s ON a.service_id = s.id
-      LEFT JOIN users u ON a.customer_id = u.id
-      WHERE a.id = ${appointmentId}
+      WHERE a.booking_id = ${bookingId}
         AND a.deleted_at IS NULL
     `;
 
@@ -135,11 +113,30 @@ export async function POST(
       );
     }
 
-    // Verify customer owns this appointment
-    if (appointment.customer_id !== customerId) {
+    // Verify this is a guest booking (not customer booking)
+    if (appointment.customer_id) {
       return NextResponse.json(
-        { error: 'You do not have permission to reschedule this appointment' },
+        { error: 'This endpoint is for guest bookings only. Please log in to reschedule.' },
         { status: 403 }
+      );
+    }
+
+    // Verify guest token
+    if (!appointment.guest_token_hash || appointment.guest_token_hash !== tokenHash) {
+      return NextResponse.json(
+        { error: 'Invalid access token' },
+        { status: 401 }
+      );
+    }
+
+    // Check token expiration (15 minutes)
+    const tokenExpiresAt = new Date(appointment.guest_token_expires_at);
+    const now = new Date();
+
+    if (now > tokenExpiresAt) {
+      return NextResponse.json(
+        { error: 'Access token has expired. Please request a new access link.' },
+        { status: 401 }
       );
     }
 
@@ -152,7 +149,6 @@ export async function POST(
     }
 
     // Validate new time is in the future
-    const now = new Date();
     if (newStart <= now) {
       return NextResponse.json(
         { error: 'Cannot reschedule to a time in the past' },
@@ -198,7 +194,7 @@ export async function POST(
     }
 
     // CRITICAL: Validate against off-time intervals (breaks, closed days, holidays)
-    // This ensures customers cannot reschedule during breaks or closed hours
+    // This ensures guests cannot reschedule during breaks or closed hours
     const bufferBefore = appointment.buffer_before_minutes || 0;
     const bufferAfter = appointment.buffer_after_minutes || 0;
 
@@ -208,7 +204,7 @@ export async function POST(
       slotEnd: newEnd,
       bufferBefore,
       bufferAfter,
-      skipAdvanceLimitCheck: false, // Customers must respect advance booking limits
+      skipAdvanceLimitCheck: false, // Guests must respect advance booking limits
       skipPastTimeCheck: false,
     });
 
@@ -223,7 +219,6 @@ export async function POST(
     }
 
     // Check slot availability for the new time
-    // We need to check if the new slot is available using the same logic as initial booking
     const existingAppointments = await sql`
       SELECT slot_start, slot_end
       FROM appointments
@@ -231,7 +226,7 @@ export async function POST(
         AND slot_start >= ${new Date(newStart.getTime() - 24 * 60 * 60 * 1000).toISOString()}
         AND slot_start <= ${new Date(newStart.getTime() + 24 * 60 * 60 * 1000).toISOString()}
         AND status IN ('confirmed', 'completed')
-        AND id != ${appointmentId}
+        AND id != ${appointment.id}
         AND deleted_at IS NULL
     `;
 
@@ -280,22 +275,14 @@ export async function POST(
       );
     }
 
-    // TODO: Check cancellation/reschedule policy deadline
-    // For now, allow all reschedules
-
     // Perform atomic update
-    // 1. Update appointment with new times
-    // 2. Create audit log entry
-    // Note: We check status instead of updated_at to avoid timestamp precision issues
-    // Status check ensures appointment hasn't been canceled/modified to invalid state
-
     const updateResult = await sql`
       UPDATE appointments
       SET
         slot_start = ${newSlotStart},
         slot_end = ${newSlotEnd},
         updated_at = NOW()
-      WHERE id = ${appointmentId}
+      WHERE id = ${appointment.id}
         AND status = 'confirmed'
         AND deleted_at IS NULL
       RETURNING id
@@ -308,7 +295,7 @@ export async function POST(
       );
     }
 
-    // Create audit log entry
+    // Create audit log entry (actor_id is NULL for guest actions)
     await sql`
       INSERT INTO audit_logs (
         id,
@@ -320,19 +307,19 @@ export async function POST(
         timestamp
       ) VALUES (
         ${uuidv4()},
-        ${appointmentId},
-        ${customerId},
+        ${appointment.id},
+        NULL,
         'modified',
         ${JSON.stringify({
           slot_start: appointment.slot_start,
           slot_end: appointment.slot_end,
-          modified_by: 'customer',
+          modified_by: 'guest',
           reason: 'rescheduled',
         })},
         ${JSON.stringify({
           slot_start: newSlotStart,
           slot_end: newSlotEnd,
-          modified_by: 'customer',
+          modified_by: 'guest',
           reason: 'rescheduled',
         })},
         NOW()
@@ -345,9 +332,9 @@ export async function POST(
       const ownerNotificationService = new OwnerNotificationService(db);
       await ownerNotificationService.notifyOwnerOfReschedule(
         appointment.business_id,
-        appointmentId,
+        appointment.id,
         appointment.booking_id,
-        appointment.customer_name,
+        'Guest', // Guest bookings don't have customer name
         appointment.slot_start,
         newSlotStart
       );
@@ -356,32 +343,16 @@ export async function POST(
       // Don't fail the request if notification fails
     }
 
-    // Queue in-app notification (for notification_logs table - step 7t)
-    try {
-      const db = getDbClient();
-      const notificationService = new NotificationService(db);
-      if (appointment.customer_email) {
-        await notificationService.queueRescheduleNotification(
-          appointmentId,
-          appointment.customer_email,
-          appointment.customer_phone
-        );
-      }
-    } catch (error) {
-      console.error('Failed to queue in-app notification:', error);
-      // Don't fail the request if notification queueing fails
-    }
-
-    // Send reschedule confirmation email to customer (step 7u - immediate delivery)
+    // Send reschedule confirmation email to guest
     const customerNotificationService = new CustomerNotificationService(getDbClient());
-    if (appointment.customer_email) {
+    if (appointment.guest_email) {
       customerNotificationService
         .sendRescheduleConfirmation(
           {
-            id: appointmentId,
+            id: appointment.id,
             businessId: appointment.business_id,
             serviceId: appointment.service_id,
-            customerId: appointment.customer_id,
+            customerId: null,
             slotStart: new Date(newSlotStart),
             slotEnd: new Date(newSlotEnd),
             status: 'confirmed',
@@ -396,18 +367,29 @@ export async function POST(
         });
     }
 
+    // Invalidate the guest token after successful reschedule (security best practice)
+    await sql`
+      UPDATE appointments
+      SET
+        guest_token_hash = NULL,
+        guest_token_expires_at = NULL
+      WHERE id = ${appointment.id}
+    `;
+
     return NextResponse.json({
       success: true,
-      message: 'Appointment rescheduled successfully',
+      message: 'Appointment rescheduled successfully. A confirmation email has been sent.',
       appointment: {
-        id: appointmentId,
+        id: appointment.id,
         bookingId: appointment.booking_id,
         newSlotStart,
         newSlotEnd,
       },
+      // Note: Token is now invalid, user must request new access link for further changes
+      tokenInvalidated: true,
     });
   } catch (error) {
-    console.error('Customer appointment reschedule error:', error);
+    console.error('Guest appointment reschedule error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

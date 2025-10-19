@@ -17,6 +17,8 @@ export interface ServiceRecord {
   price_cents: number;
   color: string;
   max_simultaneous_bookings: number;
+  buffer_before_minutes: number;
+  buffer_after_minutes: number;
   sort_order: number;
   external_id: string | null;
   created_at: Date;

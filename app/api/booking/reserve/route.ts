@@ -4,6 +4,7 @@ import { ReservationManager } from '@/lib/booking';
 import { getServiceByIdentifier } from '@/lib/db/service-helpers';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 import { checkRateLimit, getClientIdentifier } from '@/lib/middleware/rate-limiter';
+import { validateBookingTime, snapToGrain } from '@/lib/booking/validation';
 import { z } from 'zod';
 
 const reserveSchema = z.object({
@@ -134,6 +135,32 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json(
         { success: false, error: 'Either startTime or both slotStart and slotEnd are required' },
+        { status: 400 }
+      );
+    }
+
+    // Snap times to 5-minute grain for consistency
+    slotStart = snapToGrain(slotStart);
+    slotEnd = snapToGrain(slotEnd);
+
+    // CRITICAL: Validate against off-time intervals (breaks, closed days, holidays)
+    // This ensures customers cannot bypass UI validation and book during unavailable times
+    const validation = validateBookingTime({
+      config,
+      slotStart,
+      slotEnd,
+      bufferBefore: service.buffer_before_minutes || 0,
+      bufferAfter: service.buffer_after_minutes || 0,
+      skipAdvanceLimitCheck: false, // Enforce advance booking limits for customers
+    });
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: validation.error,
+          code: validation.code,
+        },
         { status: 400 }
       );
     }

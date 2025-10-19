@@ -224,6 +224,8 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
               price_cents,
               color,
               max_simultaneous_bookings,
+              buffer_before_minutes,
+              buffer_after_minutes,
               sort_order,
               external_id
             ) VALUES (
@@ -234,7 +236,9 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
               ${service.duration},
               ${service.price},
               ${service.color || '#14b8a6'},
-              ${config.bookingLimits.maxSimultaneousBookings},
+              ${service.maxSimultaneousBookings ?? config.bookingLimits.maxSimultaneousBookings},
+              ${service.bufferBefore || 0},
+              ${service.bufferAfter || 0},
               ${service.sortOrder},
               ${service.id}
             )

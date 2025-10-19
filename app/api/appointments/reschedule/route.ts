@@ -4,6 +4,7 @@ import { getDbClient } from '@/db/client';
 import { AppointmentManager } from '@/lib/booking';
 import { NotificationService } from '@/lib/notifications/notification-service';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
+import { validateBookingTime, snapToGrain } from '@/lib/booking/validation';
 import { z } from 'zod';
 
 const sql = getDbClient();
@@ -119,11 +120,13 @@ export async function POST(request: NextRequest) {
     let durationMinutes: number;
     let serviceIdToUse = current.service_id;
     let serviceExternalIdToUse = current.service_external_id;
+    let bufferBefore = 0;
+    let bufferAfter = 0;
 
     if (body.serviceId && body.serviceId !== current.service_id) {
-      // Service is changing - get new service's duration and external_id
+      // Service is changing - get new service's duration, external_id, and buffers
       const newServiceRows = await sql`
-        SELECT duration_minutes, external_id
+        SELECT duration_minutes, external_id, buffer_before_minutes, buffer_after_minutes
         FROM services
         WHERE id = ${body.serviceId}
           AND business_id = ${current.business_id}
@@ -137,41 +140,36 @@ export async function POST(request: NextRequest) {
       durationMinutes = newServiceRows[0].duration_minutes;
       serviceIdToUse = body.serviceId;
       serviceExternalIdToUse = newServiceRows[0].external_id;
+      bufferBefore = newServiceRows[0].buffer_before_minutes || 0;
+      bufferAfter = newServiceRows[0].buffer_after_minutes || 0;
     } else {
-      // Service not changing - use existing duration
+      // Service not changing - use existing duration and get buffers
       durationMinutes = Math.floor(
         (new Date(current.slot_end).getTime() - new Date(current.slot_start).getTime()) / (1000 * 60)
       );
+
+      // Get current service buffers
+      const currentServiceRows = await sql`
+        SELECT buffer_before_minutes, buffer_after_minutes
+        FROM services
+        WHERE id = ${current.service_id}
+          AND deleted_at IS NULL
+        LIMIT 1
+      `;
+
+      if (currentServiceRows.length > 0) {
+        bufferBefore = currentServiceRows[0].buffer_before_minutes || 0;
+        bufferAfter = currentServiceRows[0].buffer_after_minutes || 0;
+      }
     }
 
-    const newStart = new Date(body.newStartTime);
+    let newStart = new Date(body.newStartTime);
     if (Number.isNaN(newStart.getTime())) {
       return NextResponse.json({ message: 'Invalid newStartTime' }, { status: 400 });
     }
 
-    // Allow rescheduling up to 5 minutes in the past to account for timezone/clock differences
-    // and the time it takes for the user to click confirm
-    const now = new Date();
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-
-    if (newStart < fiveMinutesAgo) {
-      console.error('[Reschedule] Time validation failed:', {
-        newStartTime: body.newStartTime,
-        newStart: newStart.toISOString(),
-        serverNow: now.toISOString(),
-        fiveMinutesAgo: fiveMinutesAgo.toISOString(),
-        diffMinutes: Math.round((now.getTime() - newStart.getTime()) / (60 * 1000))
-      });
-      return NextResponse.json({
-        message: 'Cannot reschedule into the past',
-        debug: process.env.NODE_ENV === 'development' ? {
-          newStartTime: newStart.toISOString(),
-          serverTime: now.toISOString(),
-          differenceMinutes: Math.round((now.getTime() - newStart.getTime()) / (60 * 1000))
-        } : undefined
-      }, { status: 400 });
-    }
-
+    // Snap times to 5-minute grain for consistency
+    newStart = snapToGrain(newStart);
     const newEnd = new Date(newStart.getTime() + durationMinutes * 60 * 1000);
 
     const appointmentManager = new AppointmentManager(sql);
@@ -184,6 +182,28 @@ export async function POST(request: NextRequest) {
 
     // Get maxSimultaneousBookings from YAML config (single source of truth)
     const maxSimultaneousBookings = getMaxSimultaneousBookings(targetServiceExternalId);
+
+    // CRITICAL: Validate against off-time intervals (breaks, closed days, holidays)
+    // This enforces the same rules as customer booking and manual appointment creation
+    const validation = validateBookingTime({
+      config,
+      slotStart: newStart,
+      slotEnd: newEnd,
+      bufferBefore,
+      bufferAfter,
+      skipAdvanceLimitCheck: true, // Owners can reschedule to any future date
+      skipPastTimeCheck: false, // 5-minute grace period is in validateBookingTime
+    });
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          message: validation.error,
+          code: validation.code,
+        },
+        { status: 400 }
+      );
+    }
 
     let appointmentWithDetails;
 

@@ -5,6 +5,7 @@ import { AppointmentManager } from '@/lib/booking';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
+import { validateBookingTime, snapToGrain } from '@/lib/booking/validation';
 
 const createManualAppointmentSchema = z.object({
   service_id: z.string().uuid({ message: 'Invalid service_id' }),
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     const [service] = await sql`
-      SELECT id, business_id, duration_minutes, external_id
+      SELECT id, business_id, duration_minutes, external_id, buffer_before_minutes, buffer_after_minutes
       FROM services
       WHERE id = ${body.service_id}
         AND business_id = ${payload.business_id}
@@ -91,16 +92,16 @@ export async function POST(request: NextRequest) {
     }
 
     const durationMinutes = body.duration ?? Number(service.duration_minutes);
-    const slotStart = new Date(body.start_time);
-    const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
+    let slotStart = new Date(body.start_time);
+    let slotEnd = new Date(slotStart.getTime() + durationMinutes * 60 * 1000);
 
     if (Number.isNaN(slotStart.getTime()) || Number.isNaN(slotEnd.getTime())) {
       return NextResponse.json({ message: 'Invalid start_time or duration' }, { status: 400 });
     }
 
-    if (slotStart < new Date()) {
-      return NextResponse.json({ message: 'Cannot create appointments in the past' }, { status: 400 });
-    }
+    // Snap times to 5-minute grain for consistency
+    slotStart = snapToGrain(slotStart);
+    slotEnd = snapToGrain(slotEnd);
 
     if (!body.customer_email) {
       return NextResponse.json(
@@ -162,6 +163,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { message: `Service configuration not found in YAML for external_id: ${service.external_id}` },
         { status: 500 }
+      );
+    }
+
+    // CRITICAL: Validate against off-time intervals (breaks, closed days, holidays)
+    // Owners can bypass advance booking limits, but must still respect business hours
+    const validation = validateBookingTime({
+      config: configResult.config,
+      slotStart,
+      slotEnd,
+      bufferBefore: service.buffer_before_minutes || 0,
+      bufferAfter: service.buffer_after_minutes || 0,
+      skipAdvanceLimitCheck: true, // Owners can book far in advance
+      skipPastTimeCheck: false, // But still can't create appointments in the past
+    });
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          message: validation.error,
+          code: validation.code,
+        },
+        { status: 400 }
       );
     }
 

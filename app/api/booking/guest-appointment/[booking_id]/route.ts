@@ -16,11 +16,15 @@ export async function GET(request: NextRequest, { params }: { params: { booking_
 
     const result = await db`
       SELECT
-        a.id, a.booking_id, s.name as service_name, a.slot_start, a.slot_end,
+        a.id, a.booking_id, s.name as service_name, s.id as service_id,
+        s.external_id as service_external_id, s.duration_minutes,
+        a.slot_start, a.slot_end,
         COALESCE(a.guest_name, a.guest_email) as customer_name,
-        a.guest_email, a.status, a.guest_token_hash, a.guest_token_expires_at
+        a.guest_email, a.status, a.guest_token_hash, a.guest_token_expires_at,
+        b.subdomain, b.name as business_name
       FROM appointments a
       JOIN services s ON a.service_id = s.id
+      JOIN businesses b ON a.business_id = b.id
       WHERE a.booking_id = ${bookingId} AND a.deleted_at IS NULL
       LIMIT 1
     `;
@@ -47,11 +51,16 @@ export async function GET(request: NextRequest, { params }: { params: { booking_
         id: appointment.id,
         bookingId: appointment.booking_id,
         serviceName: appointment.service_name,
+        serviceId: appointment.service_external_id, // Use external_id for slot API
+        serviceDbId: appointment.service_id, // Database UUID
+        duration: appointment.duration_minutes,
         startTime: appointment.slot_start,
         endTime: appointment.slot_end,
         customerName: appointment.customer_name,
         guestEmail: appointment.guest_email,
         status: appointment.status,
+        subdomain: appointment.subdomain,
+        businessName: appointment.business_name,
       },
     });
 
