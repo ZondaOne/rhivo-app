@@ -85,10 +85,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate new tokens
+    // Only include business_id for owners and staff, NOT for customers
     const accessToken = generateAccessToken({
       sub: tokenRecord.user_id,
       role: tokenRecord.role,
-      business_id: tokenRecord.business_id,
+      business_id: tokenRecord.role !== 'customer' ? tokenRecord.business_id : undefined,
       email: tokenRecord.email,
     });
 
@@ -134,7 +135,8 @@ export async function POST(request: NextRequest) {
         email: tokenRecord.email,
         name: tokenRecord.name,
         role: tokenRecord.role,
-        business_id: tokenRecord.business_id,
+        // Only include business_id for owners and staff
+        ...(tokenRecord.role !== 'customer' && { business_id: tokenRecord.business_id }),
       },
     });
 

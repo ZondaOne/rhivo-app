@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import RescheduleModal from './components/RescheduleModal';
 
 type AppointmentStatus = 'confirmed' | 'canceled' | 'completed' | 'no_show';
@@ -37,7 +38,7 @@ interface RescheduleState {
   duration: number;
 }
 
-export default function CustomerDashboardPage() {
+function CustomerDashboardContent() {
   const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -456,5 +457,13 @@ export default function CustomerDashboardPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CustomerDashboardPage() {
+  return (
+    <ProtectedRoute requireRole="customer">
+      <CustomerDashboardContent />
+    </ProtectedRoute>
   );
 }

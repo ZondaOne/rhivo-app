@@ -77,10 +77,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate tokens
+    // Only include business_id for owners and staff, NOT for customers
     const accessToken = generateAccessToken({
       sub: user.id,
       role: user.role,
-      business_id: user.business_id,
+      business_id: user.role !== 'customer' ? user.business_id : undefined,
       email: user.email,
     });
 
@@ -119,7 +120,8 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
-        business_id: user.business_id,
+        // Only include business_id for owners and staff
+        ...(user.role !== 'customer' && { business_id: user.business_id }),
         requires_password_change: user.requires_password_change,
       },
     });

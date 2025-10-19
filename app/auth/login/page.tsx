@@ -24,8 +24,9 @@ export default function LoginPage() {
     setError(null);
     setPending(true);
     try {
-      const result = await login({ email, password });
+      await login({ email, password });
       // User object is now updated in auth context
+      // Role check and redirect will happen in the useEffect below
       setPending(false);
     } catch (err: any) {
       setError(err?.message || 'Login failed');
@@ -33,15 +34,27 @@ export default function LoginPage() {
     }
   }
 
-  // Redirect after successful login based on user state
-  if (isAuthenticated && user && !pending) {
-    if (user.requires_password_change) {
-      router.push('/auth/change-password');
-    } else {
-      router.push('/dashboard');
+  // Redirect after successful login based on user state and role
+  useEffect(() => {
+    if (isAuthenticated && user && !pending && !isLoading) {
+      // Check if user is customer - they should use customer login
+      if (user.role === 'customer') {
+        setError('This login is for business owners only. Customers should use the customer login.');
+        // Log them out
+        setTimeout(() => {
+          router.push('/customer/login');
+        }, 2000);
+        return;
+      }
+
+      // Owner or staff - redirect appropriately
+      if (user.requires_password_change) {
+        router.push('/auth/change-password');
+      } else {
+        router.push('/dashboard');
+      }
     }
-    return null;
-  }
+  }, [isAuthenticated, user, pending, isLoading, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-teal-50/30 to-white flex items-center justify-center p-6 relative overflow-hidden">

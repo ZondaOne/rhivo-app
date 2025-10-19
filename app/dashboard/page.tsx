@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BusinessProvider, useBusiness } from '@/contexts/BusinessContext';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { BusinessSelector } from '@/components/dashboard/BusinessSelector';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointmentModal';
@@ -346,8 +347,10 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <BusinessProvider>
-      <DashboardContent />
-    </BusinessProvider>
+    <ProtectedRoute requireRole="owner">
+      <BusinessProvider>
+        <DashboardContent />
+      </BusinessProvider>
+    </ProtectedRoute>
   );
 }
