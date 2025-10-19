@@ -21,6 +21,90 @@ export interface ConfigLoadResult {
 }
 
 /**
+ * Load tenant configuration by business ID
+ * Primarily for owner dashboard where subdomain might not be available
+ */
+export async function loadConfigByBusinessId(businessId: string): Promise<ConfigLoadResult> {
+  try {
+    // Check cache first using businessId as key
+    const cacheKey = `businessId:${businessId}`;
+    const cached = configCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return { success: true, config: cached.config };
+    }
+
+    // Get business info to find subdomain and config path
+    const db = getDbClient();
+    const businessResult = await db`
+      SELECT
+        id,
+        subdomain,
+        name,
+        timezone,
+        config_yaml_path,
+        config_version,
+        status
+      FROM businesses
+      WHERE id = ${businessId}
+        AND deleted_at IS NULL
+        AND status = 'active'
+      LIMIT 1
+    `;
+
+    if (businessResult.length === 0) {
+      return {
+        success: false,
+        error: `No active business found for ID: ${businessId}`,
+      };
+    }
+
+    const business = businessResult[0];
+
+    // Try to load YAML from file path
+    if (business.config_yaml_path) {
+      const yamlConfig = await loadFromFile(business.config_yaml_path);
+      if (yamlConfig.success && yamlConfig.config) {
+        // Cache it with both businessId and subdomain keys
+        configCache.set(cacheKey, {
+          config: yamlConfig.config,
+          timestamp: Date.now(),
+        });
+        configCache.set(business.subdomain, {
+          config: yamlConfig.config,
+          timestamp: Date.now(),
+        });
+        return { success: true, config: yamlConfig.config, subdomain: business.subdomain };
+      }
+    }
+
+    // Fall back to building config from database
+    const dbConfig = await buildConfigFromDatabase(business.id);
+    if (dbConfig.success && dbConfig.config) {
+      configCache.set(cacheKey, {
+        config: dbConfig.config,
+        timestamp: Date.now(),
+      });
+      configCache.set(business.subdomain, {
+        config: dbConfig.config,
+        timestamp: Date.now(),
+      });
+      return { success: true, config: dbConfig.config, subdomain: business.subdomain };
+    }
+
+    return {
+      success: false,
+      error: 'Failed to load configuration from any source',
+    };
+  } catch (error) {
+    console.error('Error loading config by business ID:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * Load tenant configuration by subdomain
  * First checks cache, then database, then falls back to file system
  */

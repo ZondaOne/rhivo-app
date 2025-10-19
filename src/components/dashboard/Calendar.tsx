@@ -4,8 +4,8 @@ import { useEffect, useState, Fragment, useRef } from 'react';
 import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
-import { RescheduleConfirmationModal } from './RescheduleConfirmationModal';
-import { AppointmentEditModal } from './AppointmentEditModal';
+import { DragDropRescheduleModal } from './DragDropRescheduleModal';
+import { RescheduleAppointmentModal } from './RescheduleAppointmentModal';
 import { apiRequest } from '@/lib/auth/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { addStackingMetadata, StackedAppointment, groupByStartTime, allocateCascadeColumns, getCascadePositionStyles, getCascadeVisualClasses } from '@/lib/appointment-stacking';
@@ -24,10 +24,14 @@ interface CalendarProps {
   businessId?: string | null;
 }
 
-interface PendingReschedule {
+interface DragDropReschedule {
   appointment: Appointment;
   originalTime: Date;
   newTime: Date;
+}
+
+interface EditReschedule {
+  appointment: Appointment;
 }
 
 interface AppointmentCache {
@@ -42,8 +46,9 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
   const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
-  const [pendingReschedule, setPendingReschedule] = useState<PendingReschedule | null>(null);
-  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [dragDropReschedule, setDragDropReschedule] = useState<DragDropReschedule | null>(null);
+  const [editingAppointment, setEditingAppointment] = useState<EditReschedule | null>(null);
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
   const [highlightedAppointmentId, setHighlightedAppointmentId] = useState<string | null>(null);
   const [previousView, setPreviousView] = useState<CalendarView>(view);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -252,25 +257,24 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
 
     // Detect same-position drop: compare timestamps at minute-level precision
     if (snappedTime.getTime() === snapToGrain(originalTime).getTime()) {
-      // No change - skip confirmation modal entirely
+      // No change - skip modal entirely (no confirmation, no action)
       return;
     }
 
-    // Show confirmation modal
-    setPendingReschedule({
+    // Show simple drag-drop confirmation modal
+    setDragDropReschedule({
       appointment,
       originalTime,
       newTime: snappedTime,
     });
   }
 
-  async function confirmReschedule() {
-    if (!pendingReschedule) return;
+  async function confirmDragDropReschedule() {
+    if (!dragDropReschedule) return;
 
-    const { appointment, newTime } = pendingReschedule;
+    const { appointment, newTime } = dragDropReschedule;
 
-    // Close modal
-    setPendingReschedule(null);
+    setRescheduleLoading(true);
 
     try {
       // Optimistic UI update
@@ -286,13 +290,17 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
         )
       );
 
-      const response = await apiRequest<{ success: boolean; appointment?: Appointment }>('/api/appointments/reschedule', {
-        method: 'POST',
-        body: JSON.stringify({
-          appointmentId: appointment.id,
-          newStartTime: newTime.toISOString(),
-        }),
-      });
+      const response = await apiRequest<{ success: boolean; appointment?: Appointment }>(
+        '/api/appointments/reschedule',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            appointmentId: appointment.id,
+            newStartTime: newTime.toISOString(),
+            notifyCustomer: true,
+          }),
+        }
+      );
 
       showToast('Appointment rescheduled. Customer will be notified via email.', 'success');
 
@@ -316,6 +324,9 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
           prev.map((a) => (a.id === response.appointment!.id ? response.appointment! : a))
         );
       }
+
+      // Close modal
+      setDragDropReschedule(null);
     } catch (error) {
       console.error('Failed to reschedule:', error);
       showToast(mapErrorToUserMessage(error), 'error');
@@ -323,25 +334,33 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
       // Revert optimistic update on error - invalidate cache
       setAppointmentCache(null);
       await loadAppointments();
+    } finally {
+      setRescheduleLoading(false);
     }
   }
 
-  function cancelReschedule() {
-    setPendingReschedule(null);
+  function cancelDragDropReschedule() {
+    setDragDropReschedule(null);
   }
 
   function handleEdit(appointmentId: string) {
     const appointment = appointments.find((a) => a.id === appointmentId);
-    if (appointment) {
-      setEditingAppointment(appointment);
+    if (!appointment) {
+      showToast('Appointment not found', 'error');
+      return;
     }
+
+    // Open full reschedule modal with slot picker
+    setEditingAppointment({
+      appointment,
+    });
   }
 
   function handleEditClose() {
     setEditingAppointment(null);
   }
 
-  async function handleEditSave(updatedAppointment?: Appointment) {
+  async function handleEditSuccess(updatedAppointment?: Appointment) {
     setEditingAppointment(null);
 
     // Update cache with the server-returned appointment data
@@ -364,7 +383,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
         prev.map((a) => (a.id === updatedAppointment.id ? updatedAppointment : a))
       );
     } else {
-      // No changes made or no appointment returned - invalidate cache to be safe
+      // No appointment data returned - invalidate cache and reload
       setAppointmentCache(null);
       await loadAppointments();
     }
@@ -420,23 +439,24 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      {/* Reschedule confirmation modal */}
-      {pendingReschedule && (
-        <RescheduleConfirmationModal
-          appointment={pendingReschedule.appointment}
-          originalTime={pendingReschedule.originalTime}
-          newTime={pendingReschedule.newTime}
-          onConfirm={confirmReschedule}
-          onCancel={cancelReschedule}
+      {/* Drag-drop reschedule confirmation modal */}
+      {dragDropReschedule && (
+        <DragDropRescheduleModal
+          appointment={dragDropReschedule.appointment}
+          originalTime={dragDropReschedule.originalTime}
+          newTime={dragDropReschedule.newTime}
+          onConfirm={confirmDragDropReschedule}
+          onCancel={cancelDragDropReschedule}
+          loading={rescheduleLoading}
         />
       )}
 
-      {/* Edit appointment modal */}
+      {/* Full reschedule modal with slot picker (for edit button) */}
       {editingAppointment && (
-        <AppointmentEditModal
-          appointment={editingAppointment}
+        <RescheduleAppointmentModal
+          appointment={editingAppointment.appointment}
           onClose={handleEditClose}
-          onSave={handleEditSave}
+          onSuccess={handleEditSuccess}
         />
       )}
 
