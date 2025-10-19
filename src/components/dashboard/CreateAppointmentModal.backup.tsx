@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/auth/api-client';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
-import { formatTime, formatDate } from '@/lib/calendar-utils';
+import { formatTime, formatDate, snapToGrain } from '@/lib/calendar-utils';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 
@@ -12,16 +12,8 @@ interface Service {
   name: string;
   duration_minutes: number;
   price_cents: number;
-  category_id: string;
-  category_name: string;
+  category_name?: string;
   color?: string;
-  description?: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  services: Service[];
 }
 
 interface TimeSlot {
@@ -39,7 +31,7 @@ interface CreateAppointmentModalProps {
   businessId?: string | null;
 }
 
-type Step = 'category' | 'service' | 'datetime' | 'customer';
+type Step = 'service' | 'datetime' | 'customer';
 
 export function CreateAppointmentModal({
   isOpen,
@@ -49,15 +41,13 @@ export function CreateAppointmentModal({
   businessId
 }: CreateAppointmentModalProps) {
   const { toasts, showToast, removeToast } = useToast();
-  const [currentStep, setCurrentStep] = useState<Step>('category');
+  const [currentStep, setCurrentStep] = useState<Step>('service');
   const [loading, setLoading] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Categories and services state
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  // Services state
+  const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [businessCurrency, setBusinessCurrency] = useState<string>('EUR');
 
   // Date/Time state
   const [selectedDate, setSelectedDate] = useState<Date>(defaultDate || new Date());
@@ -72,7 +62,7 @@ export function CreateAppointmentModal({
 
   useEffect(() => {
     if (isOpen) {
-      loadServicesAndConfig();
+      loadServices();
       resetForm();
     }
   }, [isOpen, businessId]);
@@ -83,62 +73,13 @@ export function CreateAppointmentModal({
     }
   }, [selectedService, selectedDate, currentStep]);
 
-  async function loadServicesAndConfig() {
+  async function loadServices() {
     try {
-      // Load services
       const url = businessId
         ? `/api/services?businessId=${businessId}`
         : '/api/services';
-      const servicesData = await apiRequest<Service[]>(url);
-
-      // Try to load business config to get currency
-      try {
-        // First try to get from current user's business
-        const businessesResponse = await apiRequest<any[]>('/api/businesses');
-        if (businessesResponse && businessesResponse.length > 0) {
-          const currentBusiness = businessId
-            ? businessesResponse.find((b: any) => b.id === businessId)
-            : businessesResponse[0];
-
-          if (currentBusiness?.config_yaml_path) {
-            // Load config from the business
-            const configResponse = await fetch(`/api/config/tenant?businessId=${currentBusiness.id}`);
-            const configData = await configResponse.json();
-            if (configData.success && configData.config?.business?.currency) {
-              setBusinessCurrency(configData.config.business.currency);
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to load business config, using default EUR currency');
-      }
-
-      // Group services by category
-      const categoryMap = new Map<string, Category>();
-
-      servicesData.forEach(service => {
-        const categoryId = service.category_id || 'uncategorized';
-        const categoryName = service.category_name || 'Services';
-
-        if (!categoryMap.has(categoryId)) {
-          categoryMap.set(categoryId, {
-            id: categoryId,
-            name: categoryName,
-            services: [],
-          });
-        }
-
-        categoryMap.get(categoryId)!.services.push(service);
-      });
-
-      const categoriesArray = Array.from(categoryMap.values());
-      setCategories(categoriesArray);
-
-      // Auto-select first category if only one exists
-      if (categoriesArray.length === 1) {
-        setSelectedCategory(categoriesArray[0]);
-        setCurrentStep('service');
-      }
+      const data = await apiRequest<Service[]>(url);
+      setServices(data);
     } catch (error) {
       console.error('Failed to load services:', error);
       showToast(mapErrorToUserMessage(error), 'error');
@@ -166,8 +107,7 @@ export function CreateAppointmentModal({
   }
 
   function resetForm() {
-    setCurrentStep(categories.length === 1 ? 'service' : 'category');
-    setSelectedCategory(categories.length === 1 ? categories[0] : null);
+    setCurrentStep('service');
     setSelectedService(null);
     setSelectedDate(defaultDate || new Date());
     setSelectedSlot(null);
@@ -221,9 +161,7 @@ export function CreateAppointmentModal({
   }
 
   function goToNextStep() {
-    if (currentStep === 'category' && selectedCategory) {
-      setCurrentStep('service');
-    } else if (currentStep === 'service' && selectedService) {
+    if (currentStep === 'service' && selectedService) {
       setCurrentStep('datetime');
     } else if (currentStep === 'datetime' && selectedSlot) {
       setCurrentStep('customer');
@@ -235,8 +173,6 @@ export function CreateAppointmentModal({
       setCurrentStep('datetime');
     } else if (currentStep === 'datetime') {
       setCurrentStep('service');
-    } else if (currentStep === 'service' && categories.length > 1) {
-      setCurrentStep('category');
     }
   }
 
@@ -263,13 +199,6 @@ export function CreateAppointmentModal({
     return date1.toDateString() === date2.toDateString();
   }
 
-  const totalSteps = categories.length > 1 ? 4 : 3;
-  const currentStepNumber =
-    currentStep === 'category' ? 1 :
-    currentStep === 'service' ? (categories.length > 1 ? 2 : 1) :
-    currentStep === 'datetime' ? (categories.length > 1 ? 3 : 2) :
-    totalSteps;
-
   if (!isOpen) return null;
 
   return (
@@ -284,9 +213,8 @@ export function CreateAppointmentModal({
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">New Appointment</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  {currentStep === 'category' && 'Select a category'}
-                  {currentStep === 'service' && 'Choose a service'}
-                  {currentStep === 'datetime' && 'Pick date and time'}
+                  {currentStep === 'service' && 'Select a service'}
+                  {currentStep === 'datetime' && 'Choose date and time'}
                   {currentStep === 'customer' && 'Customer information'}
                 </p>
               </div>
@@ -303,89 +231,32 @@ export function CreateAppointmentModal({
 
             {/* Progress Indicator */}
             <div className="flex items-center gap-2 mt-6">
-              {Array.from({ length: totalSteps }).map((_, index) => (
-                <div
-                  key={index}
-                  className={`flex-1 h-1 rounded-full transition-all ${
-                    index < currentStepNumber ? 'bg-gradient-to-r from-teal-600 to-green-600' : 'bg-gray-200'
-                  }`}
-                />
-              ))}
+              <div className={`flex-1 h-1 rounded-full transition-all ${currentStep === 'service' || currentStep === 'datetime' || currentStep === 'customer' ? 'bg-gradient-to-r from-teal-600 to-green-600' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-1 rounded-full transition-all ${currentStep === 'datetime' || currentStep === 'customer' ? 'bg-gradient-to-r from-teal-600 to-green-600' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-1 rounded-full transition-all ${currentStep === 'customer' ? 'bg-gradient-to-r from-teal-600 to-green-600' : 'bg-gray-200'}`} />
             </div>
           </div>
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto px-8 py-6">
-            {/* Step 1: Category Selection (only if multiple categories) */}
-            {currentStep === 'category' && categories.length > 1 && (
+            {/* Step 1: Service Selection */}
+            {currentStep === 'service' && (
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-                    Select Category
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => setSelectedCategory(category)}
-                        className={`
-                          p-5 rounded-xl border-2 text-left transition-all
-                          ${selectedCategory?.id === category.id
-                            ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-green-50 shadow-md'
-                            : 'border-gray-200 bg-white hover:border-teal-300 hover:bg-teal-50'
-                          }
-                        `}
-                      >
-                        <div className="text-base font-bold text-gray-900">{category.name}</div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          {category.services.length} {category.services.length === 1 ? 'service' : 'services'}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Service Selection */}
-            {currentStep === 'service' && selectedCategory && (
-              <div className="space-y-6">
-                {categories.length > 1 && (
-                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900">{selectedCategory.name}</div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {selectedCategory.services.length} {selectedCategory.services.length === 1 ? 'service' : 'services'}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setCurrentStep('category');
-                          setSelectedService(null);
-                        }}
-                        className="text-sm font-semibold text-teal-600 hover:text-teal-700"
-                      >
-                        Change
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
                     Available Services
                   </h3>
-                  {selectedCategory.services.length === 0 ? (
+                  {services.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 border border-gray-100 rounded-xl">
                       <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
-                      <p className="text-sm font-semibold text-gray-900">No services in this category</p>
+                      <p className="text-sm font-semibold text-gray-900">No services available</p>
+                      <p className="text-xs text-gray-500 mt-1">Add services to start creating appointments</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-3">
-                      {selectedCategory.services.map((service) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {services.map((service) => (
                         <button
                           key={service.id}
                           onClick={() => setSelectedService(service)}
@@ -397,27 +268,24 @@ export function CreateAppointmentModal({
                             }
                           `}
                         >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="text-base font-bold text-gray-900 mb-1">{service.name}</div>
-                              {service.description && (
-                                <div className="text-sm text-gray-500 mb-2 line-clamp-2">{service.description}</div>
-                              )}
-                              <div className="flex items-center gap-3 text-sm">
-                                <div className="flex items-center gap-1.5 text-gray-600">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  {service.duration_minutes} min
-                                </div>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="text-base font-bold text-gray-900">{service.name}</div>
+                              <div className="text-sm text-gray-500 mt-1">
+                                {service.duration_minutes} minutes
                               </div>
                             </div>
-                            <div className="text-right flex-shrink-0">
+                            <div className="text-right">
                               <div className="text-lg font-bold text-gray-900">
-                                {(service.price_cents / 100).toFixed(2)} {businessCurrency}
+                                ${(service.price_cents / 100).toFixed(2)}
                               </div>
                             </div>
                           </div>
+                          {service.category_name && (
+                            <div className="mt-3 inline-block px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700">
+                              {service.category_name}
+                            </div>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -426,7 +294,7 @@ export function CreateAppointmentModal({
               </div>
             )}
 
-            {/* Step 3: Date & Time Selection */}
+            {/* Step 2: Date & Time Selection */}
             {currentStep === 'datetime' && selectedService && (
               <div className="space-y-6">
                 {/* Selected Service Summary */}
@@ -435,7 +303,7 @@ export function CreateAppointmentModal({
                     <div>
                       <div className="text-sm font-semibold text-gray-900">{selectedService.name}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {selectedService.duration_minutes} min · {(selectedService.price_cents / 100).toFixed(2)} {businessCurrency}
+                        {selectedService.duration_minutes} min · ${(selectedService.price_cents / 100).toFixed(2)}
                       </div>
                     </div>
                     <button
@@ -558,7 +426,7 @@ export function CreateAppointmentModal({
               </div>
             )}
 
-            {/* Step 4: Customer Information */}
+            {/* Step 3: Customer Information */}
             {currentStep === 'customer' && selectedService && selectedSlot && (
               <div className="space-y-6">
                 {/* Appointment Summary */}
@@ -580,12 +448,6 @@ export function CreateAppointmentModal({
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Duration:</span>
                       <span className="font-semibold text-gray-900">{selectedService.duration_minutes} min</span>
-                    </div>
-                    <div className="flex justify-between text-sm border-t border-gray-200 pt-2 mt-2">
-                      <span className="text-gray-600">Price:</span>
-                      <span className="font-bold text-gray-900">
-                        {(selectedService.price_cents / 100).toFixed(2)} {businessCurrency}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -637,7 +499,7 @@ export function CreateAppointmentModal({
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-                          placeholder="+39 123 456 7890"
+                          placeholder="+1 (555) 123-4567"
                         />
                       </div>
                     </div>
@@ -664,7 +526,7 @@ export function CreateAppointmentModal({
           {/* Footer - Actions */}
           <div className="px-8 py-6 border-t border-gray-100 flex items-center justify-between gap-3">
             <div>
-              {(currentStep !== 'category' && !(currentStep === 'service' && categories.length === 1)) && (
+              {currentStep !== 'service' && (
                 <button
                   onClick={goToPreviousStep}
                   disabled={loading}
@@ -699,7 +561,6 @@ export function CreateAppointmentModal({
                 <button
                   onClick={goToNextStep}
                   disabled={
-                    (currentStep === 'category' && !selectedCategory) ||
                     (currentStep === 'service' && !selectedService) ||
                     (currentStep === 'datetime' && !selectedSlot)
                   }
