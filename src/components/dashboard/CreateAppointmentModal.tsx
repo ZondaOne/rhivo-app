@@ -150,7 +150,12 @@ export function CreateAppointmentModal({
 
     setLoadingSlots(true);
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Format date in local timezone to avoid timezone conversion bugs
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
       const response = await apiRequest<{ slots: TimeSlot[] }>(
         `/api/appointments/available-slots?serviceId=${selectedService.id}&date=${dateStr}`
       );
