@@ -1,0 +1,58 @@
+{
+  "home": {
+    "hero": {
+      "title": {
+        "line1": "Ovunque tu voglia essere.",
+        "line2": "Prenotato."
+      },
+      "subtitle": "Guarda cosa c'è disponibile. Scegli un orario. Fatto.",
+      "subtitleNote": "Davvero così semplice.",
+      "cta": "Trova un'attività",
+      "scroll": "Scorri"
+    },
+    "howItWorks": {
+      "label": "Semplice per design",
+      "title": "Come funziona",
+      "subtitle": "Tre passi. Ecco tutto.",
+      "step1": {
+        "title": "Trova",
+        "description": "Esplora le attività vicino a te o cerca esattamente ciò di cui hai bisogno."
+      },
+      "step2": {
+        "title": "Scegli",
+        "description": "Vedi gli orari disponibili in tempo reale. Scegli quello che fa per te."
+      },
+      "step3": {
+        "title": "Fatto",
+        "description": "Conferma la prenotazione. Ricevi conferma istantanea. Ecco fatto."
+      }
+    },
+    "forBusiness": {
+      "label": "Per Imprenditori",
+      "title": "Gestisci un'attività?",
+      "titleAccent": "Ci pensiamo noi.",
+      "feature1": {
+        "title": "Prenotazioni 24/7",
+        "description": "Accetta appuntamenti anche mentre dormi"
+      },
+      "feature2": {
+        "title": "Meno Telefonate",
+        "description": "I clienti prenotano da soli online"
+      },
+      "feature3": {
+        "title": "Dashboard Semplice",
+        "description": "Tutto in un'interfaccia pulita"
+      },
+      "signIn": "Accedi",
+      "getStarted": "Inizia gratis",
+      "trustSignal": "Nessuna carta richiesta • Configurazione in minuti"
+    },
+    "footer": {
+      "tagline": "Mantienilo semplice.",
+      "manageBooking": "Gestisci Prenotazione",
+      "businessLogin": "Accesso Attività",
+      "privacy": "Privacy",
+      "terms": "Termini"
+    }
+  }
+}

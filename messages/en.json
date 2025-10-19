@@ -1,0 +1,58 @@
+{
+  "home": {
+    "hero": {
+      "title": {
+        "line1": "Everywhere you want to be.",
+        "line2": "Booked."
+      },
+      "subtitle": "See what's available. Pick a time. You're done.",
+      "subtitleNote": "It really is that simple.",
+      "cta": "Find a business",
+      "scroll": "Scroll"
+    },
+    "howItWorks": {
+      "label": "Simple by design",
+      "title": "How it works",
+      "subtitle": "Three steps. That's it.",
+      "step1": {
+        "title": "Find",
+        "description": "Browse businesses near you or search for exactly what you need."
+      },
+      "step2": {
+        "title": "Pick",
+        "description": "See available times in real-time. Choose what works for you."
+      },
+      "step3": {
+        "title": "Done",
+        "description": "Confirm your booking. Get instant confirmation. That's it."
+      }
+    },
+    "forBusiness": {
+      "label": "For Business Owners",
+      "title": "Run a business?",
+      "titleAccent": "We've got you covered.",
+      "feature1": {
+        "title": "24/7 Booking",
+        "description": "Accept appointments while you sleep"
+      },
+      "feature2": {
+        "title": "Less Phone Time",
+        "description": "Customers book themselves online"
+      },
+      "feature3": {
+        "title": "Simple Dashboard",
+        "description": "Everything in one clean interface"
+      },
+      "signIn": "Sign in",
+      "getStarted": "Get started free",
+      "trustSignal": "No credit card required • Set up in minutes"
+    },
+    "footer": {
+      "tagline": "Keep it simple.",
+      "manageBooking": "Manage Booking",
+      "businessLogin": "Business Login",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  }
+}

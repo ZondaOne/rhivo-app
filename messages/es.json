@@ -1,0 +1,58 @@
+{
+  "home": {
+    "hero": {
+      "title": {
+        "line1": "Donde quieras estar.",
+        "line2": "Reservado."
+      },
+      "subtitle": "Mira lo que hay disponible. Elige una hora. Listo.",
+      "subtitleNote": "Realmente es así de simple.",
+      "cta": "Encuentra un negocio",
+      "scroll": "Desplazar"
+    },
+    "howItWorks": {
+      "label": "Simple por diseño",
+      "title": "Cómo funciona",
+      "subtitle": "Tres pasos. Eso es todo.",
+      "step1": {
+        "title": "Encuentra",
+        "description": "Explora negocios cerca de ti o busca exactamente lo que necesitas."
+      },
+      "step2": {
+        "title": "Elige",
+        "description": "Ve los horarios disponibles en tiempo real. Elige lo que te funcione."
+      },
+      "step3": {
+        "title": "Listo",
+        "description": "Confirma tu reserva. Obtén confirmación instantánea. Eso es todo."
+      }
+    },
+    "forBusiness": {
+      "label": "Para Dueños de Negocios",
+      "title": "¿Tienes un negocio?",
+      "titleAccent": "Te tenemos cubierto.",
+      "feature1": {
+        "title": "Reservas 24/7",
+        "description": "Acepta citas mientras duermes"
+      },
+      "feature2": {
+        "title": "Menos Llamadas",
+        "description": "Los clientes reservan en línea"
+      },
+      "feature3": {
+        "title": "Panel Simple",
+        "description": "Todo en una interfaz limpia"
+      },
+      "signIn": "Iniciar sesión",
+      "getStarted": "Comienza gratis",
+      "trustSignal": "Sin tarjeta requerida • Configuración en minutos"
+    },
+    "footer": {
+      "tagline": "Mantenlo simple.",
+      "manageBooking": "Gestionar Reserva",
+      "businessLogin": "Acceso Negocios",
+      "privacy": "Privacidad",
+      "terms": "Términos"
+    }
+  }
+}
