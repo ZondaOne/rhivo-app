@@ -22,7 +22,8 @@ type BookingStep = 'service' | 'datetime' | 'details' | 'confirmation';
 
 export default function BookingPage() {
   const t = useTranslations('booking');
-  const tc = useTranslations('common');
+  const tc = useTranslations('booking.common');
+  const td = useTranslations('days');
   const locale = useLocale();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -540,7 +541,7 @@ export default function BookingPage() {
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-gray-500">Duration</span>
+                    <span className="text-gray-500">{t('confirmation.durationLabel')}</span>
                     <span className="font-semibold text-gray-900 text-right">{selectedService?.duration} {t('confirmation.duration')}</span>
                   </div>
                   <div className="flex justify-between gap-4 border-t border-gray-200 pt-3 mt-3">
@@ -697,11 +698,7 @@ export default function BookingPage() {
                             <button
                               key={service.id}
                               onClick={() => handleServiceSelect(service)}
-                              className={`w-full text-left p-4 sm:p-5 rounded-xl border-2 transition-all hover:shadow-sm active:scale-[0.99] ${
-                                selectedService?.id === service.id
-                                  ? 'brand-selected'
-                                  : 'border-gray-200 bg-white brand-hoverable'
-                              }`}
+                              className="w-full text-left p-4 sm:p-5 rounded-xl border-2 transition-all hover:shadow-sm active:scale-[0.99] border-gray-200 bg-white brand-hoverable"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1 min-w-0">
@@ -1193,13 +1190,13 @@ export default function BookingPage() {
                     <div className="space-y-6 mb-8">
                       <div className="brand-info-box border rounded-xl p-5">
                         <p className="text-sm brand-info-text leading-relaxed">
-                          <strong>Log in</strong> to your account for faster bookings and to view your appointment history.
+                          {t('details.loginPromptMessage')}
                         </p>
                       </div>
 
                       <div>
                         <label htmlFor="login-identifier" className="block text-sm font-semibold text-gray-900 mb-2.5">
-                          Email or Phone <span className="text-red-500">*</span>
+                          {t('details.emailOrPhone')} <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1221,7 +1218,7 @@ export default function BookingPage() {
 
                       <div>
                         <label htmlFor="login-password" className="block text-sm font-semibold text-gray-900 mb-2.5">
-                          Password <span className="text-red-500">*</span>
+                          {t('details.password')} <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1455,7 +1452,7 @@ export default function BookingPage() {
               )}
 
               {/* Contact Information - Inside the centered layout */}
-              {currentStep !== 'confirmation' && (
+              {(currentStep as BookingStep) !== 'confirmation' && (
                 <div className="mt-8 space-y-5">
                   {/* Location & Contact */}
                   <div className="bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6">
@@ -1565,10 +1562,10 @@ export default function BookingPage() {
                                 {isToday && (
                                   <div className="w-2 h-2 rounded-full brand-today-dot"></div>
                                 )}
-                                <span className={`text-sm capitalize ${
+                                <span className={`text-sm ${
                                   isToday ? 'font-semibold text-gray-900' : 'text-gray-700'
                                 }`}>
-                                  {a.day}
+                                  {td(a.day as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')}
                                 </span>
                               </div>
                               <span className={`text-sm tabular-nums ${

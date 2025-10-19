@@ -234,6 +234,8 @@
       "passwordPlaceholderMin": "Mín 8 caracteres",
       "emailOrPhoneLoginPlaceholder": "tucorreo@ejemplo.com o +1234567890",
       "provideEmailOrPhone": "Proporciona al menos correo electrónico o teléfono (o ambos)",
+      "loginPromptMessage": "Inicia sesión en tu cuenta para reservas más rápidas y para ver el historial de tus citas.",
+      "emailOrPhone": "Correo Electrónico o Teléfono",
       "summary": "Resumen de Reserva",
       "service": "Servicio",
       "dateTime": "Fecha y Hora",
@@ -295,10 +297,21 @@
       "manageDescription": "¿Necesitas reagendar o cancelar?",
       "manageLink": "Gestiona tu reserva",
       "newBooking": "Reservar Otra Cita",
-      "duration": "min"
+      "duration": "min",
+      "total": "Total",
+      "durationLabel": "Duración"
     },
     "common": {
       "bookingSummary": "Resumen de Reserva"
     }
+  },
+  "days": {
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
   }
 }

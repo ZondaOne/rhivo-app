@@ -234,6 +234,8 @@
       "passwordPlaceholderMin": "Min 8 characters",
       "emailOrPhoneLoginPlaceholder": "your@email.com or +1234567890",
       "provideEmailOrPhone": "Provide at least email or phone (or both)",
+      "loginPromptMessage": "Log in to your account for faster bookings and to view your appointment history.",
+      "emailOrPhone": "Email or Phone",
       "summary": "Booking Summary",
       "service": "Service",
       "dateTime": "Date & Time",
@@ -295,10 +297,20 @@
       "manageDescription": "Need to reschedule or cancel?",
       "manageLink": "Manage your booking",
       "newBooking": "Book Another Appointment",
-      "duration": "min"
+      "duration": "min",
+      "durationLabel": "Duration"
     },
     "common": {
       "bookingSummary": "Booking Summary"
     }
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
   }
 }

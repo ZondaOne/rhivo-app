@@ -234,6 +234,8 @@
       "passwordPlaceholderMin": "Min 8 caratteri",
       "emailOrPhoneLoginPlaceholder": "tua@email.com o +391234567890",
       "provideEmailOrPhone": "Fornisci almeno email o telefono (o entrambi)",
+      "loginPromptMessage": "Accedi al tuo account per prenotazioni più veloci e per visualizzare la cronologia dei tuoi appuntamenti.",
+      "emailOrPhone": "Email o Telefono",
       "summary": "Riepilogo Prenotazione",
       "service": "Servizio",
       "dateTime": "Data e Ora",
@@ -295,10 +297,21 @@
       "manageDescription": "Devi riprogrammare o cancellare?",
       "manageLink": "Gestisci la tua prenotazione",
       "newBooking": "Prenota Un Altro Appuntamento",
-      "duration": "min"
+      "duration": "min",
+      "total": "Totale",
+      "durationLabel": "Durata"
     },
     "common": {
       "bookingSummary": "Riepilogo Prenotazione"
     }
+  },
+  "days": {
+    "monday": "Lunedì",
+    "tuesday": "Martedì",
+    "wednesday": "Mercoledì",
+    "thursday": "Giovedì",
+    "friday": "Venerdì",
+    "saturday": "Sabato",
+    "sunday": "Domenica"
   }
 }
