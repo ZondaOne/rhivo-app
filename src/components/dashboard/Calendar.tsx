@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, Fragment, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
@@ -41,6 +42,7 @@ interface AppointmentCache {
 }
 
 export function Calendar({ view, currentDate, onViewChange, onDateChange, businessId }: CalendarProps) {
+  const t = useTranslations('dashboard.calendar');
   const { toasts, showToast, removeToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
@@ -241,13 +243,13 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
 
   function requestReschedule(appointmentId: string, newStartTime: Date) {
     if (!isAuthenticated) {
-      showToast('You must be signed in to reschedule appointments.', 'error');
+      showToast(t('errors.notAuthenticated'), 'error');
       return;
     }
 
     const appointment = appointments.find((a) => a.id === appointmentId);
     if (!appointment) {
-      showToast('Appointment not found', 'error');
+      showToast(t('errors.notFound'), 'error');
       return;
     }
 
@@ -302,7 +304,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
         }
       );
 
-      showToast('Appointment rescheduled. Customer will be notified via email.', 'success');
+      showToast(t('messages.rescheduled'), 'success');
 
       // Update cache with the server-returned appointment data
       if (response.appointment) {
@@ -346,7 +348,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
   function handleEdit(appointmentId: string) {
     const appointment = appointments.find((a) => a.id === appointmentId);
     if (!appointment) {
-      showToast('Appointment not found', 'error');
+      showToast(t('errors.notFound'), 'error');
       return;
     }
 
@@ -430,7 +432,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
   if (!authLoading && !isAuthenticated) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200/60 p-12 flex items-center justify-center min-h-96">
-        <div className="text-gray-500">Please sign in to view appointments.</div>
+        <div className="text-gray-500">{t('errors.notAuthenticated')}</div>
       </div>
     );
   }
@@ -540,6 +542,7 @@ function MonthView({
   onDayCellClick?: (date: Date) => void;
   onAppointmentClick?: (appointmentId: string, appointmentDate: Date) => void;
 }) {
+  const t = useTranslations('dashboard.calendar.dayLabels');
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const days = generateMonthCalendar(year, month, appointments);
@@ -548,10 +551,10 @@ function MonthView({
     <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
       {/* Day Labels */}
       <div className="grid grid-cols-7 border-b border-gray-200/60 flex-shrink-0">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+        {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
           <div key={day} className="py-4 text-center border-r border-gray-200/60 last:border-r-0">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-              {day}
+              {t(day as any)}
             </span>
           </div>
         ))}
@@ -602,6 +605,7 @@ function DayCell({
   onDayCellClick?: (date: Date) => void;
   onAppointmentClick?: (appointmentId: string, appointmentDate: Date) => void;
 }) {
+  const t = useTranslations('dashboard.calendar.actions');
   const [isDragOver, setIsDragOver] = useState(false);
   const isWeekend = day.date.getDay() === 0 || day.date.getDay() === 6;
 
@@ -654,7 +658,7 @@ function DayCell({
       {isDragOver && (
         <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10 rounded-sm">
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-semibold text-teal-700">Drop here</span>
+            <span className="text-sm font-semibold text-teal-700">{t('dropHere')}</span>
           </div>
         </div>
       )}
@@ -747,7 +751,7 @@ function DayCell({
                       aria-label={`View ${overflow} more appointments`}
                       title={`${overflow} more appointment${overflow > 1 ? 's' : ''}`}
                     >
-                      +{overflow} more
+                      {t('viewMore', { count: overflow })}
                     </div>
                   </div>
                 )}
@@ -1666,6 +1670,7 @@ function DayHourCell({
 }
 
 function ListView({ currentDate, appointments, onReschedule, onEdit }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void; onEdit: (id: string) => void }) {
+  const t = useTranslations('dashboard.calendar.list');
   // Group appointments by date
   const appointmentsByDate = appointments.reduce((acc, apt) => {
     const dateKey = new Date(apt.start_time).toDateString();
@@ -1690,9 +1695,9 @@ function ListView({ currentDate, appointments, onReschedule, onEdit }: { current
         {sortedDates.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center py-12">
-              <div className="text-gray-400 text-lg mb-2">No appointments</div>
+              <div className="text-gray-400 text-lg mb-2">{t('noAppointments')}</div>
               <div className="text-gray-500 text-sm">
-                No appointments found for this period
+                {t('noAppointmentsFound')}
               </div>
             </div>
           </div>
@@ -1729,7 +1734,7 @@ function ListView({ currentDate, appointments, onReschedule, onEdit }: { current
                         {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {dayAppointments.length} {dayAppointments.length === 1 ? 'appointment' : 'appointments'}
+                        {dayAppointments.length} {t(dayAppointments.length === 1 ? 'appointments' : 'appointments_plural', { count: dayAppointments.length })}
                       </div>
                     </div>
                   </div>

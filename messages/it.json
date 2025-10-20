@@ -521,6 +521,7 @@
       "passwordPlaceholder": "••••••••",
       "secureAuth": "Autenticazione sicura",
       "loading": "Caricamento...",
+      "processing": "Elaborazione...",
       "or": "o"
     },
     "login": {
@@ -629,6 +630,486 @@
       "failed": "Verifica fallita",
       "missingToken": "Token di verifica mancante",
       "goToLogin": "Vai all'Accesso"
+    }
+  },
+  "dashboard": {
+    "navigation": {
+      "calendar": "Calendario",
+      "insights": "Statistiche",
+      "notifications": "Notifiche",
+      "settings": "Impostazioni",
+      "services": "Servizi",
+      "debug": "Debug",
+      "signOut": "Esci"
+    },
+    "header": {
+      "newAppointment": "Nuovo Appuntamento",
+      "connected": "Connesso",
+      "disconnected": "Disconnesso",
+      "myBusiness": "La Mia Attività"
+    },
+    "viewMode": {
+      "month": "Mese",
+      "week": "Settimana",
+      "day": "Giorno",
+      "list": "Lista"
+    },
+    "dateNavigation": {
+      "today": "Oggi",
+      "previous": "Precedente",
+      "next": "Successivo"
+    },
+    "loading": {
+      "loadingBusiness": "Caricamento {businessName}...",
+      "switching": "Cambio attività...",
+      "calendar": "Caricamento calendario...",
+      "appointments": "Caricamento appuntamenti...",
+      "services": "Caricamento servizi...",
+      "slots": "Caricamento orari disponibili..."
+    },
+    "user": {
+      "role": {
+        "owner": "Proprietario",
+        "admin": "Amministratore",
+        "staff": "Staff"
+      }
+    },
+    "mobile": {
+      "openMenu": "Apri menu",
+      "closeMenu": "Chiudi menu",
+      "calendarNotAvailable": "La vista calendario non è disponibile su mobile. Usa la vista Lista, Settimana o Giorno."
+    },
+    "appointmentCard": {
+      "duration": "{{duration}} min",
+      "price": "{{price}}",
+      "customer": "Cliente",
+      "service": "Servizio",
+      "time": "Ora",
+      "notes": "Note",
+      "minutes": "minuti",
+      "status": {
+        "confirmed": "Confermato",
+        "cancelled": "Annullato",
+        "canceled": "Annullato",
+        "completed": "Completato",
+        "no_show": "Assente",
+        "pending": "In Attesa"
+      },
+      "actions": {
+        "edit": "Modifica",
+        "reschedule": "Riprogramma",
+        "cancel": "Annulla",
+        "markCompleted": "Segna come Completato",
+        "markNoShow": "Segna come Assente",
+        "view": "Visualizza Dettagli"
+      },
+      "labels": {
+        "editAppointment": "Modifica appuntamento",
+        "cancelAppointment": "Annulla appuntamento",
+        "rescheduleAppointment": "Riprogramma appuntamento"
+      },
+      "confirmCancel": "Sei sicuro di voler annullare questo appuntamento?"
+    },
+    "appointmentEdit": {
+      "title": "Modifica Appuntamento",
+      "schedule": {
+        "title": "Orario",
+        "date": "Data",
+        "startTime": "Ora di inizio",
+        "endTime": "Ora di fine",
+        "selectTime": "Seleziona ora",
+        "duration": "Durata",
+        "durationValue": "{{minutes}} min"
+      },
+      "service": {
+        "title": "Servizio",
+        "select": "Seleziona servizio",
+        "withDuration": "{{name}} ({{minutes}} min)"
+      },
+      "customer": {
+        "title": "Informazioni Cliente",
+        "name": "Nome",
+        "email": "Email",
+        "phone": "Telefono",
+        "notes": "Note",
+        "notesPlaceholder": "Aggiungi note aggiuntive..."
+      },
+      "notification": {
+        "label": "Notifica al cliente le modifiche via email"
+      },
+      "buttons": {
+        "close": "Chiudi",
+        "saveChanges": "Salva Modifiche",
+        "saving": "Salvataggio...",
+        "cancelAppointment": "Annulla Appuntamento"
+      },
+      "confirmations": {
+        "cancelTitle": "Annulla Appuntamento",
+        "cancelMessage": "Sei sicuro di voler annullare questo appuntamento? Questa azione non può essere annullata.",
+        "cancelConfirm": "Sì, Annulla Appuntamento",
+        "cancelCancel": "Mantieni Appuntamento",
+        "saveTitle": "Conferma Modifiche",
+        "saveMessageTimeChange": "Stai modificando l'orario dell'appuntamento. Il cliente verrà notificato via email.",
+        "saveMessageServiceChange": "Stai modificando il servizio. Il cliente verrà notificato via email.",
+        "saveMessageBoth": "Stai modificando sia l'orario che il servizio. Il cliente verrà notificato via email.",
+        "saveConfirm": "Sì, Salva Modifiche",
+        "saveCancel": "Annulla"
+      },
+      "success": {
+        "updated": "Appuntamento aggiornato con successo",
+        "cancelled": "Appuntamento annullato con successo"
+      },
+      "errors": {
+        "loadServices": "Errore nel caricamento dei servizi",
+        "updateFailed": "Errore nell'aggiornamento dell'appuntamento",
+        "cancelFailed": "Errore nell'annullamento dell'appuntamento"
+      },
+      "validation": {
+        "fillRequired": "Si prega di compilare tutti i campi obbligatori",
+        "noChanges": "Nessuna modifica da salvare"
+      }
+    },
+    "dragReschedule": {
+      "title": "Conferma Riprogrammazione",
+      "subtitle": "Rivedi il cambio di orario prima di confermare",
+      "guest": "Ospite",
+      "timeChange": {
+        "title": "Cambio Orario",
+        "from": "Da",
+        "to": "A",
+        "sameDay": "Cambio di orario nello stesso giorno",
+        "differentDay": "Cambio di data e orario"
+      },
+      "notification": {
+        "title": "Il cliente verrà notificato",
+        "message": "Verrà inviata un'email con l'orario aggiornato dell'appuntamento."
+      },
+      "buttons": {
+        "cancel": "Annulla",
+        "confirm": "Conferma Riprogrammazione",
+        "confirming": "Riprogrammazione..."
+      }
+    },
+    "rescheduleModal": {
+      "title": "Riprogramma Appuntamento",
+      "subtitle": "Seleziona una nuova data e ora",
+      "current": {
+        "title": "Appuntamento Attuale",
+        "service": "Servizio",
+        "guest": "Ospite",
+        "minutes": "minuti"
+      },
+      "service": {
+        "label": "Servizio"
+      },
+      "date": {
+        "label": "Seleziona Data"
+      },
+      "time": {
+        "label": "Orari Disponibili",
+        "noSlots": "Nessun orario disponibile",
+        "noSlotsHint": "Prova a selezionare un'altra data",
+        "loading": "Caricamento orari disponibili..."
+      },
+      "preview": {
+        "title": "Nuovo orario appuntamento",
+        "at": "alle"
+      },
+      "notification": {
+        "label": "Notifica cliente via email"
+      },
+      "buttons": {
+        "cancel": "Annulla",
+        "confirm": "Conferma Riprogrammazione",
+        "confirming": "Riprogrammazione..."
+      },
+      "validation": {
+        "selectSlot": "Si prega di selezionare un orario",
+        "noChanges": "Nessuna modifica da salvare"
+      },
+      "success": {
+        "rescheduled": "Appuntamento riprogrammato con successo"
+      },
+      "errors": {
+        "loadSlots": "Errore nel caricamento degli orari disponibili",
+        "loadServices": "Errore nel caricamento dei servizi",
+        "rescheduleFailed": "Errore nella riprogrammazione dell'appuntamento"
+      }
+    },
+    "calendar": {
+      "views": {
+        "month": "Mese",
+        "week": "Settimana",
+        "day": "Giorno",
+        "list": "Lista"
+      },
+      "dayLabels": {
+        "monday": "Lun",
+        "tuesday": "Mar",
+        "wednesday": "Mer",
+        "thursday": "Gio",
+        "friday": "Ven",
+        "saturday": "Sab",
+        "sunday": "Dom"
+      },
+      "emptyStates": {
+        "noAppointments": "Nessun appuntamento",
+        "noAppointmentsForDay": "Nessun appuntamento per questo giorno",
+        "noAppointmentsForWeek": "Nessun appuntamento questa settimana",
+        "noAppointmentsForMonth": "Nessun appuntamento questo mese",
+        "noAppointmentsInPeriod": "Nessun appuntamento trovato per questo periodo",
+        "clickToCreate": "Clicca per creare un appuntamento",
+        "clickToView": "Clicca per visualizzare il giorno"
+      },
+      "loading": {
+        "appointments": "Caricamento appuntamenti...",
+        "slots": "Caricamento orari disponibili...",
+        "calendar": "Caricamento calendario..."
+      },
+      "errors": {
+        "loadFailed": "Errore nel caricamento degli appuntamenti",
+        "rescheduleFailed": "Errore nella riprogrammazione dell'appuntamento",
+        "deleteFailed": "Errore nell'eliminazione dell'appuntamento",
+        "updateFailed": "Errore nell'aggiornamento dell'appuntamento",
+        "businessRequired": "Nessuna attività selezionata",
+        "notAuthenticated": "Devi effettuare l'accesso per visualizzare gli appuntamenti",
+        "notFound": "Appuntamento non trovato"
+      },
+      "actions": {
+        "dragToReschedule": "Trascina per riprogrammare",
+        "dropHere": "Rilascia qui",
+        "clickToEdit": "Clicca per modificare",
+        "viewDetails": "Visualizza dettagli",
+        "editAppointment": "Modifica appuntamento",
+        "viewMore": "+{count} altri"
+      },
+      "messages": {
+        "rescheduled": "Appuntamento riprogrammato. Il cliente sarà notificato via email.",
+        "updated": "Appuntamento aggiornato con successo",
+        "deleted": "Appuntamento eliminato con successo",
+        "mustSignIn": "Devi effettuare l'accesso per riprogrammare gli appuntamenti."
+      },
+      "capacity": {
+        "full": "{{count}} appuntamenti ({{percent}}% capacità)",
+        "available": "Capacità disponibile"
+      },
+      "timeIndicator": {
+        "currentTime": "Ora attuale"
+      },
+      "list": {
+        "noAppointments": "Nessun appuntamento",
+        "noAppointmentsFound": "Nessun appuntamento trovato per questo periodo",
+        "appointments": "{{count}} appuntamento",
+        "appointments_plural": "{{count}} appuntamenti"
+      }
+    },
+    "createAppointment": {
+      "title": "Nuovo Appuntamento",
+      "subtitle": {
+        "category": "Seleziona una categoria",
+        "service": "Scegli un servizio",
+        "datetime": "Scegli data e ora",
+        "customer": "Informazioni cliente"
+      },
+      "steps": {
+        "category": "Categoria",
+        "service": "Servizio",
+        "datetime": "Data e Ora",
+        "customer": "Cliente"
+      },
+      "category": {
+        "title": "Seleziona Categoria",
+        "selectCategory": "Tutti i Servizi",
+        "noCategories": "Nessuna categoria disponibile",
+        "services": "{{count}} servizio",
+        "services_plural": "{{count}} servizi"
+      },
+      "service": {
+        "title": "Servizi Disponibili",
+        "selectedService": "Servizio Selezionato",
+        "change": "Cambia",
+        "duration": "{{minutes}} min",
+        "price": "{{price}}",
+        "from": "Da",
+        "select": "Seleziona",
+        "noServices": "Nessun servizio disponibile in questa categoria"
+      },
+      "datetime": {
+        "title": "Data e Ora",
+        "selectDate": "Seleziona una data",
+        "selectDate_label": "Seleziona Data",
+        "selectTime": "Seleziona un orario",
+        "selectTime_label": "Orari Disponibili",
+        "availableSlots": "Orari Disponibili per",
+        "noSlots": "Nessun orario disponibile",
+        "noSlotsMessage": "Prova a selezionare un'altra data",
+        "tryAnotherDate": "Prova a selezionare un'altra data",
+        "loadingSlots": "Caricamento orari disponibili...",
+        "selectedSlot": "Orario selezionato",
+        "at": "alle",
+        "serviceMinutes": "Servizio di {{minutes}} minuti",
+        "available": "Disponibile",
+        "booked": "Prenotato",
+        "limited": "Limitato"
+      },
+      "customer": {
+        "title": "Informazioni Cliente",
+        "name": "Nome",
+        "nameLabel": "Nome Cliente",
+        "namePlaceholder": "Mario Rossi",
+        "email": "Email",
+        "emailPlaceholder": "mario@esempio.it",
+        "phone": "Numero di Telefono",
+        "phonePlaceholder": "+39 333 000 0000",
+        "notes": "Note",
+        "notesLabel": "Note",
+        "notesPlaceholder": "Richieste speciali o note...",
+        "optional": "facoltativo",
+        "required": "richiesto"
+      },
+      "summary": {
+        "title": "Riepilogo Appuntamento",
+        "service": "Servizio:",
+        "dateTime": "Data e Ora:",
+        "at": "alle",
+        "duration": "Durata:",
+        "price": "Prezzo:",
+        "minutes": "min",
+        "customer": "Cliente",
+        "notes": "Note"
+      },
+      "progress": {
+        "step": "Passo {{current}} di {{total}}"
+      },
+      "buttons": {
+        "back": "Indietro",
+        "continue": "Continua",
+        "next": "Avanti",
+        "create": "Crea Appuntamento",
+        "creating": "Creazione...",
+        "cancel": "Annulla",
+        "close": "Chiudi"
+      },
+      "validation": {
+        "nameRequired": "Il nome del cliente è richiesto",
+        "emailRequired": "L'email è richiesta",
+        "emailInvalid": "Inserisci un'email valida",
+        "phoneRequired": "Il numero di telefono è richiesto",
+        "emailOrPhoneRequired": "Email o telefono è richiesto",
+        "selectCategory": "Seleziona una categoria",
+        "selectService": "Seleziona un servizio",
+        "selectDate": "Seleziona una data",
+        "selectTime": "Seleziona un orario",
+        "completeRequired": "Completa tutti i campi obbligatori"
+      },
+      "success": {
+        "title": "Appuntamento Creato",
+        "message": "Appuntamento creato con successo"
+      },
+      "error": {
+        "createFailed": "Errore nella creazione dell'appuntamento",
+        "loadServicesFailed": "Errore nel caricamento dei servizi",
+        "loadSlotsFailed": "Errore nel caricamento degli orari disponibili",
+        "loadConfigFailed": "Errore nel caricamento della configurazione"
+      }
+    },
+    "editAppointment": {
+      "title": "Modifica Appuntamento",
+      "subtitle": "Aggiorna i dettagli dell'appuntamento",
+      "currentDetails": "Dettagli Attuali",
+      "selectService": "Seleziona Servizio",
+      "selectDate": "Seleziona Data",
+      "selectTime": "Seleziona Ora",
+      "timeSlot": "Fascia Oraria",
+      "endTime": "Ora di fine",
+      "customerInfo": "Informazioni Cliente",
+      "name": "Nome",
+      "namePlaceholder": "Nome del cliente",
+      "email": "Email",
+      "emailPlaceholder": "cliente@esempio.it",
+      "phone": "Telefono",
+      "phonePlaceholder": "+39 333 000 0000",
+      "notes": "Note",
+      "notesPlaceholder": "Note aggiuntive...",
+      "status": "Stato",
+      "statusOptions": {
+        "confirmed": "Confermato",
+        "pending": "In Attesa",
+        "cancelled": "Annullato",
+        "completed": "Completato"
+      },
+      "notifyCustomer": "Notifica il cliente delle modifiche",
+      "buttons": {
+        "save": "Salva Modifiche",
+        "saving": "Salvataggio...",
+        "cancel": "Annulla",
+        "delete": "Elimina Appuntamento"
+      },
+      "confirmDelete": {
+        "title": "Elimina Appuntamento",
+        "message": "Sei sicuro di voler eliminare questo appuntamento? Questa azione non può essere annullata.",
+        "confirm": "Elimina",
+        "cancel": "Annulla"
+      },
+      "confirmChanges": {
+        "title": "Salva Modifiche",
+        "message": "Sei sicuro di voler salvare queste modifiche?",
+        "confirm": "Salva",
+        "cancel": "Annulla"
+      },
+      "success": {
+        "updated": "Appuntamento aggiornato con successo",
+        "deleted": "Appuntamento eliminato con successo"
+      },
+      "error": {
+        "updateFailed": "Errore nell'aggiornamento dell'appuntamento",
+        "deleteFailed": "Errore nell'eliminazione dell'appuntamento",
+        "loadServicesFailed": "Errore nel caricamento dei servizi",
+        "noServiceSelected": "Seleziona un servizio"
+      }
+    },
+    "reschedule": {
+      "title": "Riprogramma Appuntamento",
+      "confirmTitle": "Conferma Riprogrammazione",
+      "message": "Sei sicuro di voler riprogrammare questo appuntamento?",
+      "from": "Da",
+      "to": "A",
+      "at": "alle",
+      "buttons": {
+        "confirm": "Conferma",
+        "cancel": "Annulla",
+        "rescheduling": "Riprogrammazione..."
+      },
+      "success": "Appuntamento riprogrammato con successo",
+      "error": "Errore nella riprogrammazione dell'appuntamento",
+      "invalidTime": "Orario selezionato non valido",
+      "customerNotified": "Il cliente sarà notificato via email"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "markAsRead": "Segna come letta",
+      "markAllRead": "Segna tutte come lette",
+      "noNotifications": "Nessuna notifica",
+      "viewAll": "Vedi tutte",
+      "types": {
+        "booking_created": "Nuova Prenotazione",
+        "booking_canceled": "Prenotazione Annullata",
+        "booking_rescheduled": "Prenotazione Riprogrammata",
+        "no_show_marked": "Non Presentato",
+        "appointment_completed": "Appuntamento Completato"
+      },
+      "timeAgo": {
+        "justNow": "Proprio ora",
+        "minutesAgo": "{{minutes}}m fa",
+        "hoursAgo": "{{hours}}h fa",
+        "daysAgo": "{{days}}g fa",
+        "weeksAgo": "{{weeks}}s fa"
+      }
+    },
+    "businessSelector": {
+      "selectBusiness": "Seleziona Attività",
+      "noBusiness": "Nessuna attività",
+      "switchBusiness": "Cambia attività"
     }
   }
 }

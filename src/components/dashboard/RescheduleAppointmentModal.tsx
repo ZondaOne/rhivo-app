@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Appointment } from '@/db/types';
 import { formatTime, formatDate, snapToGrain } from '@/lib/calendar-utils';
 import { apiRequest } from '@/lib/auth/api-client';
@@ -34,6 +35,7 @@ export function RescheduleAppointmentModal({
   onClose,
   onSuccess,
 }: RescheduleAppointmentModalProps) {
+  const t = useTranslations('dashboard.rescheduleModal');
   const { toasts, showToast, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -72,7 +74,7 @@ export function RescheduleAppointmentModal({
       setServices(data);
     } catch (error) {
       console.error('Failed to load services:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+      showToast(t('errors.loadServices'), 'error');
     }
   }
 
@@ -89,7 +91,7 @@ export function RescheduleAppointmentModal({
       setSelectedSlot(null); // Reset selection when slots change
     } catch (error) {
       console.error('Failed to load slots:', error);
-      showToast('Failed to load available times', 'error');
+      showToast(t('errors.loadSlots'), 'error');
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -98,7 +100,7 @@ export function RescheduleAppointmentModal({
 
   async function handleConfirmReschedule() {
     if (!selectedSlot) {
-      showToast('Please select a time slot', 'warning');
+      showToast(t('validation.selectSlot'), 'warning');
       return;
     }
 
@@ -107,7 +109,7 @@ export function RescheduleAppointmentModal({
 
     // Check if time actually changed
     if (snappedTime.getTime() === currentStart.getTime() && selectedServiceId === appointment.service_id) {
-      showToast('No changes to save', 'info');
+      showToast(t('validation.noChanges'), 'info');
       onClose();
       return;
     }
@@ -128,11 +130,11 @@ export function RescheduleAppointmentModal({
         }
       );
 
-      showToast('Appointment rescheduled successfully', 'success');
+      showToast(t('success.rescheduled'), 'success');
       onSuccess(response.appointment);
     } catch (error) {
       console.error('Failed to reschedule appointment:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+      showToast(t('errors.rescheduleFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -175,8 +177,8 @@ export function RescheduleAppointmentModal({
           <div className="px-8 py-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Reschedule Appointment</h2>
-                <p className="text-sm text-gray-500 mt-1">Select a new date and time</p>
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{t('title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('subtitle')}</p>
               </div>
               <button
                 onClick={onClose}
@@ -197,13 +199,13 @@ export function RescheduleAppointmentModal({
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                      Current Appointment
+                      {t('current.title')}
                     </div>
                     <div className="text-lg font-bold text-gray-900">
-                      {appointment.service_name || 'Service'}
+                      {t('current.service')}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      {appointment.customer_name || 'Guest'} · {duration} minutes
+                      {appointment.customer_name || t('current.guest')} · {duration} {t('current.minutes')}
                     </div>
                   </div>
                   <div className="text-right">
@@ -221,7 +223,7 @@ export function RescheduleAppointmentModal({
               {services.length > 1 && (
                 <div>
                   <label className="block text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
-                    Service
+                    {t('service.label')}
                   </label>
                   <select
                     value={selectedServiceId}
@@ -240,7 +242,7 @@ export function RescheduleAppointmentModal({
               {/* Date Selector - Horizontal Scroll */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
-                  Select Date
+                  {t('date.label')}
                 </label>
                 <div className="relative">
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
@@ -280,11 +282,11 @@ export function RescheduleAppointmentModal({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                    Available Times
+                    {t('time.label')}
                   </label>
                   {selectedService && (
                     <span className="text-xs text-gray-500">
-                      {selectedService.duration_minutes} minute service
+                      {selectedService.duration_minutes} min
                     </span>
                   )}
                 </div>
@@ -298,8 +300,8 @@ export function RescheduleAppointmentModal({
                     <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-sm font-semibold text-gray-900">No available times</p>
-                    <p className="text-xs text-gray-500 mt-1">Try selecting a different date</p>
+                    <p className="text-sm font-semibold text-gray-900">{t('time.noSlots')}</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('time.noSlotsHint')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
@@ -344,9 +346,9 @@ export function RescheduleAppointmentModal({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-gray-900">New appointment time</div>
+                      <div className="text-sm font-semibold text-gray-900">{t('preview.title')}</div>
                       <div className="text-sm text-gray-700 mt-1">
-                        {formatDate(selectedDate, 'long')} at {formatTime(new Date(selectedSlot.start))} - {formatTime(new Date(selectedSlot.end))}
+                        {formatDate(selectedDate, 'long')} {t('preview.at')} {formatTime(new Date(selectedSlot.start))} - {formatTime(new Date(selectedSlot.end))}
                       </div>
                     </div>
                   </div>
@@ -363,7 +365,7 @@ export function RescheduleAppointmentModal({
                   className="w-5 h-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
                 />
                 <label htmlFor="notifyCustomer" className="flex-1 text-sm font-semibold text-gray-900">
-                  Notify customer via email
+                  {t('notification.label')}
                 </label>
               </div>
             </div>
@@ -376,14 +378,14 @@ export function RescheduleAppointmentModal({
               disabled={loading}
               className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50"
             >
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button
               onClick={handleConfirmReschedule}
               disabled={loading || !selectedSlot}
               className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Rescheduling...' : 'Confirm Reschedule'}
+              {loading ? t('buttons.confirming') : t('buttons.confirm')}
             </button>
           </div>
         </div>

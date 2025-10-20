@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiRequest } from '@/lib/auth/api-client';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
 import { formatTime, formatDate } from '@/lib/calendar-utils';
@@ -48,6 +49,7 @@ export function CreateAppointmentModal({
   defaultDate,
   businessId
 }: CreateAppointmentModalProps) {
+  const t = useTranslations('dashboard.createAppointment');
   const { toasts, showToast, removeToast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>('category');
   const [loading, setLoading] = useState(false);
@@ -161,9 +163,13 @@ export function CreateAppointmentModal({
       );
       setAvailableSlots(response.slots || []);
       setSelectedSlot(null);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        // Request was cancelled, this is expected
+        return;
+      }
       console.error('Failed to load slots:', error);
-      showToast('Failed to load available times', 'error');
+      showToast(t('error.loadSlotsFailed'), 'error');
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -185,7 +191,7 @@ export function CreateAppointmentModal({
 
   async function handleCreateAppointment() {
     if (!selectedService || !selectedSlot) {
-      showToast('Please complete all required fields', 'warning');
+      showToast(t('validation.completeRequired'), 'warning');
       return;
     }
 
@@ -206,7 +212,7 @@ export function CreateAppointmentModal({
         }),
       });
 
-      showToast('Appointment created successfully', 'success');
+      showToast(t('success.message'), 'success');
       onSuccess();
       onClose();
       resetForm();
@@ -287,12 +293,12 @@ export function CreateAppointmentModal({
           <div className="px-8 py-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">New Appointment</h2>
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{t('title')}</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  {currentStep === 'category' && 'Select a category'}
-                  {currentStep === 'service' && 'Choose a service'}
-                  {currentStep === 'datetime' && 'Pick date and time'}
-                  {currentStep === 'customer' && 'Customer information'}
+                  {currentStep === 'category' && t('subtitle.category')}
+                  {currentStep === 'service' && t('subtitle.service')}
+                  {currentStep === 'datetime' && t('subtitle.datetime')}
+                  {currentStep === 'customer' && t('subtitle.customer')}
                 </p>
               </div>
               <button
@@ -326,7 +332,7 @@ export function CreateAppointmentModal({
               <div className="space-y-6">
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-                    Select Category
+                    {t('category.title')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {categories.map((category) => (
@@ -343,7 +349,7 @@ export function CreateAppointmentModal({
                       >
                         <div className="text-base font-bold text-gray-900">{category.name}</div>
                         <div className="text-sm text-gray-500 mt-1">
-                          {category.services.length} {category.services.length === 1 ? 'service' : 'services'}
+                          {category.services.length} {t(category.services.length === 1 ? 'category.services' : 'category.services_plural', { count: category.services.length })}
                         </div>
                       </button>
                     ))}
@@ -361,7 +367,7 @@ export function CreateAppointmentModal({
                       <div>
                         <div className="text-sm font-semibold text-gray-900">{selectedCategory.name}</div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {selectedCategory.services.length} {selectedCategory.services.length === 1 ? 'service' : 'services'}
+                          {selectedCategory.services.length} {t(selectedCategory.services.length === 1 ? 'category.services' : 'category.services_plural', { count: selectedCategory.services.length })}
                         </div>
                       </div>
                       <button
@@ -371,7 +377,7 @@ export function CreateAppointmentModal({
                         }}
                         className="text-sm font-semibold text-teal-600 hover:text-teal-700"
                       >
-                        Change
+                        {t('service.change')}
                       </button>
                     </div>
                   </div>
@@ -379,14 +385,14 @@ export function CreateAppointmentModal({
 
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-                    Available Services
+                    {t('service.title')}
                   </h3>
                   {selectedCategory.services.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 border border-gray-100 rounded-xl">
                       <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
-                      <p className="text-sm font-semibold text-gray-900">No services in this category</p>
+                      <p className="text-sm font-semibold text-gray-900">{t('service.noServices')}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-3">
@@ -447,7 +453,7 @@ export function CreateAppointmentModal({
                       onClick={() => setCurrentStep('service')}
                       className="text-sm font-semibold text-teal-600 hover:text-teal-700"
                     >
-                      Change
+                      {t('service.change')}
                     </button>
                   </div>
                 </div>
@@ -455,7 +461,7 @@ export function CreateAppointmentModal({
                 {/* Date Selector */}
                 <div>
                   <label className="block text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
-                    Select Date
+                    {t('datetime.selectDate_label')}
                   </label>
                   <div className="relative">
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
@@ -495,10 +501,10 @@ export function CreateAppointmentModal({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                      Available Times
+                      {t('datetime.selectTime_label')}
                     </label>
                     <span className="text-xs text-gray-500">
-                      {selectedService.duration_minutes} minute service
+                      {t('datetime.serviceMinutes', { minutes: selectedService.duration_minutes })}
                     </span>
                   </div>
 
@@ -511,8 +517,8 @@ export function CreateAppointmentModal({
                       <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <p className="text-sm font-semibold text-gray-900">No available times</p>
-                      <p className="text-xs text-gray-500 mt-1">Try selecting a different date</p>
+                      <p className="text-sm font-semibold text-gray-900">{t('datetime.noSlots')}</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('datetime.noSlotsMessage')}</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
@@ -552,9 +558,9 @@ export function CreateAppointmentModal({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <div className="flex-1">
-                        <div className="text-sm font-semibold text-gray-900">Selected time</div>
+                        <div className="text-sm font-semibold text-gray-900">{t('datetime.selectedSlot')}</div>
                         <div className="text-sm text-gray-700 mt-1">
-                          {formatDate(selectedDate, 'long')} at {formatTime(new Date(selectedSlot.start))} - {formatTime(new Date(selectedSlot.end))}
+                          {formatDate(selectedDate, 'long')} {t('datetime.at')} {formatTime(new Date(selectedSlot.start))} - {formatTime(new Date(selectedSlot.end))}
                         </div>
                       </div>
                     </div>
@@ -569,25 +575,25 @@ export function CreateAppointmentModal({
                 {/* Appointment Summary */}
                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-5">
                   <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                    Appointment Summary
+                    {t('summary.title')}
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Service:</span>
+                      <span className="text-gray-600">{t('summary.service')}</span>
                       <span className="font-semibold text-gray-900">{selectedService.name}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Date & Time:</span>
+                      <span className="text-gray-600">{t('summary.dateTime')}</span>
                       <span className="font-semibold text-gray-900">
-                        {formatDate(selectedDate, 'short')} at {formatTime(new Date(selectedSlot.start))}
+                        {formatDate(selectedDate, 'short')} {t('summary.at')} {formatTime(new Date(selectedSlot.start))}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Duration:</span>
+                      <span className="text-gray-600">{t('summary.duration')}</span>
                       <span className="font-semibold text-gray-900">{selectedService.duration_minutes} min</span>
                     </div>
                     <div className="flex justify-between text-sm border-t border-gray-200 pt-2 mt-2">
-                      <span className="text-gray-600">Price:</span>
+                      <span className="text-gray-600">{t('summary.price')}</span>
                       <span className="font-bold text-gray-900">
                         {(selectedService.price_cents / 100).toFixed(2)} {businessCurrency}
                       </span>
@@ -598,12 +604,12 @@ export function CreateAppointmentModal({
                 {/* Customer Form */}
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-                    Customer Information
+                    {t('customer.title')}
                   </h3>
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="customer_name" className="block text-sm font-semibold text-gray-900 mb-2">
-                        Name <span className="text-red-500">*</span>
+                        {t('customer.name')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -612,14 +618,14 @@ export function CreateAppointmentModal({
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-                        placeholder="John Doe"
+                        placeholder={t('customer.namePlaceholder')}
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="customer_email" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Email <span className="text-red-500">*</span>
+                          {t('customer.email')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="email"
@@ -628,13 +634,13 @@ export function CreateAppointmentModal({
                           value={customerEmail}
                           onChange={(e) => setCustomerEmail(e.target.value)}
                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-                          placeholder="john@example.com"
+                          placeholder={t('customer.emailPlaceholder')}
                         />
                       </div>
 
                       <div>
                         <label htmlFor="customer_phone" className="block text-sm font-semibold text-gray-900 mb-2">
-                          Phone
+                          {t('customer.phone')}
                         </label>
                         <input
                           type="tel"
@@ -642,14 +648,14 @@ export function CreateAppointmentModal({
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-                          placeholder="+39 123 456 7890"
+                          placeholder={t('customer.phonePlaceholder')}
                         />
                       </div>
                     </div>
 
                     <div>
                       <label htmlFor="notes" className="block text-sm font-semibold text-gray-900 mb-2">
-                        Notes
+                        {t('customer.notes')}
                       </label>
                       <textarea
                         id="notes"
@@ -657,7 +663,7 @@ export function CreateAppointmentModal({
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all resize-none"
-                        placeholder="Any special requests or notes..."
+                        placeholder={t('customer.notesPlaceholder')}
                       />
                     </div>
                   </div>
@@ -678,7 +684,7 @@ export function CreateAppointmentModal({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
-                  Back
+                  {t('buttons.back')}
                 </button>
               )}
             </div>
@@ -689,7 +695,7 @@ export function CreateAppointmentModal({
                 disabled={loading}
                 className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50"
               >
-                Cancel
+                {t('buttons.cancel')}
               </button>
 
               {currentStep === 'customer' ? (
@@ -698,7 +704,7 @@ export function CreateAppointmentModal({
                   disabled={loading || !customerName || !customerEmail}
                   className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Creating...' : 'Create Appointment'}
+                  {loading ? t('buttons.creating') : t('buttons.create')}
                 </button>
               ) : (
                 <button
@@ -710,7 +716,7 @@ export function CreateAppointmentModal({
                   }
                   className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Continue
+                  {t('buttons.continue')}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>

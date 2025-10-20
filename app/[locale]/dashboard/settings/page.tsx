@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
 
 export default function SettingsPage() {

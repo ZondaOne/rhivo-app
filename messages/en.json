@@ -520,6 +520,7 @@
       "passwordPlaceholder": "••••••••",
       "secureAuth": "Secure authentication",
       "loading": "Loading...",
+      "processing": "Processing...",
       "or": "or"
     },
     "login": {
@@ -628,6 +629,486 @@
       "failed": "Verification failed",
       "missingToken": "Missing verification token",
       "goToLogin": "Go to Login"
+    }
+  },
+  "dashboard": {
+    "navigation": {
+      "calendar": "Calendar",
+      "insights": "Insights",
+      "notifications": "Notifications",
+      "settings": "Settings",
+      "services": "Services",
+      "debug": "Debug",
+      "signOut": "Sign Out"
+    },
+    "header": {
+      "newAppointment": "New Appointment",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "myBusiness": "My Business"
+    },
+    "viewMode": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day",
+      "list": "List"
+    },
+    "dateNavigation": {
+      "today": "Today",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "loading": {
+      "loadingBusiness": "Loading {businessName}...",
+      "switching": "Switching business...",
+      "calendar": "Loading calendar...",
+      "appointments": "Loading appointments...",
+      "services": "Loading services...",
+      "slots": "Loading available slots..."
+    },
+    "user": {
+      "role": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "staff": "Staff"
+      }
+    },
+    "mobile": {
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "calendarNotAvailable": "Calendar view is not available on mobile. Please use List, Week, or Day view."
+    },
+    "appointmentCard": {
+      "duration": "{{duration}} min",
+      "price": "{{price}}",
+      "customer": "Customer",
+      "service": "Service",
+      "time": "Time",
+      "notes": "Notes",
+      "minutes": "minutes",
+      "status": {
+        "confirmed": "Confirmed",
+        "cancelled": "Cancelled",
+        "canceled": "Canceled",
+        "completed": "Completed",
+        "no_show": "No Show",
+        "pending": "Pending"
+      },
+      "actions": {
+        "edit": "Edit",
+        "reschedule": "Reschedule",
+        "cancel": "Cancel",
+        "markCompleted": "Mark as Completed",
+        "markNoShow": "Mark as No Show",
+        "view": "View Details"
+      },
+      "labels": {
+        "editAppointment": "Edit appointment",
+        "cancelAppointment": "Cancel appointment",
+        "rescheduleAppointment": "Reschedule appointment"
+      },
+      "confirmCancel": "Are you sure you want to cancel this appointment?"
+    },
+    "appointmentEdit": {
+      "title": "Edit Appointment",
+      "schedule": {
+        "title": "Schedule",
+        "date": "Date",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "selectTime": "Select time",
+        "duration": "Duration",
+        "durationValue": "{{minutes}} min"
+      },
+      "service": {
+        "title": "Service",
+        "select": "Select service",
+        "withDuration": "{{name}} ({{minutes}} min)"
+      },
+      "customer": {
+        "title": "Customer Information",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "notes": "Notes",
+        "notesPlaceholder": "Add any additional notes..."
+      },
+      "notification": {
+        "label": "Notify customer of changes via email"
+      },
+      "buttons": {
+        "close": "Close",
+        "saveChanges": "Save Changes",
+        "saving": "Saving...",
+        "cancelAppointment": "Cancel Appointment"
+      },
+      "confirmations": {
+        "cancelTitle": "Cancel Appointment",
+        "cancelMessage": "Are you sure you want to cancel this appointment? This action cannot be undone.",
+        "cancelConfirm": "Yes, Cancel Appointment",
+        "cancelCancel": "Keep Appointment",
+        "saveTitle": "Confirm Changes",
+        "saveMessageTimeChange": "You are changing the appointment time. The customer will be notified via email.",
+        "saveMessageServiceChange": "You are changing the service. The customer will be notified via email.",
+        "saveMessageBoth": "You are changing both the time and service. The customer will be notified via email.",
+        "saveConfirm": "Yes, Save Changes",
+        "saveCancel": "Cancel"
+      },
+      "success": {
+        "updated": "Appointment updated successfully",
+        "cancelled": "Appointment cancelled successfully"
+      },
+      "errors": {
+        "loadServices": "Failed to load services",
+        "updateFailed": "Failed to update appointment",
+        "cancelFailed": "Failed to cancel appointment"
+      },
+      "validation": {
+        "fillRequired": "Please fill in all required fields",
+        "noChanges": "No changes to save"
+      }
+    },
+    "dragReschedule": {
+      "title": "Confirm Reschedule",
+      "subtitle": "Review the time change before confirming",
+      "guest": "Guest",
+      "timeChange": {
+        "title": "Time Change",
+        "from": "From",
+        "to": "To",
+        "sameDay": "Time change on same day",
+        "differentDay": "Date and time change"
+      },
+      "notification": {
+        "title": "Customer will be notified",
+        "message": "An email will be sent with the updated appointment time."
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "confirm": "Confirm Reschedule",
+        "confirming": "Rescheduling..."
+      }
+    },
+    "rescheduleModal": {
+      "title": "Reschedule Appointment",
+      "subtitle": "Select a new date and time",
+      "current": {
+        "title": "Current Appointment",
+        "service": "Service",
+        "guest": "Guest",
+        "minutes": "minutes"
+      },
+      "service": {
+        "label": "Service"
+      },
+      "date": {
+        "label": "Select Date"
+      },
+      "time": {
+        "label": "Available Times",
+        "noSlots": "No available times",
+        "noSlotsHint": "Try selecting a different date",
+        "loading": "Loading available times..."
+      },
+      "preview": {
+        "title": "New appointment time",
+        "at": "at"
+      },
+      "notification": {
+        "label": "Notify customer via email"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "confirm": "Confirm Reschedule",
+        "confirming": "Rescheduling..."
+      },
+      "validation": {
+        "selectSlot": "Please select a time slot",
+        "noChanges": "No changes to save"
+      },
+      "success": {
+        "rescheduled": "Appointment rescheduled successfully"
+      },
+      "errors": {
+        "loadSlots": "Failed to load available times",
+        "loadServices": "Failed to load services",
+        "rescheduleFailed": "Failed to reschedule appointment"
+      }
+    },
+    "calendar": {
+      "views": {
+        "month": "Month",
+        "week": "Week",
+        "day": "Day",
+        "list": "List"
+      },
+      "dayLabels": {
+        "monday": "Mon",
+        "tuesday": "Tue",
+        "wednesday": "Wed",
+        "thursday": "Thu",
+        "friday": "Fri",
+        "saturday": "Sat",
+        "sunday": "Sun"
+      },
+      "emptyStates": {
+        "noAppointments": "No appointments",
+        "noAppointmentsForDay": "No appointments for this day",
+        "noAppointmentsForWeek": "No appointments this week",
+        "noAppointmentsForMonth": "No appointments this month",
+        "noAppointmentsInPeriod": "No appointments found for this period",
+        "clickToCreate": "Click to create appointment",
+        "clickToView": "Click to view day"
+      },
+      "loading": {
+        "appointments": "Loading appointments...",
+        "slots": "Loading available slots...",
+        "calendar": "Loading calendar..."
+      },
+      "errors": {
+        "loadFailed": "Failed to load appointments",
+        "rescheduleFailed": "Failed to reschedule appointment",
+        "deleteFailed": "Failed to delete appointment",
+        "updateFailed": "Failed to update appointment",
+        "businessRequired": "No business selected",
+        "notAuthenticated": "You must be signed in to view appointments",
+        "notFound": "Appointment not found"
+      },
+      "actions": {
+        "dragToReschedule": "Drag to reschedule",
+        "dropHere": "Drop here",
+        "clickToEdit": "Click to edit",
+        "viewDetails": "View details",
+        "editAppointment": "Edit appointment",
+        "viewMore": "+{count} more"
+      },
+      "messages": {
+        "rescheduled": "Appointment rescheduled. Customer will be notified via email.",
+        "updated": "Appointment updated successfully",
+        "deleted": "Appointment deleted successfully",
+        "mustSignIn": "You must be signed in to reschedule appointments."
+      },
+      "capacity": {
+        "full": "{{count}} appointments ({{percent}}% capacity)",
+        "available": "Available capacity"
+      },
+      "timeIndicator": {
+        "currentTime": "Current time"
+      },
+      "list": {
+        "noAppointments": "No appointments",
+        "noAppointmentsFound": "No appointments found for this period",
+        "appointments": "{{count}} appointment",
+        "appointments_plural": "{{count}} appointments"
+      }
+    },
+    "createAppointment": {
+      "title": "New Appointment",
+      "subtitle": {
+        "category": "Select a category",
+        "service": "Choose a service",
+        "datetime": "Pick date and time",
+        "customer": "Customer information"
+      },
+      "steps": {
+        "category": "Category",
+        "service": "Service",
+        "datetime": "Date & Time",
+        "customer": "Customer"
+      },
+      "category": {
+        "title": "Select Category",
+        "selectCategory": "All Services",
+        "noCategories": "No categories available",
+        "services": "{{count}} service",
+        "services_plural": "{{count}} services"
+      },
+      "service": {
+        "title": "Available Services",
+        "selectedService": "Selected Service",
+        "change": "Change",
+        "duration": "{{minutes}} min",
+        "price": "{{price}}",
+        "from": "From",
+        "select": "Select",
+        "noServices": "No services available in this category"
+      },
+      "datetime": {
+        "title": "Date & Time",
+        "selectDate": "Select a date",
+        "selectDate_label": "Select Date",
+        "selectTime": "Select a time",
+        "selectTime_label": "Available Times",
+        "availableSlots": "Available Time Slots for",
+        "noSlots": "No available times",
+        "noSlotsMessage": "Try selecting a different date",
+        "tryAnotherDate": "Try selecting another date",
+        "loadingSlots": "Loading available times...",
+        "selectedSlot": "Selected time",
+        "at": "at",
+        "serviceMinutes": "{{minutes}} minute service",
+        "available": "Available",
+        "booked": "Booked",
+        "limited": "Limited"
+      },
+      "customer": {
+        "title": "Customer Information",
+        "name": "Name",
+        "nameLabel": "Customer Name",
+        "namePlaceholder": "John Doe",
+        "email": "Email Address",
+        "emailPlaceholder": "john@example.com",
+        "phone": "Phone Number",
+        "phonePlaceholder": "+39 123 456 7890",
+        "notes": "Notes",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Any special requests or notes...",
+        "optional": "optional",
+        "required": "required"
+      },
+      "summary": {
+        "title": "Appointment Summary",
+        "service": "Service:",
+        "dateTime": "Date & Time:",
+        "at": "at",
+        "duration": "Duration:",
+        "price": "Price:",
+        "minutes": "min",
+        "customer": "Customer",
+        "notes": "Notes"
+      },
+      "progress": {
+        "step": "Step {{current}} of {{total}}"
+      },
+      "buttons": {
+        "back": "Back",
+        "continue": "Continue",
+        "next": "Next",
+        "create": "Create Appointment",
+        "creating": "Creating...",
+        "cancel": "Cancel",
+        "close": "Close"
+      },
+      "validation": {
+        "nameRequired": "Customer name is required",
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Please enter a valid email",
+        "phoneRequired": "Phone number is required",
+        "emailOrPhoneRequired": "Email or phone is required",
+        "selectCategory": "Please select a category",
+        "selectService": "Please select a service",
+        "selectDate": "Please select a date",
+        "selectTime": "Please select a time slot",
+        "completeRequired": "Please complete all required fields"
+      },
+      "success": {
+        "title": "Appointment Created",
+        "message": "Appointment created successfully"
+      },
+      "error": {
+        "createFailed": "Failed to create appointment",
+        "loadServicesFailed": "Failed to load services",
+        "loadSlotsFailed": "Failed to load available slots",
+        "loadConfigFailed": "Failed to load business configuration"
+      }
+    },
+    "editAppointment": {
+      "title": "Edit Appointment",
+      "subtitle": "Update appointment details",
+      "currentDetails": "Current Details",
+      "selectService": "Select Service",
+      "selectDate": "Select Date",
+      "selectTime": "Select Time",
+      "timeSlot": "Time Slot",
+      "endTime": "End time",
+      "customerInfo": "Customer Information",
+      "name": "Name",
+      "namePlaceholder": "Customer name",
+      "email": "Email",
+      "emailPlaceholder": "customer@example.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+1 (555) 000-0000",
+      "notes": "Notes",
+      "notesPlaceholder": "Additional notes...",
+      "status": "Status",
+      "statusOptions": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "cancelled": "Cancelled",
+        "completed": "Completed"
+      },
+      "notifyCustomer": "Notify customer of changes",
+      "buttons": {
+        "save": "Save Changes",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "delete": "Delete Appointment"
+      },
+      "confirmDelete": {
+        "title": "Delete Appointment",
+        "message": "Are you sure you want to delete this appointment? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "confirmChanges": {
+        "title": "Save Changes",
+        "message": "Are you sure you want to save these changes?",
+        "confirm": "Save",
+        "cancel": "Cancel"
+      },
+      "success": {
+        "updated": "Appointment updated successfully",
+        "deleted": "Appointment deleted successfully"
+      },
+      "error": {
+        "updateFailed": "Failed to update appointment",
+        "deleteFailed": "Failed to delete appointment",
+        "loadServicesFailed": "Failed to load services",
+        "noServiceSelected": "Please select a service"
+      }
+    },
+    "reschedule": {
+      "title": "Reschedule Appointment",
+      "confirmTitle": "Confirm Reschedule",
+      "message": "Are you sure you want to reschedule this appointment?",
+      "from": "From",
+      "to": "To",
+      "at": "at",
+      "buttons": {
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "rescheduling": "Rescheduling..."
+      },
+      "success": "Appointment rescheduled successfully",
+      "error": "Failed to reschedule appointment",
+      "invalidTime": "Invalid time selected",
+      "customerNotified": "Customer will be notified via email"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "markAsRead": "Mark as read",
+      "markAllRead": "Mark all as read",
+      "noNotifications": "No notifications",
+      "viewAll": "View all",
+      "types": {
+        "booking_created": "New Booking",
+        "booking_canceled": "Booking Cancelled",
+        "booking_rescheduled": "Booking Rescheduled",
+        "no_show_marked": "No Show",
+        "appointment_completed": "Appointment Completed"
+      },
+      "timeAgo": {
+        "justNow": "Just now",
+        "minutesAgo": "{{minutes}}m ago",
+        "hoursAgo": "{{hours}}h ago",
+        "daysAgo": "{{days}}d ago",
+        "weeksAgo": "{{weeks}}w ago"
+      }
+    },
+    "businessSelector": {
+      "selectBusiness": "Select Business",
+      "noBusiness": "No business",
+      "switchBusiness": "Switch business"
     }
   }
 }

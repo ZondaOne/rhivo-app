@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Appointment } from '@/db/types';
 import { formatTime, snapToGrain, GRAIN_MINUTES } from '@/lib/calendar-utils';
 import { apiRequest } from '@/lib/auth/api-client';
@@ -25,6 +26,7 @@ interface AppointmentEditModalProps {
 }
 
 export function AppointmentEditModal({ appointment, onClose, onSave }: AppointmentEditModalProps) {
+  const t = useTranslations('dashboard.appointmentEdit');
   const { toasts, showToast, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
@@ -72,7 +74,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
       setServices(data);
     } catch (error) {
       console.error('Failed to load services:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+      showToast(t('errors.loadServices'), 'error');
     }
   }
 
@@ -113,7 +115,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
     e.preventDefault();
 
     if (!selectedDate || !selectedTime || !selectedServiceId) {
-      showToast('Please fill in all required fields', 'warning');
+      showToast(t('validation.fillRequired'), 'warning');
       return;
     }
 
@@ -126,7 +128,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
     if (!timeChanged && !serviceChanged) {
       // No changes made
-      showToast('No changes to save', 'info');
+      showToast(t('validation.noChanges'), 'info');
       onSave();
       return;
     }
@@ -155,11 +157,11 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         body: JSON.stringify(pendingSaveData),
       });
 
-      showToast('Appointment updated successfully', 'success');
+      showToast(t('success.updated'), 'success');
       onSave(response.appointment);
     } catch (error) {
       console.error('Failed to update appointment:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+      showToast(t('errors.updateFailed'), 'error');
     } finally {
       setLoading(false);
       setPendingSaveData(null);
@@ -180,11 +182,11 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         body: JSON.stringify({ status: 'cancelled' }),
       });
 
-      showToast('Appointment cancelled successfully', 'success');
+      showToast(t('success.cancelled'), 'success');
       onSave();
     } catch (error) {
       console.error('Failed to cancel appointment:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+      showToast(t('errors.cancelFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -194,13 +196,14 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
   const getSaveConfirmationMessage = () => {
     if (!pendingSaveData) return '';
 
-    const parts = [];
-    if (pendingSaveData.timeChanged) parts.push('time');
-    if (pendingSaveData.serviceChanged) parts.push('service');
-
-    return `This will change the appointment ${parts.join(' and ')}. ${
-      pendingSaveData.notifyCustomer ? 'The customer will be notified via email.' : ''
-    }`;
+    if (pendingSaveData.timeChanged && pendingSaveData.serviceChanged) {
+      return t('confirmations.saveMessageBoth');
+    } else if (pendingSaveData.timeChanged) {
+      return t('confirmations.saveMessageTimeChange');
+    } else if (pendingSaveData.serviceChanged) {
+      return t('confirmations.saveMessageServiceChange');
+    }
+    return '';
   };
 
   return (
@@ -211,10 +214,10 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         isOpen={showCancelConfirm}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={confirmCancel}
-        title="Cancel Appointment?"
-        message="This will cancel the appointment and notify the customer via email. This action cannot be undone."
-        confirmText="Yes, Cancel Appointment"
-        cancelText="No, Keep It"
+        title={t('confirmations.cancelTitle')}
+        message={t('confirmations.cancelMessage')}
+        confirmText={t('confirmations.cancelConfirm')}
+        cancelText={t('confirmations.cancelCancel')}
         variant="danger"
         isLoading={loading}
       />
@@ -226,10 +229,10 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
           setPendingSaveData(null);
         }}
         onConfirm={confirmSave}
-        title="Save Changes?"
+        title={t('confirmations.saveTitle')}
         message={getSaveConfirmationMessage()}
-        confirmText="Yes, Save Changes"
-        cancelText="Cancel"
+        confirmText={t('confirmations.saveConfirm')}
+        cancelText={t('confirmations.saveCancel')}
         variant="warning"
         isLoading={loading}
       />
@@ -239,7 +242,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Edit Appointment</h2>
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{t('title')}</h2>
             <button
               onClick={onClose}
               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-all"
@@ -256,12 +259,12 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
           <div className="space-y-8">
             {/* Date & Time Section */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Schedule</h3>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('schedule.title')}</h3>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Date
+                    {t('schedule.date')}
                   </label>
                   <input
                     type="date"
@@ -274,7 +277,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Start Time
+                    {t('schedule.startTime')}
                   </label>
                   <select
                     value={selectedTime}
@@ -282,7 +285,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMS41TDYgNi41TDExIDEuNSIgc3Ryb2tlPSIjNkI3MjgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==')] bg-[length:12px] bg-[right_1rem_center] bg-no-repeat pr-10"
                     required
                   >
-                    <option value="">Select time</option>
+                    <option value="">{t('schedule.selectTime')}</option>
                     {generateTimeOptions().map(time => (
                       <option key={time} value={time}>{time}</option>
                     ))}
@@ -293,7 +296,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
             {/* Service Section */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Service</h3>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('service.title')}</h3>
 
               <div>
                 <select
@@ -302,7 +305,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMS41TDYgNi41TDExIDEuNSIgc3Ryb2tlPSIjNkI3MjgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==')] bg-[length:12px] bg-[right_1rem_center] bg-no-repeat pr-10"
                   required
                 >
-                  <option value="">Select service</option>
+                  <option value="">{t('service.select')}</option>
                   {services.map(service => (
                     <option key={service.id} value={service.id}>
                       {service.name} ({service.duration_minutes} min)
@@ -316,12 +319,12 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Duration</span>
+                      <span className="text-gray-500">{t('schedule.duration')}</span>
                       <span className="font-semibold text-gray-900">{selectedService.duration_minutes} min</span>
                     </div>
                     {endTime && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">End Time</span>
+                        <span className="text-gray-500">{t('schedule.endTime')}</span>
                         <span className="font-semibold text-gray-900">{endTime}</span>
                       </div>
                     )}
@@ -332,11 +335,11 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
             {/* Customer Information Section */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Customer Information</h3>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('customer.title')}</h3>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Name
+                  {t('customer.name')}
                 </label>
                 <input
                   type="text"
@@ -350,7 +353,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Email
+                    {t('customer.email')}
                   </label>
                   <input
                     type="email"
@@ -362,7 +365,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Phone
+                    {t('customer.phone')}
                   </label>
                   <input
                     type="tel"
@@ -375,14 +378,14 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Notes
+                  {t('customer.notes')}
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all resize-none"
-                  placeholder="Add any additional notes..."
+                  placeholder={t('customer.notesPlaceholder')}
                 />
               </div>
             </div>
@@ -397,7 +400,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
                 className="w-5 h-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
               />
               <label htmlFor="notifyCustomer" className="flex-1 text-sm font-semibold text-gray-900">
-                Notify customer of changes via email
+                {t('notification.label')}
               </label>
             </div>
           </div>
@@ -411,7 +414,7 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
             disabled={loading}
             className="px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
           >
-            Cancel Appointment
+            {t('buttons.cancelAppointment')}
           </button>
 
           <div className="flex gap-3">
@@ -421,14 +424,14 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
               disabled={loading}
               className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50"
             >
-              Close
+              {t('buttons.close')}
             </button>
             <button
               onClick={handleSubmit}
               disabled={loading}
               className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? t('buttons.saving') : t('buttons.saveChanges')}
             </button>
           </div>
         </div>

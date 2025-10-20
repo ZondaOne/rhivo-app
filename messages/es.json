@@ -521,6 +521,7 @@
       "passwordPlaceholder": "••••••••",
       "secureAuth": "Autenticación segura",
       "loading": "Cargando...",
+      "processing": "Procesando...",
       "or": "o"
     },
     "login": {
@@ -629,6 +630,486 @@
       "failed": "Error en verificación",
       "missingToken": "Token de verificación faltante",
       "goToLogin": "Ir a Iniciar sesión"
+    }
+  },
+  "dashboard": {
+    "navigation": {
+      "calendar": "Calendario",
+      "insights": "Estadísticas",
+      "notifications": "Notificaciones",
+      "settings": "Configuración",
+      "services": "Servicios",
+      "debug": "Debug",
+      "signOut": "Cerrar sesión"
+    },
+    "header": {
+      "newAppointment": "Nueva Cita",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "myBusiness": "Mi Negocio"
+    },
+    "viewMode": {
+      "month": "Mes",
+      "week": "Semana",
+      "day": "Día",
+      "list": "Lista"
+    },
+    "dateNavigation": {
+      "today": "Hoy",
+      "previous": "Anterior",
+      "next": "Siguiente"
+    },
+    "loading": {
+      "loadingBusiness": "Cargando {businessName}...",
+      "switching": "Cambiando negocio...",
+      "calendar": "Cargando calendario...",
+      "appointments": "Cargando citas...",
+      "services": "Cargando servicios...",
+      "slots": "Cargando horarios disponibles..."
+    },
+    "user": {
+      "role": {
+        "owner": "Propietario",
+        "admin": "Administrador",
+        "staff": "Personal"
+      }
+    },
+    "mobile": {
+      "openMenu": "Abrir menú",
+      "closeMenu": "Cerrar menú",
+      "calendarNotAvailable": "La vista de calendario no está disponible en móvil. Usa la vista Lista, Semana o Día."
+    },
+    "appointmentCard": {
+      "duration": "{{duration}} min",
+      "price": "{{price}}",
+      "customer": "Cliente",
+      "service": "Servicio",
+      "time": "Hora",
+      "notes": "Notas",
+      "minutes": "minutos",
+      "status": {
+        "confirmed": "Confirmada",
+        "cancelled": "Cancelada",
+        "canceled": "Cancelada",
+        "completed": "Completada",
+        "no_show": "No Asistió",
+        "pending": "Pendiente"
+      },
+      "actions": {
+        "edit": "Editar",
+        "reschedule": "Reagendar",
+        "cancel": "Cancelar",
+        "markCompleted": "Marcar como Completada",
+        "markNoShow": "Marcar como No Asistió",
+        "view": "Ver Detalles"
+      },
+      "labels": {
+        "editAppointment": "Editar cita",
+        "cancelAppointment": "Cancelar cita",
+        "rescheduleAppointment": "Reagendar cita"
+      },
+      "confirmCancel": "¿Estás seguro de que quieres cancelar esta cita?"
+    },
+    "appointmentEdit": {
+      "title": "Editar Cita",
+      "schedule": {
+        "title": "Horario",
+        "date": "Fecha",
+        "startTime": "Hora de inicio",
+        "endTime": "Hora de fin",
+        "selectTime": "Seleccionar hora",
+        "duration": "Duración",
+        "durationValue": "{{minutes}} min"
+      },
+      "service": {
+        "title": "Servicio",
+        "select": "Seleccionar servicio",
+        "withDuration": "{{name}} ({{minutes}} min)"
+      },
+      "customer": {
+        "title": "Información del Cliente",
+        "name": "Nombre",
+        "email": "Correo",
+        "phone": "Teléfono",
+        "notes": "Notas",
+        "notesPlaceholder": "Agrega notas adicionales..."
+      },
+      "notification": {
+        "label": "Notificar al cliente de los cambios por correo"
+      },
+      "buttons": {
+        "close": "Cerrar",
+        "saveChanges": "Guardar Cambios",
+        "saving": "Guardando...",
+        "cancelAppointment": "Cancelar Cita"
+      },
+      "confirmations": {
+        "cancelTitle": "Cancelar Cita",
+        "cancelMessage": "¿Estás seguro de que quieres cancelar esta cita? Esta acción no se puede deshacer.",
+        "cancelConfirm": "Sí, Cancelar Cita",
+        "cancelCancel": "Mantener Cita",
+        "saveTitle": "Confirmar Cambios",
+        "saveMessageTimeChange": "Estás cambiando la hora de la cita. El cliente será notificado por correo.",
+        "saveMessageServiceChange": "Estás cambiando el servicio. El cliente será notificado por correo.",
+        "saveMessageBoth": "Estás cambiando la hora y el servicio. El cliente será notificado por correo.",
+        "saveConfirm": "Sí, Guardar Cambios",
+        "saveCancel": "Cancelar"
+      },
+      "success": {
+        "updated": "Cita actualizada exitosamente",
+        "cancelled": "Cita cancelada exitosamente"
+      },
+      "errors": {
+        "loadServices": "Error al cargar servicios",
+        "updateFailed": "Error al actualizar cita",
+        "cancelFailed": "Error al cancelar cita"
+      },
+      "validation": {
+        "fillRequired": "Por favor completa todos los campos requeridos",
+        "noChanges": "No hay cambios para guardar"
+      }
+    },
+    "dragReschedule": {
+      "title": "Confirmar Reagendar",
+      "subtitle": "Revisa el cambio de hora antes de confirmar",
+      "guest": "Invitado",
+      "timeChange": {
+        "title": "Cambio de Hora",
+        "from": "De",
+        "to": "A",
+        "sameDay": "Cambio de hora el mismo día",
+        "differentDay": "Cambio de fecha y hora"
+      },
+      "notification": {
+        "title": "El cliente será notificado",
+        "message": "Se enviará un correo con la hora actualizada de la cita."
+      },
+      "buttons": {
+        "cancel": "Cancelar",
+        "confirm": "Confirmar Reagendar",
+        "confirming": "Reagendando..."
+      }
+    },
+    "rescheduleModal": {
+      "title": "Reagendar Cita",
+      "subtitle": "Selecciona una nueva fecha y hora",
+      "current": {
+        "title": "Cita Actual",
+        "service": "Servicio",
+        "guest": "Invitado",
+        "minutes": "minutos"
+      },
+      "service": {
+        "label": "Servicio"
+      },
+      "date": {
+        "label": "Seleccionar Fecha"
+      },
+      "time": {
+        "label": "Horarios Disponibles",
+        "noSlots": "No hay horarios disponibles",
+        "noSlotsHint": "Intenta seleccionar otra fecha",
+        "loading": "Cargando horarios disponibles..."
+      },
+      "preview": {
+        "title": "Nueva hora de la cita",
+        "at": "a las"
+      },
+      "notification": {
+        "label": "Notificar al cliente por correo"
+      },
+      "buttons": {
+        "cancel": "Cancelar",
+        "confirm": "Confirmar Reagendar",
+        "confirming": "Reagendando..."
+      },
+      "validation": {
+        "selectSlot": "Por favor selecciona un horario",
+        "noChanges": "No hay cambios para guardar"
+      },
+      "success": {
+        "rescheduled": "Cita reagendada exitosamente"
+      },
+      "errors": {
+        "loadSlots": "Error al cargar horarios disponibles",
+        "loadServices": "Error al cargar servicios",
+        "rescheduleFailed": "Error al reagendar cita"
+      }
+    },
+    "calendar": {
+      "views": {
+        "month": "Mes",
+        "week": "Semana",
+        "day": "Día",
+        "list": "Lista"
+      },
+      "dayLabels": {
+        "monday": "Lun",
+        "tuesday": "Mar",
+        "wednesday": "Mié",
+        "thursday": "Jue",
+        "friday": "Vie",
+        "saturday": "Sáb",
+        "sunday": "Dom"
+      },
+      "emptyStates": {
+        "noAppointments": "Sin citas",
+        "noAppointmentsForDay": "Sin citas para este día",
+        "noAppointmentsForWeek": "Sin citas esta semana",
+        "noAppointmentsForMonth": "Sin citas este mes",
+        "noAppointmentsInPeriod": "No se encontraron citas para este período",
+        "clickToCreate": "Haz clic para crear cita",
+        "clickToView": "Haz clic para ver el día"
+      },
+      "loading": {
+        "appointments": "Cargando citas...",
+        "slots": "Cargando horarios disponibles...",
+        "calendar": "Cargando calendario..."
+      },
+      "errors": {
+        "loadFailed": "Error al cargar citas",
+        "rescheduleFailed": "Error al reagendar cita",
+        "deleteFailed": "Error al eliminar cita",
+        "updateFailed": "Error al actualizar cita",
+        "businessRequired": "No hay negocio seleccionado",
+        "notAuthenticated": "Debes iniciar sesión para ver las citas",
+        "notFound": "Cita no encontrada"
+      },
+      "actions": {
+        "dragToReschedule": "Arrastra para reagendar",
+        "dropHere": "Soltar aquí",
+        "clickToEdit": "Haz clic para editar",
+        "viewDetails": "Ver detalles",
+        "editAppointment": "Editar cita",
+        "viewMore": "+{count} más"
+      },
+      "messages": {
+        "rescheduled": "Cita reagendada. El cliente será notificado por correo.",
+        "updated": "Cita actualizada exitosamente",
+        "deleted": "Cita eliminada exitosamente",
+        "mustSignIn": "Debes iniciar sesión para reagendar citas."
+      },
+      "capacity": {
+        "full": "{{count}} citas ({{percent}}% capacidad)",
+        "available": "Capacidad disponible"
+      },
+      "timeIndicator": {
+        "currentTime": "Hora actual"
+      },
+      "list": {
+        "noAppointments": "Sin citas",
+        "noAppointmentsFound": "No se encontraron citas para este período",
+        "appointments": "{{count}} cita",
+        "appointments_plural": "{{count}} citas"
+      }
+    },
+    "createAppointment": {
+      "title": "Nueva Cita",
+      "subtitle": {
+        "category": "Selecciona una categoría",
+        "service": "Elige un servicio",
+        "datetime": "Elige fecha y hora",
+        "customer": "Información del cliente"
+      },
+      "steps": {
+        "category": "Categoría",
+        "service": "Servicio",
+        "datetime": "Fecha y Hora",
+        "customer": "Cliente"
+      },
+      "category": {
+        "title": "Seleccionar Categoría",
+        "selectCategory": "Todos los Servicios",
+        "noCategories": "No hay categorías disponibles",
+        "services": "{{count}} servicio",
+        "services_plural": "{{count}} servicios"
+      },
+      "service": {
+        "title": "Servicios Disponibles",
+        "selectedService": "Servicio Seleccionado",
+        "change": "Cambiar",
+        "duration": "{{minutes}} min",
+        "price": "{{price}}",
+        "from": "Desde",
+        "select": "Seleccionar",
+        "noServices": "No hay servicios disponibles en esta categoría"
+      },
+      "datetime": {
+        "title": "Fecha y Hora",
+        "selectDate": "Selecciona una fecha",
+        "selectDate_label": "Seleccionar Fecha",
+        "selectTime": "Selecciona una hora",
+        "selectTime_label": "Horarios Disponibles",
+        "availableSlots": "Horarios Disponibles para",
+        "noSlots": "No hay horarios disponibles",
+        "noSlotsMessage": "Intenta seleccionar otra fecha",
+        "tryAnotherDate": "Intenta seleccionar otra fecha",
+        "loadingSlots": "Cargando horarios disponibles...",
+        "selectedSlot": "Hora seleccionada",
+        "at": "a las",
+        "serviceMinutes": "Servicio de {{minutes}} minutos",
+        "available": "Disponible",
+        "booked": "Reservado",
+        "limited": "Limitado"
+      },
+      "customer": {
+        "title": "Información del Cliente",
+        "name": "Nombre",
+        "nameLabel": "Nombre del Cliente",
+        "namePlaceholder": "Juan Pérez",
+        "email": "Correo Electrónico",
+        "emailPlaceholder": "juan@ejemplo.com",
+        "phone": "Número de Teléfono",
+        "phonePlaceholder": "+34 600 000 000",
+        "notes": "Notas",
+        "notesLabel": "Notas",
+        "notesPlaceholder": "Solicitudes especiales o notas...",
+        "optional": "opcional",
+        "required": "requerido"
+      },
+      "summary": {
+        "title": "Resumen de Cita",
+        "service": "Servicio:",
+        "dateTime": "Fecha y Hora:",
+        "at": "a las",
+        "duration": "Duración:",
+        "price": "Precio:",
+        "minutes": "min",
+        "customer": "Cliente",
+        "notes": "Notas"
+      },
+      "progress": {
+        "step": "Paso {{current}} de {{total}}"
+      },
+      "buttons": {
+        "back": "Atrás",
+        "continue": "Continuar",
+        "next": "Siguiente",
+        "create": "Crear Cita",
+        "creating": "Creando...",
+        "cancel": "Cancelar",
+        "close": "Cerrar"
+      },
+      "validation": {
+        "nameRequired": "El nombre del cliente es requerido",
+        "emailRequired": "El correo electrónico es requerido",
+        "emailInvalid": "Por favor ingresa un correo válido",
+        "phoneRequired": "El número de teléfono es requerido",
+        "emailOrPhoneRequired": "El correo o teléfono es requerido",
+        "selectCategory": "Por favor selecciona una categoría",
+        "selectService": "Por favor selecciona un servicio",
+        "selectDate": "Por favor selecciona una fecha",
+        "selectTime": "Por favor selecciona un horario",
+        "completeRequired": "Por favor completa todos los campos requeridos"
+      },
+      "success": {
+        "title": "Cita Creada",
+        "message": "Cita creada exitosamente"
+      },
+      "error": {
+        "createFailed": "Error al crear la cita",
+        "loadServicesFailed": "Error al cargar servicios",
+        "loadSlotsFailed": "Error al cargar horarios disponibles",
+        "loadConfigFailed": "Error al cargar configuración del negocio"
+      }
+    },
+    "editAppointment": {
+      "title": "Editar Cita",
+      "subtitle": "Actualizar detalles de la cita",
+      "currentDetails": "Detalles Actuales",
+      "selectService": "Seleccionar Servicio",
+      "selectDate": "Seleccionar Fecha",
+      "selectTime": "Seleccionar Hora",
+      "timeSlot": "Horario",
+      "endTime": "Hora de fin",
+      "customerInfo": "Información del Cliente",
+      "name": "Nombre",
+      "namePlaceholder": "Nombre del cliente",
+      "email": "Correo",
+      "emailPlaceholder": "cliente@ejemplo.com",
+      "phone": "Teléfono",
+      "phonePlaceholder": "+34 600 000 000",
+      "notes": "Notas",
+      "notesPlaceholder": "Notas adicionales...",
+      "status": "Estado",
+      "statusOptions": {
+        "confirmed": "Confirmada",
+        "pending": "Pendiente",
+        "cancelled": "Cancelada",
+        "completed": "Completada"
+      },
+      "notifyCustomer": "Notificar al cliente de los cambios",
+      "buttons": {
+        "save": "Guardar Cambios",
+        "saving": "Guardando...",
+        "cancel": "Cancelar",
+        "delete": "Eliminar Cita"
+      },
+      "confirmDelete": {
+        "title": "Eliminar Cita",
+        "message": "¿Estás seguro de que quieres eliminar esta cita? Esta acción no se puede deshacer.",
+        "confirm": "Eliminar",
+        "cancel": "Cancelar"
+      },
+      "confirmChanges": {
+        "title": "Guardar Cambios",
+        "message": "¿Estás seguro de que quieres guardar estos cambios?",
+        "confirm": "Guardar",
+        "cancel": "Cancelar"
+      },
+      "success": {
+        "updated": "Cita actualizada exitosamente",
+        "deleted": "Cita eliminada exitosamente"
+      },
+      "error": {
+        "updateFailed": "Error al actualizar la cita",
+        "deleteFailed": "Error al eliminar la cita",
+        "loadServicesFailed": "Error al cargar servicios",
+        "noServiceSelected": "Por favor selecciona un servicio"
+      }
+    },
+    "reschedule": {
+      "title": "Reagendar Cita",
+      "confirmTitle": "Confirmar Reagendamiento",
+      "message": "¿Estás seguro de que quieres reagendar esta cita?",
+      "from": "De",
+      "to": "A",
+      "at": "a las",
+      "buttons": {
+        "confirm": "Confirmar",
+        "cancel": "Cancelar",
+        "rescheduling": "Reagendando..."
+      },
+      "success": "Cita reagendada exitosamente",
+      "error": "Error al reagendar la cita",
+      "invalidTime": "Hora seleccionada no válida",
+      "customerNotified": "El cliente será notificado por correo"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "markAsRead": "Marcar como leída",
+      "markAllRead": "Marcar todas como leídas",
+      "noNotifications": "Sin notificaciones",
+      "viewAll": "Ver todas",
+      "types": {
+        "booking_created": "Nueva Reserva",
+        "booking_canceled": "Reserva Cancelada",
+        "booking_rescheduled": "Reserva Reagendada",
+        "no_show_marked": "No Asistió",
+        "appointment_completed": "Cita Completada"
+      },
+      "timeAgo": {
+        "justNow": "Justo ahora",
+        "minutesAgo": "hace {{minutes}}m",
+        "hoursAgo": "hace {{hours}}h",
+        "daysAgo": "hace {{days}}d",
+        "weeksAgo": "hace {{weeks}}s"
+      }
+    },
+    "businessSelector": {
+      "selectBusiness": "Seleccionar Negocio",
+      "noBusiness": "Sin negocio",
+      "switchBusiness": "Cambiar negocio"
     }
   }
 }
