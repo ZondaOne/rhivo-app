@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
+import { Link, useRouter } from '@/i18n/routing';
 
 export default function LoginPage() {
   const t = useTranslations('auth');
@@ -45,14 +44,14 @@ export default function LoginPage() {
         setError(t('login.customerLoginError'));
         // Log them out
         setTimeout(() => {
-          router.push(`/${locale}/customer/login`);
+          router.push('/customer/login');
         }, 2000);
         return;
       }
 
       // Owner or staff - redirect appropriately
       if (user.requires_password_change) {
-        router.push(`/${locale}/auth/change-password`);
+        router.push('/auth/change-password');
       } else {
         router.push('/dashboard');
       }
@@ -83,7 +82,7 @@ export default function LoginPage() {
       <div className={`w-full max-w-md relative transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         {/* Back to home */}
         <Link
-          href={`/${locale}`}
+          href="/"
           className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6 sm:mb-8 group active:scale-95"
         >
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -124,7 +123,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700">{t('common.password')}</label>
                 <Link
-                  href={`/${locale}/auth/forgot-password`}
+                  href="/auth/forgot-password"
                   className="text-xs sm:text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors active:scale-95"
                 >
                   {t('login.forgotPassword')}
@@ -182,7 +181,7 @@ export default function LoginPage() {
           <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-gray-200/60 text-center">
             <p className="text-xs sm:text-sm text-gray-600">
               {t('login.newToRivo')}{' '}
-              <Link href={`/${locale}/onboard`} className="text-teal-600 hover:text-teal-700 font-semibold transition-colors">
+              <Link href="/onboard" className="text-teal-600 hover:text-teal-700 font-semibold transition-colors">
                 {t('login.registerBusiness')}
               </Link>
             </p>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Link, useRouter } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
 
@@ -55,7 +55,7 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(true);
-      setTimeout(() => router.push(`/${locale}/auth/login`), 3000);
+      setTimeout(() => router.push('/auth/login'), 3000);
     } catch (err: any) {
       setError(err?.message || t('resetPassword.resetFailed'));
     } finally {

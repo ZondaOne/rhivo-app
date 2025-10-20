@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
@@ -23,9 +23,9 @@ export default function ChangePasswordPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push(`/${locale}/auth/login`);
+      router.push('/auth/login');
     }
-  }, [isAuthenticated, isLoading, router, locale]);
+  }, [isAuthenticated, isLoading, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

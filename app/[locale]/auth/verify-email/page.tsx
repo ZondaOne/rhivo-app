@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import AddressAutocomplete from '@/components/geocoding/AddressAutocomplete';
 import LocationMapPreview from '@/components/geocoding/LocationMapPreview';
