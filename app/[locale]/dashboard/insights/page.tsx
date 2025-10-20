@@ -6,60 +6,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BusinessProvider, useBusiness } from '@/contexts/BusinessContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { BusinessSelector } from '@/components/dashboard/BusinessSelector';
-import { Calendar } from '@/components/dashboard/Calendar';
-import { CreateAppointmentModal } from '@/components/dashboard/CreateAppointmentModal';
 import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
-import { CalendarView } from '@/lib/calendar-utils';
-import OnboardingTutorial from '@/components/dashboard/OnboardingTutorial';
 import { Logo } from '@/components/Logo';
-import { Link, useRouter } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
+import { BookingsChart } from '@/components/dashboard/insights/BookingsChart';
+import { ComingSoonWidget } from '@/components/dashboard/insights/ComingSoonWidget';
 
-function DashboardContent() {
+function InsightsContent() {
   const t = useTranslations('dashboard');
-  const router = useRouter();
-  
-  // Initialize from URL params on mount, then use state
-  const [view, setView] = useState<CalendarView>('month');
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isSwitchingBusiness, setIsSwitchingBusiness] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const { businesses, selectedBusiness, selectedBusinessId, isLoading: businessLoading, selectBusiness } = useBusiness();
-
-  // Increment refresh key when business changes to force calendar reload
-  useEffect(() => {
-    if (selectedBusinessId) {
-      setIsSwitchingBusiness(true);
-      setRefreshKey(prev => prev + 1);
-      // Clear switching state after a brief moment
-      const timer = setTimeout(() => setIsSwitchingBusiness(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedBusinessId]);
-
-  // Read URL params on mount to restore calendar state
-  useEffect(() => {
-    if (typeof window === 'undefined' || isInitialized) return;
-
-    const params = new URLSearchParams(window.location.search);
-    const urlView = params.get('view') as CalendarView | null;
-    const urlDate = params.get('date');
-
-    if (urlView && ['month', 'week', 'day', 'list'].includes(urlView)) {
-      setView(urlView);
-    }
-
-    if (urlDate) {
-      const parsedDate = new Date(urlDate);
-      if (!isNaN(parsedDate.getTime())) {
-        setCurrentDate(parsedDate);
-      }
-    }
-
-    setIsInitialized(true);
-  }, [isInitialized]);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   const businessName = selectedBusiness?.name || user?.email?.split('@')[0] || "My Business";
 
@@ -69,31 +26,30 @@ function DashboardContent() {
       <aside className="fixed left-0 top-0 h-full w-20 bg-white border-r border-gray-200/60 flex flex-col items-center py-6 z-50">
         {/* Navigation */}
         <nav className="flex-1 flex flex-col gap-2 w-full px-3 pt-2">
-          <button className="w-full h-14 flex items-center justify-center rounded-xl bg-gray-50 text-gray-900 relative group">
+          <Link
+            href="/dashboard"
+            className="w-full h-14 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all relative group"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
             </svg>
             <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap">
               {t('navigation.calendar')}
             </div>
-          </button>
+          </Link>
 
-          <Link
-            href="/dashboard/insights"
-            className="w-full h-14 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all relative group"
-          >
+          <button className="w-full h-14 flex items-center justify-center rounded-xl bg-gray-50 text-gray-900 relative group">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
             </svg>
-            <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap pointer-events-none">
+            <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap">
               {t('navigation.insights')}
             </div>
-          </Link>
+          </button>
 
           <NotificationCenter
             onNotificationClick={(appointmentId) => {
               if (appointmentId) {
-                // TODO: Navigate to appointment or scroll to it in calendar
                 console.log('Navigate to appointment:', appointmentId);
               }
             }}
@@ -198,168 +154,99 @@ function DashboardContent() {
               <Logo size="sm" />
             </div>
 
-            <button
-              onClick={() => setShowCreateModal(true)}
-              disabled={!isAuthenticated}
-              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 relative z-10"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              {t('header.newAppointment')}
-            </button>
+            {/* Time Range Selector */}
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl flex-shrink-0">
+              <button
+                onClick={() => setTimeRange('7d')}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  timeRange === '7d'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                7 Days
+              </button>
+              <button
+                onClick={() => setTimeRange('30d')}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  timeRange === '30d'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                30 Days
+              </button>
+              <button
+                onClick={() => setTimeRange('90d')}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  timeRange === '90d'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                90 Days
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* Calendar Content */}
+        {/* Insights Content */}
         <div className="px-12 py-8">
-          {/* Controls */}
-          <div className="flex items-center justify-between mb-8">
-            {/* Date Navigation */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  const newDate = new Date(currentDate);
-                  if (view === 'month') {
-                    newDate.setMonth(newDate.getMonth() - 1);
-                  } else if (view === 'week') {
-                    newDate.setDate(newDate.getDate() - 7);
-                  } else {
-                    newDate.setDate(newDate.getDate() - 1);
-                  }
-                  setCurrentDate(newDate);
-                }}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
-              >
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Business Insights</h2>
+
+          {/* Widgets Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Bookings Chart */}
+            <BookingsChart 
+              businessId={selectedBusinessId} 
+              timeRange={timeRange}
+            />
+
+            {/* Revenue Widget - Coming Soon */}
+            <ComingSoonWidget 
+              title="Revenue Analytics"
+              description="Track your earnings, average booking value, and revenue trends over time."
+              icon={
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-              </button>
+              }
+            />
 
-              <h2 className="text-2xl font-bold text-gray-900 min-w-[180px] text-center">
-                {currentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-              </h2>
-
-              <button
-                onClick={() => {
-                  const newDate = new Date(currentDate);
-                  if (view === 'month') {
-                    newDate.setMonth(newDate.getMonth() + 1);
-                  } else if (view === 'week') {
-                    newDate.setDate(newDate.getDate() + 7);
-                  } else {
-                    newDate.setDate(newDate.getDate() + 1);
-                  }
-                  setCurrentDate(newDate);
-                }}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
-              >
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            {/* Customer Insights - Coming Soon */}
+            <ComingSoonWidget 
+              title="Customer Analytics"
+              description="Understand your customer base with repeat booking rates, new vs returning customers, and demographics."
+              icon={
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                 </svg>
-              </button>
+              }
+            />
 
-              <button
-                onClick={() => setCurrentDate(new Date())}
-                className="ml-4 px-5 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
-              >
-                {t('dateNavigation.today')}
-              </button>
-            </div>
-
-            {/* View Selector */}
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
-              <button
-                onClick={() => setView('month')}
-                className={`px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  view === 'month'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {t('viewMode.month')}
-              </button>
-              <button
-                onClick={() => setView('week')}
-                className={`px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  view === 'week'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {t('viewMode.week')}
-              </button>
-              <button
-                onClick={() => setView('day')}
-                className={`px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  view === 'day'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {t('viewMode.day')}
-              </button>
-              <button
-                onClick={() => setView('list')}
-                className={`px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  view === 'list'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {t('viewMode.list')}
-              </button>
-            </div>
-          </div>
-
-          {/* Calendar View */}
-          <div className="relative">
-            {/* Switching Business Overlay */}
-            {isSwitchingBusiness && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-opacity duration-200">
-                <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200 animate-fade-in">
-                  <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {t('loading.loadingBusiness', { businessName: selectedBusiness?.name || '' })}
-                  </span>
-                </div>
-              </div>
-            )}
-            
-            <div className={`transition-opacity duration-200 ${isSwitchingBusiness ? 'opacity-50' : 'opacity-100'}`}>
-              <Calendar
-                key={refreshKey}
-                view={view}
-                currentDate={currentDate}
-                onViewChange={setView}
-                onDateChange={setCurrentDate}
-                businessId={selectedBusinessId}
-              />
-            </div>
+            {/* Service Performance - Coming Soon */}
+            <ComingSoonWidget 
+              title="Service Performance"
+              description="See which services are most popular, average duration, and capacity utilization."
+              icon={
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                </svg>
+              }
+            />
           </div>
         </div>
       </main>
-
-      {/* Modals */}
-      <CreateAppointmentModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={() => {
-          setRefreshKey(prev => prev + 1);
-        }}
-        defaultDate={currentDate}
-        businessId={selectedBusinessId}
-      />
-      <OnboardingTutorial />
     </div>
   );
 }
 
-export default function DashboardPage() {
+export default function InsightsPage() {
   return (
     <ProtectedRoute requireRole="owner">
       <BusinessProvider>
-        <DashboardContent />
+        <InsightsContent />
       </BusinessProvider>
     </ProtectedRoute>
   );
