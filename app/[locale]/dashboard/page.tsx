@@ -168,11 +168,11 @@ function DashboardContent() {
       <main className="ml-20 min-h-screen">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
-          <div className="px-12 py-5 relative flex items-center justify-between gap-8">
-            <div className="flex items-center gap-6 min-w-0 flex-1">
+          <div className="px-4 py-3 sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-12 lg:py-5 relative flex items-center justify-between gap-3 sm:gap-4 md:gap-6 lg:gap-8">
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-6 min-w-0 flex-1">
               {/* Business Selector */}
               {businesses.length > 0 ? (
-                <div className="max-w-[320px] min-w-[240px]">
+                <div className="max-w-full sm:max-w-[200px] md:max-w-[240px] lg:max-w-[280px] xl:max-w-[320px] min-w-0 sm:min-w-[180px] md:min-w-[200px] lg:min-w-[240px] relative z-10">
                   <BusinessSelector
                     businesses={businesses}
                     selectedBusinessId={selectedBusinessId}
@@ -181,11 +181,11 @@ function DashboardContent() {
                   />
                 </div>
               ) : (
-                <div className="flex flex-col">
-                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
+                <div className="flex flex-col relative z-10">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
                   <div className="flex items-center gap-2 mt-1">
                     <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs sm:text-sm text-gray-500">
                       {isAuthenticated ? t('header.connected') : t('header.disconnected')}
                     </span>
                   </div>
@@ -193,20 +193,22 @@ function DashboardContent() {
               )}
             </div>
 
-            {/* Centered Logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            {/* Centered Logo - Visible only on large screens */}
+            <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 items-center justify-center">
               <Logo size="sm" />
             </div>
 
+            {/* New Appointment Button */}
             <button
               onClick={() => setShowCreateModal(true)}
               disabled={!isAuthenticated}
-              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 relative z-10"
+              className="px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 lg:px-6 lg:py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl sm:rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2 flex-shrink-0 relative z-10 text-sm sm:text-base"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              {t('header.newAppointment')}
+              <span className="hidden sm:inline">{t('header.newAppointment')}</span>
+              <span className="sm:hidden">New</span>
             </button>
           </div>
         </header>
