@@ -31,6 +31,14 @@ export class OwnerNotificationService {
   async createNotification(params: CreateOwnerNotificationParams): Promise<void> {
     const { businessId, appointmentId, type, title, message } = params;
 
+    console.log('[OwnerNotificationService] Creating notification:', {
+      businessId,
+      appointmentId,
+      type,
+      title,
+      message
+    });
+
     // Get all owners for this business from business_owners junction table
     const owners = await this.db`
       SELECT user_id
@@ -38,8 +46,38 @@ export class OwnerNotificationService {
       WHERE business_id = ${businessId}
     `;
 
+    console.log('[OwnerNotificationService] Found owners:', owners.length, owners);
+
+    if (owners.length === 0) {
+      console.warn('[OwnerNotificationService] WARNING: No owners found for business', businessId);
+      console.warn('[OwnerNotificationService] Checking users table for legacy business_id...');
+      
+      // Fallback: check users table for legacy business_id column
+      const legacyOwners = await this.db`
+        SELECT id as user_id
+        FROM users
+        WHERE business_id = ${businessId}
+          AND role = 'owner'
+      `;
+      
+      console.log('[OwnerNotificationService] Legacy owners found:', legacyOwners.length, legacyOwners);
+      
+      if (legacyOwners.length > 0) {
+        console.log('[OwnerNotificationService] Using legacy owners from users table');
+        owners.push(...legacyOwners);
+      }
+    }
+
     // Create a notification for each owner
     for (const owner of owners) {
+      const notificationId = uuidv4();
+      console.log('[OwnerNotificationService] Inserting notification:', {
+        id: notificationId,
+        userId: owner.user_id,
+        type,
+        title
+      });
+      
       await this.db`
         INSERT INTO notifications (
           id,
@@ -52,7 +90,7 @@ export class OwnerNotificationService {
           read,
           created_at
         ) VALUES (
-          ${uuidv4()},
+          ${notificationId},
           ${businessId},
           ${owner.user_id},
           ${type},
@@ -63,7 +101,11 @@ export class OwnerNotificationService {
           NOW()
         )
       `;
+      
+      console.log('[OwnerNotificationService] ✅ Notification created successfully:', notificationId);
     }
+    
+    console.log('[OwnerNotificationService] Total notifications created:', owners.length);
   }
 
   /**

@@ -8,7 +8,7 @@ import { getDbClient } from '@/db/client';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -21,14 +21,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const notificationId = params.id;
+    const { id: notificationId } = await params;
     const sql = getDbClient();
 
     // Delete only if user owns this notification
     const result = await sql`
       DELETE FROM notifications
       WHERE id = ${notificationId}
-        AND user_id = ${payload.userId}
+        AND user_id = ${payload.sub}
       RETURNING id
     `;
 

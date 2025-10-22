@@ -8,7 +8,7 @@ import { getDbClient } from '@/db/client';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -21,7 +21,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const notificationId = params.id;
+    const { id: notificationId } = await params;
     const sql = getDbClient();
 
     // Mark as read only if user owns this notification
@@ -29,7 +29,7 @@ export async function PATCH(
       UPDATE notifications
       SET read = TRUE
       WHERE id = ${notificationId}
-        AND user_id = ${payload.userId}
+        AND user_id = ${payload.sub}
       RETURNING id
     `;
 

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const result = await sql`
       UPDATE notifications
       SET read = TRUE
-      WHERE user_id = ${payload.userId}
+      WHERE user_id = ${payload.sub}
         AND read = FALSE
       RETURNING id
     `;

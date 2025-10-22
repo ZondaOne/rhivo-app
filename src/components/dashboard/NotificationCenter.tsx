@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAccessToken } from '@/lib/auth/api-client';
 
 interface Notification {
   id: string;
@@ -26,28 +27,44 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch notifications
   const fetchNotifications = async () => {
-    if (!token) return;
+    const token = getAccessToken();
+    if (!token) {
+      console.log('[NotificationCenter] No token available, skipping fetch');
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('[NotificationCenter] Fetching notifications...');
+      
       const response = await fetch('/api/owner/notifications?limit=20', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      console.log('[NotificationCenter] Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[NotificationCenter] Notifications received:', {
+          count: data.notifications?.length || 0,
+          unreadCount: data.unreadCount || 0,
+          notifications: data.notifications
+        });
         setNotifications(data.notifications || []);
         setUnreadCount(data.unreadCount || 0);
+      } else {
+        const errorData = await response.json();
+        console.error('[NotificationCenter] Failed to fetch notifications:', response.status, errorData);
       }
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      console.error('[NotificationCenter] Failed to fetch notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -55,10 +72,12 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
 
   // Fetch notifications on mount and periodically
   useEffect(() => {
+    if (!isAuthenticated) return;
+    
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
     return () => clearInterval(interval);
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -79,6 +98,7 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
+    const token = getAccessToken();
     if (!token) return;
 
     try {
@@ -102,6 +122,7 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
 
   // Mark all as read
   const markAllAsRead = async () => {
+    const token = getAccessToken();
     if (!token) return;
 
     try {
@@ -123,6 +144,7 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
 
   // Delete notification
   const deleteNotification = async (notificationId: string) => {
+    const token = getAccessToken();
     if (!token) return;
 
     try {

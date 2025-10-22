@@ -180,6 +180,44 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
     }
   }, [appointmentCache, view, currentDate]);
 
+  // Auto-refresh appointments every 30 minutes during business hours (9 AM - 8 PM)
+  // TODO: Integrate with NotificationCenter to trigger refresh when new booking notification arrives
+  // This will allow immediate updates instead of waiting for the polling interval
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Check if current time is within business hours (9 AM - 8 PM)
+    const isWithinBusinessHours = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      return hours >= 9 && hours < 20; // 9 AM to 8 PM (20:00)
+    };
+
+    // Only set up polling if within business hours
+    if (!isWithinBusinessHours()) {
+      console.log('[Calendar] Outside business hours, auto-refresh disabled');
+      return;
+    }
+
+    console.log('[Calendar] Auto-refresh enabled (30-minute interval, 9 AM - 8 PM)');
+
+    const refreshInterval = setInterval(() => {
+      // Double-check we're still in business hours before refreshing
+      if (isWithinBusinessHours()) {
+        console.log('[Calendar] Auto-refreshing appointments...');
+        setAppointmentCache(null);
+        loadAppointments();
+      } else {
+        console.log('[Calendar] Outside business hours, skipping refresh');
+      }
+    }, 30 * 60 * 1000); // 30 minutes in milliseconds
+
+    return () => {
+      console.log('[Calendar] Cleaning up auto-refresh interval');
+      clearInterval(refreshInterval);
+    };
+  }, [isAuthenticated, businessId]);
+
   async function loadAppointments() {
     if (!isAuthenticated) {
       setAppointments([]);
