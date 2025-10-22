@@ -295,7 +295,7 @@ bookingRequirements:
 bookingLimits:
   maxSimultaneousBookings: 4
   advanceBookingDays: 60
-  minAdvanceBookingMinutes: 180
+  minAdvanceBookingMinutes: 0
   maxBookingsPerCustomerPerDay: 1
 
 cancellationPolicy:

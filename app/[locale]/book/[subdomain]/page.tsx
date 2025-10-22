@@ -168,11 +168,8 @@ export default function BookingPage() {
 
     setLoadingSlots(true);
     const dateStr = formatDateYYYYMMDD(selectedDate);
-    const endDate = new Date(selectedDate);
-    endDate.setDate(endDate.getDate() + 1);
-    const endDateStr = formatDateYYYYMMDD(endDate);
 
-    fetch(`/api/booking/slots?subdomain=${subdomain}&serviceId=${selectedService.id}&startDate=${dateStr}&endDate=${endDateStr}`)
+    fetch(`/api/booking/slots?subdomain=${subdomain}&serviceId=${selectedService.id}&startDate=${dateStr}&endDate=${dateStr}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.slots) {
