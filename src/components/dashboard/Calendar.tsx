@@ -527,6 +527,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
                 onEdit={handleEdit}
                 draggedAppointment={draggedAppointment}
                 setDraggedAppointment={setDraggedAppointment}
+                onDateChange={onDateChange}
               />
             </div>
             {/* On mobile/tablet, show a message if week view is selected */}
@@ -844,6 +845,7 @@ function WeekView({
   onEdit,
   draggedAppointment,
   setDraggedAppointment,
+  onDateChange,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -851,11 +853,15 @@ function WeekView({
   onEdit: (id: string) => void;
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
+  onDateChange?: (date: Date) => void;
 }) {
   const weekStart = new Date(currentDate);
   const dayOfWeek = weekStart.getDay();
   const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   weekStart.setDate(weekStart.getDate() - daysFromMonday);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(weekStart);
@@ -869,6 +875,18 @@ function WeekView({
 
   const today = new Date();
   const todayStr = today.toDateString();
+
+  const handlePreviousWeek = () => {
+    const prevWeek = new Date(currentDate);
+    prevWeek.setDate(prevWeek.getDate() - 7);
+    onDateChange?.(prevWeek);
+  };
+
+  const handleNextWeek = () => {
+    const nextWeek = new Date(currentDate);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    onDateChange?.(nextWeek);
+  };
 
   // Calculate appointments with positions
   const appointmentsByDay = weekDays.map((day) => {
@@ -895,6 +913,48 @@ function WeekView({
 
   return (
     <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
+      {/* Week Navigation Header - Mobile/Tablet only (hidden on lg+) */}
+      <div className="lg:hidden py-4 px-4 border-b border-gray-200/60 flex items-center justify-center gap-3 flex-shrink-0">
+        <button
+          onClick={handlePreviousWeek}
+          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 transition-all flex-shrink-0 text-gray-400 hover:text-gray-900"
+          title="Previous week"
+          aria-label="Previous week"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div className="text-center">
+          <div className="text-base font-bold text-gray-900">
+            {(() => {
+              const isSameMonth = weekStart.getMonth() === weekEnd.getMonth();
+              
+              if (isSameMonth) {
+                return `${weekStart.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} - ${weekEnd.toLocaleDateString(undefined, { day: 'numeric' })}`;
+              } else {
+                return `${weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+              }
+            })()}
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5">
+            {weekEnd.getFullYear()}
+          </div>
+        </div>
+
+        <button
+          onClick={handleNextWeek}
+          className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 transition-all flex-shrink-0 text-gray-400 hover:text-gray-900"
+          title="Next week"
+          aria-label="Next week"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
       {/* Day Headers */}
       <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-gray-200/60 flex-shrink-0">
         {/* Empty corner for time column */}
