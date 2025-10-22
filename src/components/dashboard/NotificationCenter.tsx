@@ -75,7 +75,7 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
     if (!isAuthenticated) return;
     
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+    const interval = setInterval(fetchNotifications, 10 * 60 * 1000); // Poll every 10 minutes
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
