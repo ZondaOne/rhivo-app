@@ -821,26 +821,39 @@ function DayCell({
             return (
               <>
                 {/* Vertically stacked appointments */}
-                {visibleAppointments.map((apt, idx) => (
-                  <div
-                    key={apt.id}
-                    draggable
-                    className="text-[9px] md:text-sm lg:text-base xl:text-lg px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center rounded-md md:rounded-lg lg:rounded-xl bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer font-semibold overflow-hidden flex-shrink-0"
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('appointmentId', apt.id);
-                      setDraggedAppointment(apt);
-                    }}
-                    onDragEnd={() => setDraggedAppointment(null)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onAppointmentClick) {
-                        onAppointmentClick(apt.id, new Date(apt.start_time));
-                      }
-                    }}
-                  >
-                    <span className="truncate block flex-1 leading-none">{formatTime(new Date(apt.start_time))}</span>
-                  </div>
-                ))}
+                {visibleAppointments.map((apt, idx) => {
+                  const isCanceled = apt.status === 'cancelled';
+                  return (
+                    <div
+                      key={apt.id}
+                      draggable={!isCanceled}
+                      className={`text-[9px] md:text-sm lg:text-base xl:text-lg px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center rounded-md md:rounded-lg lg:rounded-xl font-semibold overflow-hidden flex-shrink-0 ${
+                        isCanceled
+                          ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
+                          : 'bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer'
+                      }`}
+                      onDragStart={(e) => {
+                        if (isCanceled) {
+                          e.preventDefault();
+                          return;
+                        }
+                        e.dataTransfer.setData('appointmentId', apt.id);
+                        setDraggedAppointment(apt);
+                      }}
+                      onDragEnd={() => setDraggedAppointment(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onAppointmentClick) {
+                          onAppointmentClick(apt.id, new Date(apt.start_time));
+                        }
+                      }}
+                    >
+                      <span className="truncate block flex-1 leading-none">
+                        {formatTime(new Date(apt.start_time))}
+                      </span>
+                    </div>
+                  );
+                })}
 
                 {/* Overflow indicator */}
                 {overflow > 0 && (
@@ -1292,19 +1305,27 @@ function WeekDayCell({
 
           const isDragging = draggedAppointment?.id === apt.id;
 
+          const isCanceled = apt.status === 'cancelled';
+          
           return (
             <div
               key={apt.id}
-              draggable
-              className={`group px-1.5 py-1.5 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses} ${
-                isDragging ? 'opacity-50' : ''
-              }`}
+              draggable={!isCanceled}
+              className={`group px-1.5 py-1.5 rounded-lg overflow-hidden ${visualClasses} ${
+                isCanceled
+                  ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
+                  : 'bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move'
+              } ${isDragging ? 'opacity-50' : ''}`}
               style={{
                 ...positionStyles,
                 // Allow drop zones underneath to receive events when ANY appointment is being dragged
                 pointerEvents: draggedAppointment ? 'none' : 'auto',
               }}
               onDragStart={(e) => {
+                if (isCanceled) {
+                  e.preventDefault();
+                  return;
+                }
                 e.dataTransfer.setData('appointmentId', apt.id);
                 setDraggedAppointment(apt);
               }}
@@ -1316,29 +1337,36 @@ function WeekDayCell({
                     {formatTime(new Date(apt.start_time))}
                   </div>
                   {heightPx > 30 && apt.totalColumns <= 3 && (
-                    <div className="text-xs text-gray-900 leading-tight truncate mt-0.5">
+                    <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through' : 'text-gray-900'}`}>
                       {apt.customer_name || 'Guest'}
                     </div>
                   )}
                   {heightPx > 50 && apt.totalColumns <= 2 && (
-                    <div className="text-xs text-gray-600 leading-tight truncate mt-0.5">
+                    <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through' : 'text-gray-600'}`}>
                       {apt.service_name || 'Service'}
                     </div>
                   )}
+                  {isCanceled && heightPx > 40 && (
+                    <div className="text-[10px] leading-tight mt-1 text-gray-500">
+                      Canceled
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(apt.id);
-                  }}
-                  style={{ pointerEvents: 'auto' }} // Keep button clickable
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
-                  title="Edit appointment"
-                >
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+                {!isCanceled && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(apt.id);
+                    }}
+                    style={{ pointerEvents: 'auto' }} // Keep button clickable
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
+                    title="Edit appointment"
+                  >
+                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -1793,11 +1821,17 @@ function DayHourCell({
           const isHighlighted = highlightedAppointmentId === apt.id;
           const isDragging = draggedAppointment?.id === apt.id;
 
+          const isCanceled = apt.status === 'cancelled';
+          
           return (
             <div
               key={apt.id}
-              draggable
-              className={`group px-2 py-2 rounded-lg bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move overflow-hidden ${visualClasses} ${
+              draggable={!isCanceled}
+              className={`group px-2 py-2 rounded-lg overflow-hidden ${visualClasses} ${
+                isCanceled
+                  ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
+                  : 'bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move'
+              } ${
                 isHighlighted
                   ? 'border-teal-400 border-2 bg-teal-100 animate-highlight-pulse !z-50'
                   : ''
@@ -1808,6 +1842,10 @@ function DayHourCell({
                 pointerEvents: draggedAppointment ? 'none' : 'auto',
               }}
               onDragStart={(e) => {
+                if (isCanceled) {
+                  e.preventDefault();
+                  return;
+                }
                 e.dataTransfer.setData('appointmentId', apt.id);
                 setDraggedAppointment(apt);
               }}
@@ -1815,38 +1853,45 @@ function DayHourCell({
             >
               <div className="flex items-start justify-between gap-1 h-full">
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-gray-900 leading-tight truncate">
+                  <div className={`text-sm font-semibold leading-tight truncate ${isCanceled ? 'text-gray-400' : 'text-gray-900'}`}>
                     {formatTime(new Date(apt.start_time))}
                   </div>
                   {heightPx > 40 && apt.totalColumns <= 3 && (
-                    <div className="text-sm text-gray-900 leading-tight truncate mt-0.5">
+                    <div className={`text-sm leading-tight truncate mt-0.5 ${isCanceled ? 'line-through text-gray-400' : 'text-gray-900'}`}>
                       {apt.customer_name || 'Guest'}
                     </div>
                   )}
                   {heightPx > 60 && apt.totalColumns <= 2 && (
-                    <div className="text-sm text-gray-600 leading-tight truncate mt-0.5">
+                    <div className={`text-sm leading-tight truncate mt-0.5 ${isCanceled ? 'line-through text-gray-400' : 'text-gray-600'}`}>
                       {apt.service_name || 'Service'}
                     </div>
                   )}
-                  {apt.notes && heightPx > 90 && apt.totalColumns <= 2 && (
+                  {isCanceled && heightPx > 50 && (
+                    <div className="text-xs leading-tight mt-1 text-gray-500">
+                      Canceled
+                    </div>
+                  )}
+                  {apt.notes && heightPx > 90 && apt.totalColumns <= 2 && !isCanceled && (
                     <div className="text-xs text-gray-500 leading-tight truncate mt-1">
                       {apt.notes}
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(apt.id);
-                  }}
-                  style={{ pointerEvents: 'auto' }} // Keep button clickable
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
-                  title="Edit appointment"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+                {!isCanceled && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(apt.id);
+                    }}
+                    style={{ pointerEvents: 'auto' }} // Keep button clickable
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-teal-200 rounded flex-shrink-0"
+                    title="Edit appointment"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -1966,12 +2011,13 @@ function ListAppointmentCard({
   const startTime = new Date(appointment.start_time);
   const endTime = new Date(appointment.end_time);
   const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+  const isCanceled = appointment.status === 'cancelled';
 
   const statusColors = {
     confirmed: 'bg-teal-50 border-teal-200 text-teal-700',
     pending: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-    cancelled: 'bg-gray-50 border-gray-200 text-gray-500',
-    canceled: 'bg-gray-50 border-gray-200 text-gray-500',
+    cancelled: 'bg-gray-50 border-gray-300 text-gray-500',
+    canceled: 'bg-gray-50 border-gray-300 text-gray-500',
     completed: 'bg-green-50 border-green-200 text-green-700',
     no_show: 'bg-red-50 border-red-200 text-red-700',
   };
@@ -1980,15 +2026,19 @@ function ListAppointmentCard({
 
   return (
     <div
-      className={`group px-6 py-4 hover:bg-gray-50/50 transition-all cursor-pointer ${
+      className={`group px-6 py-4 transition-all ${
+        isCanceled
+          ? 'bg-gray-50/30 opacity-60 cursor-default'
+          : 'hover:bg-gray-50/50 cursor-pointer'
+      } ${
         isDragging ? 'opacity-50' : ''
       } ${isLast ? '' : ''}`}
-      onClick={() => onEdit(appointment.id)}
+      onClick={() => !isCanceled && onEdit(appointment.id)}
     >
       <div className="flex items-start gap-4">
         {/* Time Badge */}
         <div className="flex-shrink-0 text-right min-w-[80px]">
-          <div className="text-base font-semibold text-gray-900">
+          <div className={`text-base font-semibold ${isCanceled ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
             {formatTime(startTime)}
           </div>
           <div className="text-xs text-gray-500 mt-0.5">
@@ -2000,16 +2050,16 @@ function ListAppointmentCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4 mb-2">
             <div className="flex-1">
-              <div className="text-base font-semibold text-gray-900 mb-1">
+              <div className={`text-base font-semibold mb-1 ${isCanceled ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                 {appointment.customer_name || 'Unnamed Customer'}
               </div>
               {(appointment.customer_email || appointment.guest_email) && (
-                <div className="text-sm text-gray-600">
+                <div className={`text-sm ${isCanceled ? 'text-gray-400' : 'text-gray-600'}`}>
                   {appointment.customer_email || appointment.guest_email}
                 </div>
               )}
               {(appointment.customer_phone || appointment.guest_phone) && (
-                <div className="text-sm text-gray-600">
+                <div className={`text-sm ${isCanceled ? 'text-gray-400' : 'text-gray-600'}`}>
                   {appointment.customer_phone || appointment.guest_phone}
                 </div>
               )}

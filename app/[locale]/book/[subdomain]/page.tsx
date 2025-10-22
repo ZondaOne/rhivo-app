@@ -562,7 +562,7 @@ export default function BookingPage() {
               {cancellationToken && config.cancellationPolicy.allowCancellation && (
                 <div className="text-center mb-6">
                   <a
-                    href={`/${locale}/book/manage`}
+                    href={`/${locale}/book/manage?bookingId=${encodeURIComponent(bookingId || '')}&email=${encodeURIComponent(guestEmail || '')}`}
                     className="text-xs sm:text-sm brand-link font-medium"
                   >
                     {t('confirmation.manageLink')}

@@ -2,7 +2,7 @@
 
 export type UserRole = 'owner' | 'staff' | 'customer';
 export type BusinessStatus = 'active' | 'suspended' | 'deleted';
-export type AppointmentStatus = 'confirmed' | 'canceled' | 'completed' | 'no_show';
+export type AppointmentStatus = 'confirmed' | 'canceled' | 'cancelled' | 'completed' | 'no_show';
 export type NotificationChannel = 'email' | 'sms' | 'webhook';
 export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'retrying';
 export type AuditAction = 'created' | 'confirmed' | 'modified' | 'canceled' | 'completed' | 'no_show';

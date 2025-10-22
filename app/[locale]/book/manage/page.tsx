@@ -1,16 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 
 export default function ManageBookingPage() {
   const t = useTranslations('manageBooking.landing');
+  const searchParams = useSearchParams();
   const [bookingId, setBookingId] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-fill from URL parameters
+  useEffect(() => {
+    const urlBookingId = searchParams.get('bookingId');
+    const urlEmail = searchParams.get('email');
+    
+    if (urlBookingId) {
+      setBookingId(urlBookingId.toUpperCase());
+    }
+    if (urlEmail) {
+      setEmail(urlEmail);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
