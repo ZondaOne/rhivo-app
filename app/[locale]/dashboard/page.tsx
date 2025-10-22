@@ -75,8 +75,8 @@ function DashboardContent() {
         }}
       />
 
-      {/* Main Content */}
-      <main className="ml-20 min-h-screen">
+      {/* Main Content - No left margin on mobile, ml-20 on desktop */}
+      <main className="ml-0 sm:ml-20 min-h-screen pb-20 sm:pb-0">
         {/* Top Bar */}
         <DashboardHeader
           businesses={businesses}
