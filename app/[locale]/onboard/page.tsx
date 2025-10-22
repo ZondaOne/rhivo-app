@@ -399,7 +399,7 @@ export default function OnboardBusinessPage() {
               type="text"
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.ownerName ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.auth.yourNamePlaceholder')}
@@ -415,7 +415,7 @@ export default function OnboardBusinessPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.auth.emailPlaceholder')}
@@ -431,7 +431,7 @@ export default function OnboardBusinessPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.auth.passwordPlaceholder')}
@@ -451,7 +451,7 @@ export default function OnboardBusinessPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.auth.emailPlaceholder')}
@@ -464,7 +464,7 @@ export default function OnboardBusinessPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               placeholder={t('onboard.auth.passwordPlaceholder')}
               required
             />
@@ -491,7 +491,7 @@ export default function OnboardBusinessPage() {
             type="text"
             value={businessName}
             onChange={(e) => handleBusinessNameChange(e.target.value)}
-            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
               validationErrors.businessName ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
             placeholder={t('onboard.business.businessNamePlaceholder')}
@@ -510,7 +510,7 @@ export default function OnboardBusinessPage() {
               type="text"
               value={businessId}
               onChange={(e) => setBusinessId(e.target.value)}
-              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.businessId ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.business.subdomainPlaceholder')}
@@ -527,7 +527,7 @@ export default function OnboardBusinessPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             placeholder={t('onboard.business.descriptionPlaceholder')}
           />
         </div>
@@ -687,7 +687,7 @@ export default function OnboardBusinessPage() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.phonePlaceholder')}
@@ -704,7 +704,7 @@ export default function OnboardBusinessPage() {
               type="url"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.website ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.websitePlaceholder')}
@@ -780,7 +780,7 @@ export default function OnboardBusinessPage() {
               type="text"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.street ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.streetPlaceholder')}
@@ -796,7 +796,7 @@ export default function OnboardBusinessPage() {
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.city ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.cityPlaceholder')}
@@ -814,7 +814,7 @@ export default function OnboardBusinessPage() {
               type="text"
               value={state}
               onChange={(e) => setState(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.state ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.statePlaceholder')}
@@ -830,7 +830,7 @@ export default function OnboardBusinessPage() {
               type="text"
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
                 validationErrors.postalCode ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.postalCodePlaceholder')}
@@ -1119,14 +1119,14 @@ export default function OnboardBusinessPage() {
                   type="time"
                   value={simpleAvailability.weekdayStart}
                   onChange={(e) => setSimpleAvailability({ ...simpleAvailability, weekdayStart: e.target.value })}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
                 />
                 <span className="text-gray-500 text-xs sm:text-sm font-medium">{t('onboard.availability.to')}</span>
                 <input
                   type="time"
                   value={simpleAvailability.weekdayEnd}
                   onChange={(e) => setSimpleAvailability({ ...simpleAvailability, weekdayEnd: e.target.value })}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
                 />
               </div>
             )}
@@ -1155,14 +1155,14 @@ export default function OnboardBusinessPage() {
                   type="time"
                   value={simpleAvailability.saturdayStart}
                   onChange={(e) => setSimpleAvailability({ ...simpleAvailability, saturdayStart: e.target.value })}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
                 />
                 <span className="text-gray-500 text-xs sm:text-sm font-medium">{t('onboard.availability.to')}</span>
                 <input
                   type="time"
                   value={simpleAvailability.saturdayEnd}
                   onChange={(e) => setSimpleAvailability({ ...simpleAvailability, saturdayEnd: e.target.value })}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
                 />
               </div>
             )}
@@ -1191,14 +1191,14 @@ export default function OnboardBusinessPage() {
                   type="time"
                   value={simpleAvailability.sundayStart}
                   onChange={(e) => setSimpleAvailability({ ...simpleAvailability, sundayStart: e.target.value })}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
                 />
                 <span className="text-gray-500 text-xs sm:text-sm font-medium">{t('onboard.availability.to')}</span>
                 <input
                   type="time"
                   value={simpleAvailability.sundayEnd}
                   onChange={(e) => setSimpleAvailability({ ...simpleAvailability, sundayEnd: e.target.value })}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium"
                 />
               </div>
             )}
@@ -1248,7 +1248,7 @@ export default function OnboardBusinessPage() {
                               newAvailability[dayIndex].slots[slotIndex].open = e.target.value;
                               setAvailability(newAvailability);
                             }}
-                            className="px-2 sm:px-3 py-1.5 sm:py-2 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium w-full"
+                            className="px-2 sm:px-3 py-1.5 sm:py-2 text-gray-900 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium w-full"
                           />
                           <span className="text-gray-500 text-xs sm:text-sm flex-shrink-0">{t('onboard.availability.to')}</span>
                           <input
@@ -1259,7 +1259,7 @@ export default function OnboardBusinessPage() {
                               newAvailability[dayIndex].slots[slotIndex].close = e.target.value;
                               setAvailability(newAvailability);
                             }}
-                            className="px-2 sm:px-3 py-1.5 sm:py-2 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium w-full"
+                            className="px-2 sm:px-3 py-1.5 sm:py-2 text-gray-900 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm font-medium w-full"
                           />
                         </div>
                         {slotIndex > 0 && (
@@ -1329,7 +1329,7 @@ export default function OnboardBusinessPage() {
             min={5}
             max={480}
             step={5}
-            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
               validationErrors.timeSlotDuration ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
           />
@@ -1351,7 +1351,7 @@ export default function OnboardBusinessPage() {
             onChange={(e) => setMaxSimultaneousBookings(Number(e.target.value))}
             min={1}
             max={100}
-            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
               validationErrors.maxSimultaneousBookings ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
           />
@@ -1373,7 +1373,7 @@ export default function OnboardBusinessPage() {
             onChange={(e) => setAdvanceBookingDays(Number(e.target.value))}
             min={1}
             max={365}
-            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
               validationErrors.advanceBookingDays ? 'border-red-300 bg-red-50' : 'border-gray-300'
             }`}
           />
@@ -1440,7 +1440,7 @@ export default function OnboardBusinessPage() {
                 onChange={(e) => setMinAdvanceBookingMinutes(Number(e.target.value))}
                 min={0}
                 step={15}
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
               <p className="text-xs sm:text-sm text-gray-500 mt-1">{t('onboard.details.minAdvanceHelp')}</p>
             </div>
@@ -1460,7 +1460,7 @@ export default function OnboardBusinessPage() {
               onChange={(e) => setReminderHoursBefore(Number(e.target.value))}
               min={0}
               step={1}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
         </div>
