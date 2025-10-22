@@ -73,6 +73,7 @@ function DashboardContent() {
             console.log('Navigate to appointment:', appointmentId);
           }
         }}
+        onNewAppointmentClick={() => setShowCreateModal(true)}
       />
 
       {/* Main Content - No left margin on mobile, ml-20 on desktop */}

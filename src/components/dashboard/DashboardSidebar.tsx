@@ -8,16 +8,17 @@ import { Link } from '@/i18n/routing';
 interface DashboardSidebarProps {
   currentPage?: 'calendar' | 'insights' | 'settings' | 'services';
   onNotificationClick?: (appointmentId?: string) => void;
+  onNewAppointmentClick?: () => void;
 }
 
-export function DashboardSidebar({ currentPage = 'calendar', onNotificationClick }: DashboardSidebarProps) {
+export function DashboardSidebar({ currentPage = 'calendar', onNotificationClick, onNewAppointmentClick }: DashboardSidebarProps) {
   const t = useTranslations('dashboard');
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <>
       {/* MOBILE BOTTOM BAR - Only visible on mobile */}
-      <MobileBottomBar currentPage={currentPage} />
+      <MobileBottomBar currentPage={currentPage} onNewAppointmentClick={onNewAppointmentClick} />
 
       {/* DESKTOP SIDEBAR - Only visible on desktop */}
       <DesktopSidebar currentPage={currentPage} onNotificationClick={onNotificationClick} />
@@ -26,11 +27,11 @@ export function DashboardSidebar({ currentPage = 'calendar', onNotificationClick
 }
 
 // Mobile Bottom Bar Component
-function MobileBottomBar({ currentPage }: { currentPage?: string }) {
+function MobileBottomBar({ currentPage, onNewAppointmentClick }: { currentPage?: string; onNewAppointmentClick?: () => void }) {
   const t = useTranslations('dashboard');
 
   return (
-    <nav className="sm:hidden fixed left-0 bottom-0 w-full h-16 bg-white border-t border-gray-200/60 z-50 flex items-center justify-around px-4">
+      <nav className="sm:hidden fixed left-0 bottom-0 w-full h-16 bg-white border-t border-gray-200/60 z-50 flex items-center justify-around px-4">
       <Link
         href="/dashboard"
         className={`flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${
@@ -73,6 +74,19 @@ function MobileBottomBar({ currentPage }: { currentPage?: string }) {
         </svg>
         <span className="text-xs font-semibold">{t('navigation.settings')}</span>
       </Link>
+
+      {/* Center + Button */}
+      <button
+        onClick={onNewAppointmentClick}
+        className="flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all text-teal-600"
+      >
+        <div className="w-12 h-12 -mt-8 bg-gradient-to-r from-teal-600 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+        <span className="text-xs font-semibold">New</span>
+      </button>
     </nav>
   );
 }
