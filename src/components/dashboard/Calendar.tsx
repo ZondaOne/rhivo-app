@@ -467,19 +467,53 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
         transitionKey={view}
         direction={useViewTransitionDirection(previousView, view)}
       >
+        {/* Month view - hidden on mobile (below md breakpoint) */}
         {view === 'month' && (
-          <MonthView
-            currentDate={currentDate}
-            appointments={appointments}
-            onReschedule={requestReschedule}
-            onEdit={handleEdit}
-            draggedAppointment={draggedAppointment}
-            setDraggedAppointment={setDraggedAppointment}
-            onViewChange={onViewChange}
-            onDateChange={onDateChange}
-            onDayCellClick={handleDayCellClick}
-            onAppointmentClick={handleAppointmentClick}
-          />
+          <div className="hidden md:block">
+            <MonthView
+              currentDate={currentDate}
+              appointments={appointments}
+              onReschedule={requestReschedule}
+              onEdit={handleEdit}
+              draggedAppointment={draggedAppointment}
+              setDraggedAppointment={setDraggedAppointment}
+              onViewChange={onViewChange}
+              onDateChange={onDateChange}
+              onDayCellClick={handleDayCellClick}
+              onAppointmentClick={handleAppointmentClick}
+            />
+          </div>
+        )}
+
+        {/* On mobile, show a message if month view is selected */}
+        {view === 'month' && (
+          <div className="md:hidden bg-white border border-gray-200/60 rounded-2xl p-8 flex items-center justify-center min-h-[400px]">
+            <div className="text-center max-w-sm">
+              <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Month view on mobile
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Month view is not available on small screens. Try switching to week, day, or list view for a better mobile experience.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => onViewChange?.('list')}
+                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all"
+                >
+                  Switch to List
+                </button>
+                <button
+                  onClick={() => onViewChange?.('day')}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all"
+                >
+                  Switch to Day
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {view === 'week' && (

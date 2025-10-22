@@ -29,11 +29,11 @@ export function CalendarSection({
   const t = useTranslations('dashboard');
 
   return (
-    <div className="px-12 py-8">
+    <div className="px-4 py-4 sm:px-8 sm:py-6 lg:px-12 lg:py-8">
       {/* Controls */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
         {/* Date Navigation */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-4">
           <button
             onClick={() => {
               const newDate = new Date(currentDate);
@@ -46,14 +46,14 @@ export function CalendarSection({
               }
               onDateChange(newDate);
             }}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all flex-shrink-0"
           >
-            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          <h2 className="text-2xl font-bold text-gray-900 min-w-[180px] text-center">
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-900 min-w-[140px] sm:min-w-[180px] text-center">
             {currentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
           </h2>
 
@@ -69,26 +69,27 @@ export function CalendarSection({
               }
               onDateChange(newDate);
             }}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all flex-shrink-0"
           >
-            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
 
           <button
             onClick={() => onDateChange(new Date())}
-            className="ml-4 px-5 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+            className="ml-2 sm:ml-4 px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
           >
             {t('dateNavigation.today')}
           </button>
         </div>
 
-        {/* View Selector */}
+        {/* View Selector - Hide month view on mobile */}
         <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
+          {/* Month view hidden on mobile (below md breakpoint) */}
           <button
             onClick={() => onViewChange('month')}
-            className={`px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
               view === 'month'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
