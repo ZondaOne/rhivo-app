@@ -269,7 +269,7 @@ export function getCascadeVisualClasses(
     : 'shadow-lg';
 
   // Hover effect: expand slightly on hover
-  const hoverClass = 'hover:scale-[1.02] hover:shadow-xl hover:z-50';
+  const hoverClass = 'hover:scale-[1.01] hover:shadow-xl hover:z-50';
 
   // Compression indicator (when more than 4 overlapping appointments)
   const compressionClass = isCompressed ? 'ring-1 ring-orange-300' : '';
