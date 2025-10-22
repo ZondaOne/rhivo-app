@@ -389,6 +389,7 @@ export default function BookingPage() {
           reservationId: reserveData.reservationId,
           guestEmail,
           guestPhone: guestPhone || undefined,
+          guestName: guestName || undefined,
         }),
       });
 

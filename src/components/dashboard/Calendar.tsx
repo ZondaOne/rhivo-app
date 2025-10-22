@@ -1268,12 +1268,17 @@ function WeekDayCell({
             >
               <div className="flex items-start justify-between gap-1 h-full">
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium leading-tight truncate">
+                  <div className="text-xs font-semibold leading-tight truncate">
                     {formatTime(new Date(apt.start_time))}
                   </div>
-                  {heightPx > 40 && apt.totalColumns <= 3 && (
-                    <div className="text-xs text-gray-700 leading-tight truncate mt-0.5">
-                      {apt.customer_name}
+                  {heightPx > 30 && apt.totalColumns <= 3 && (
+                    <div className="text-xs text-gray-900 leading-tight truncate mt-0.5">
+                      {apt.customer_name || 'Guest'}
+                    </div>
+                  )}
+                  {heightPx > 50 && apt.totalColumns <= 2 && (
+                    <div className="text-xs text-gray-600 leading-tight truncate mt-0.5">
+                      {apt.service_name || 'Service'}
                     </div>
                   )}
                 </div>
@@ -1769,13 +1774,18 @@ function DayHourCell({
                   <div className="text-sm font-semibold text-gray-900 leading-tight truncate">
                     {formatTime(new Date(apt.start_time))}
                   </div>
-                  {heightPx > 50 && apt.totalColumns <= 3 && (
-                    <div className="text-sm text-gray-700 leading-tight truncate mt-0.5">
-                      {apt.customer_name}
+                  {heightPx > 40 && apt.totalColumns <= 3 && (
+                    <div className="text-sm text-gray-900 leading-tight truncate mt-0.5">
+                      {apt.customer_name || 'Guest'}
                     </div>
                   )}
-                  {apt.notes && heightPx > 80 && apt.totalColumns <= 2 && (
-                    <div className="text-xs text-gray-600 leading-tight truncate mt-1">
+                  {heightPx > 60 && apt.totalColumns <= 2 && (
+                    <div className="text-sm text-gray-600 leading-tight truncate mt-0.5">
+                      {apt.service_name || 'Service'}
+                    </div>
+                  )}
+                  {apt.notes && heightPx > 90 && apt.totalColumns <= 2 && (
+                    <div className="text-xs text-gray-500 leading-tight truncate mt-1">
                       {apt.notes}
                     </div>
                   )}

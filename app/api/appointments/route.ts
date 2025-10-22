@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
         u.name AS customer_name,
         u.email AS customer_email,
         u.phone AS customer_phone,
+        a.guest_name,
         a.guest_email,
         a.guest_phone
       FROM appointments a
@@ -101,9 +102,11 @@ export async function GET(request: NextRequest) {
         end_time: slotEnd.toISOString(),
         duration: durationMinutes,
         status: STATUS_DB_TO_UI[row.status as string] ?? row.status,
-        customer_name: row.customer_name ?? row.guest_email ?? 'Guest',
+        customer_name: row.customer_name || row.guest_name || 'Guest',
         customer_email: row.customer_email ?? row.guest_email ?? null,
         customer_phone: row.customer_phone ?? row.guest_phone ?? null,
+        guest_email: row.guest_email ?? null,
+        guest_phone: row.guest_phone ?? null,
         version: row.version ?? 1,
         created_at: row.created_at,
         updated_at: row.updated_at,

@@ -87,6 +87,7 @@ export interface Appointment {
   booking_id: string;
   business_id: string;
   service_id: string;
+  service_name?: string | null;
   customer_id: string | null;
   customer_name?: string | null;
   customer_email?: string | null;
