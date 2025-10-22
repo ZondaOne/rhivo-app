@@ -467,7 +467,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
         transitionKey={view}
         direction={useViewTransitionDirection(previousView, view)}
       >
-        {/* Month view - hidden on mobile (below md breakpoint) */}
+        {/* Month view - hidden on mobile/tablet (below md breakpoint: 768px) */}
         {view === 'month' && (
           <div className="hidden md:block">
             <MonthView
@@ -485,9 +485,9 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
           </div>
         )}
 
-        {/* On mobile, show a message if month view is selected */}
+        {/* On mobile/tablet, show a message if month view is selected */}
         {view === 'month' && (
-          <div className="sm:hidden bg-white border border-gray-200/60 rounded-2xl p-6 flex items-center justify-center min-h-[300px]">
+          <div className="md:hidden bg-white border border-gray-200/60 rounded-2xl p-6 flex items-center justify-center min-h-[300px]">
             <div className="text-center max-w-sm">
               <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -516,10 +516,10 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
           </div>
         )}
 
-        {/* Week view - hidden on mobile */}
+        {/* Week view - hidden on mobile/tablet */}
         {view === 'week' && (
           <>
-            <div className="max-sm:hidden">
+            <div className="hidden md:block">
               <WeekView
                 currentDate={currentDate}
                 appointments={appointments}
@@ -529,8 +529,8 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
                 setDraggedAppointment={setDraggedAppointment}
               />
             </div>
-            {/* On mobile, show a message if week view is selected */}
-            <div className="sm:hidden bg-white border border-gray-200/60 rounded-2xl p-6 flex items-center justify-center min-h-[300px]">
+            {/* On mobile/tablet, show a message if week view is selected */}
+            <div className="md:hidden bg-white border border-gray-200/60 rounded-2xl p-6 flex items-center justify-center min-h-[300px]">
               <div className="text-center max-w-sm">
                 <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

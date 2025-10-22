@@ -29,11 +29,11 @@ export function CalendarSection({
   const t = useTranslations('dashboard');
 
   return (
-    <div className="px-4 py-4 sm:px-8 sm:py-6 lg:px-12 lg:py-8">
+    <div className="px-4 py-4 md:px-8 md:py-6 lg:px-12 lg:py-8">
       {/* Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
-        {/* Date Navigation - Hidden on mobile */}
-        <div className="max-sm:hidden flex items-center justify-center sm:justify-start gap-2 sm:gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
+        {/* Date Navigation - Hidden on mobile/tablet (below md: 768px) */}
+        <div className="hidden md:flex items-center justify-start gap-4">
           <button
             onClick={() => {
               const newDate = new Date(currentDate);
@@ -84,12 +84,12 @@ export function CalendarSection({
           </button>
         </div>
 
-        {/* View Selector - Only Day and List on mobile, all views on desktop */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl w-full sm:w-auto">
-          {/* Month view - Desktop only */}
+        {/* View Selector - Only Day and List on mobile/tablet, all views on desktop */}
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl w-full md:w-auto">
+          {/* Month view - Desktop only (hidden below md: 768px) */}
           <button
             onClick={() => onViewChange('month')}
-            className={`max-sm:hidden px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
               view === 'month'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
@@ -97,10 +97,10 @@ export function CalendarSection({
           >
             {t('viewMode.month')}
           </button>
-          {/* Week view - Desktop only */}
+          {/* Week view - Desktop only (hidden below md: 768px) */}
           <button
             onClick={() => onViewChange('week')}
-            className={`max-sm:hidden px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
               view === 'week'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
@@ -111,7 +111,7 @@ export function CalendarSection({
           {/* Day view - All screens */}
           <button
             onClick={() => onViewChange('day')}
-            className={`flex-1 sm:flex-none px-6 py-2.5 sm:py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-xl text-sm font-semibold transition-all ${
               view === 'day'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
@@ -122,7 +122,7 @@ export function CalendarSection({
           {/* List view - All screens */}
           <button
             onClick={() => onViewChange('list')}
-            className={`flex-1 sm:flex-none px-6 py-2.5 sm:py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-xl text-sm font-semibold transition-all ${
               view === 'list'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-900'
