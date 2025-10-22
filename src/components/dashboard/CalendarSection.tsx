@@ -32,8 +32,8 @@ export function CalendarSection({
     <div className="px-4 py-4 md:px-8 md:py-6 lg:px-12 lg:py-8">
       {/* Controls */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
-        {/* Date Navigation - Hidden on mobile/tablet (below md: 768px) */}
-        <div className="hidden md:flex items-center justify-start gap-4">
+        {/* Date Navigation - Hidden below lg (1024px), shows when Rivo logo appears */}
+        <div className="hidden lg:flex items-center justify-start gap-4">
           <button
             onClick={() => {
               const newDate = new Date(currentDate);

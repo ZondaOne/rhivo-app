@@ -613,22 +613,28 @@ function MonthView({
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const days = generateMonthCalendar(year, month, appointments);
+  const numWeeks = Math.ceil(days.length / 7);
 
   return (
     <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
       {/* Day Labels */}
       <div className="grid grid-cols-7 border-b border-gray-200/60 flex-shrink-0">
         {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
-          <div key={day} className="py-4 text-center border-r border-gray-200/60 last:border-r-0">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <div key={day} className="py-1.5 md:py-3 lg:py-4 xl:py-5 text-center border-r border-gray-200/60 last:border-r-0">
+            <span className="text-[9px] md:text-[10px] lg:text-xs xl:text-sm font-semibold uppercase tracking-wider text-gray-500">
               {t(day as any)}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Days Grid */}
-      <div className="grid grid-cols-7 flex-1 overflow-y-auto">
+      {/* Days Grid - Equal height rows */}
+      <div
+        className="grid grid-cols-7 flex-1 overflow-y-auto"
+        style={{
+          gridTemplateRows: `repeat(${numWeeks}, 1fr)`
+        }}
+      >
         {days.map((day, idx) => (
           <DayCell
             key={idx}
@@ -702,7 +708,7 @@ function DayCell({
 
   return (
     <div
-      className={`min-h-[100px] sm:min-h-[120px] max-h-[200px] sm:max-h-[240px] relative border-r border-b border-gray-200/60 last:border-r-0 ${
+      className={`h-full relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
       } ${!day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50 cursor-pointer' : ''
@@ -742,16 +748,16 @@ function DayCell({
       )}
 
       {/* Content */}
-      <div className="day-cell-content p-2 sm:p-3 flex flex-col gap-1.5 sm:gap-2">
+      <div className="day-cell-content p-1 md:p-2 lg:p-3 xl:p-4 flex flex-col gap-0.5 md:gap-1.5 lg:gap-2">
         {/* Day Number */}
         <div className="day-cell-content flex-shrink-0">
           {day.isToday ? (
-            <div className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
-              <span className="text-xs sm:text-sm font-bold text-white">{day.date.getDate()}</span>
+            <div className="inline-flex items-center justify-center w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
+              <span className="text-[10px] md:text-xs lg:text-sm xl:text-base font-bold text-white">{day.date.getDate()}</span>
             </div>
           ) : (
             <span
-              className={`text-xs sm:text-sm font-semibold ${
+              className={`text-[10px] md:text-xs lg:text-sm xl:text-base font-semibold ${
                 !day.isCurrentMonth ? 'text-gray-400' : isWeekend ? 'text-gray-500' : 'text-gray-900'
               }`}
             >
@@ -761,7 +767,7 @@ function DayCell({
         </div>
 
         {/* Appointments - VERTICAL stacking, max 2 visible */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5 md:gap-1">
           {(() => {
             const maxVisible = 2;
             const visibleAppointments = day.appointments.slice(0, maxVisible);
@@ -774,7 +780,7 @@ function DayCell({
                   <div
                     key={apt.id}
                     draggable
-                    className="text-[10px] sm:text-xs px-1.5 h-[22px] sm:h-[26px] box-border flex items-center rounded-md sm:rounded-lg bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer font-medium overflow-hidden flex-shrink-0"
+                    className="text-[9px] md:text-sm lg:text-base xl:text-lg px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center rounded-md md:rounded-lg lg:rounded-xl bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer font-semibold overflow-hidden flex-shrink-0"
                     onDragStart={(e) => {
                       e.dataTransfer.setData('appointmentId', apt.id);
                       setDraggedAppointment(apt);
@@ -795,7 +801,7 @@ function DayCell({
                 {overflow > 0 && (
                   <div className="flex-shrink-0">
                     <div
-                      className="px-1.5 sm:px-2 h-[22px] sm:h-[26px] box-border flex items-center justify-center rounded-md sm:rounded-lg bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 text-[10px] sm:text-xs font-semibold cursor-pointer"
+                      className="px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 text-[9px] md:text-sm lg:text-base xl:text-lg font-semibold cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Navigate to list view filtered to this date
