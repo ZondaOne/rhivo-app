@@ -741,13 +741,18 @@
         "close": "Cerrar",
         "saveChanges": "Guardar Cambios",
         "saving": "Guardando...",
-        "cancelAppointment": "Cancelar Cita"
+        "cancelAppointment": "Cancelar Cita",
+        "deleteAppointment": "Eliminar Cita"
       },
       "confirmations": {
         "cancelTitle": "Cancelar Cita",
         "cancelMessage": "¿Estás seguro de que quieres cancelar esta cita? Esta acción no se puede deshacer.",
         "cancelConfirm": "Sí, Cancelar Cita",
         "cancelCancel": "Mantener Cita",
+        "deleteTitle": "Eliminar Cita",
+        "deleteMessage": "¿Estás seguro de que quieres eliminar esta cita? La cita será cancelada y removida del calendario. Esta acción no se puede deshacer y se creará una entrada en el registro de auditoría.",
+        "deleteConfirm": "Sí, Eliminar Cita",
+        "deleteCancel": "Mantener Cita",
         "saveTitle": "Confirmar Cambios",
         "saveMessageTimeChange": "Estás cambiando la hora de la cita. El cliente será notificado por correo.",
         "saveMessageServiceChange": "Estás cambiando el servicio. El cliente será notificado por correo.",
@@ -757,12 +762,14 @@
       },
       "success": {
         "updated": "Cita actualizada exitosamente",
-        "cancelled": "Cita cancelada exitosamente"
+        "cancelled": "Cita cancelada exitosamente",
+        "deleted": "Cita eliminada exitosamente"
       },
       "errors": {
         "loadServices": "Error al cargar servicios",
         "updateFailed": "Error al actualizar cita",
-        "cancelFailed": "Error al cancelar cita"
+        "cancelFailed": "Error al cancelar cita",
+        "deleteFailed": "Error al eliminar cita"
       },
       "validation": {
         "fillRequired": "Por favor completa todos los campos requeridos",
@@ -821,19 +828,29 @@
       "buttons": {
         "cancel": "Cancelar",
         "confirm": "Confirmar Reagendar",
-        "confirming": "Reagendando..."
+        "confirming": "Reagendando...",
+        "delete": "Eliminar"
+      },
+      "deleteConfirm": {
+        "title": "Eliminar Cita",
+        "message": "¿Estás seguro de que quieres eliminar esta cita? La cita será cancelada y removida del calendario. Esta acción no se puede deshacer.",
+        "confirm": "Eliminar Cita",
+        "cancel": "Mantener Cita",
+        "deleting": "Eliminando..."
       },
       "validation": {
         "selectSlot": "Por favor selecciona un horario",
         "noChanges": "No hay cambios para guardar"
       },
       "success": {
-        "rescheduled": "Cita reagendada exitosamente"
+        "rescheduled": "Cita reagendada exitosamente",
+        "deleted": "Cita eliminada exitosamente"
       },
       "errors": {
         "loadSlots": "Error al cargar horarios disponibles",
         "loadServices": "Error al cargar servicios",
-        "rescheduleFailed": "Error al reagendar cita"
+        "rescheduleFailed": "Error al reagendar cita",
+        "deleteFailed": "Error al eliminar cita"
       }
     },
     "calendar": {

@@ -15,7 +15,8 @@ const STATUS_UI_TO_DB: Record<string, 'confirmed' | 'completed' | 'canceled' | '
   no_show: 'no_show',
 };
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const token = request.headers.get('authorization')?.replace('Bearer ', '').trim();
 
   if (!token) {
@@ -58,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             status = ${dbStatus},
             deleted_at = NOW(),
             updated_at = NOW()
-          WHERE id = ${params.id}
+          WHERE id = ${id}
             AND business_id = ${payload.business_id}
             AND deleted_at IS NULL
           RETURNING id
@@ -69,7 +70,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             status = ${dbStatus},
             deleted_at = NULL,
             updated_at = NOW()
-          WHERE id = ${params.id}
+          WHERE id = ${id}
             AND business_id = ${payload.business_id}
           RETURNING id
         `;
@@ -80,18 +81,32 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ message: 'Appointment not found' }, { status: 404 });
     }
 
+    // Update the audit log to include the actor (owner) who made the change
+    // The audit log is auto-created by the database trigger
     await sql`
       UPDATE audit_logs
       SET actor_id = ${payload.sub}
       WHERE id = (
         SELECT id
         FROM audit_logs
-        WHERE appointment_id = ${params.id}
+        WHERE appointment_id = ${id}
           AND actor_id IS NULL
         ORDER BY timestamp DESC
         LIMIT 1
       )
     `;
+
+    // If cancelling, optionally send customer notification
+    // (This is handled by the notification service in production)
+    if (isCancelling) {
+      try {
+        // Customer notification would be sent here via email service
+        console.log(`Appointment ${id} cancelled by owner ${payload.sub}`);
+      } catch (notificationError) {
+        console.error('Failed to send cancellation notification:', notificationError);
+        // Don't fail the request if notification fails
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

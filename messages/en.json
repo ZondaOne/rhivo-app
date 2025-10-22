@@ -740,13 +740,18 @@
         "close": "Close",
         "saveChanges": "Save Changes",
         "saving": "Saving...",
-        "cancelAppointment": "Cancel Appointment"
+        "cancelAppointment": "Cancel Appointment",
+        "deleteAppointment": "Delete Appointment"
       },
       "confirmations": {
         "cancelTitle": "Cancel Appointment",
         "cancelMessage": "Are you sure you want to cancel this appointment? This action cannot be undone.",
         "cancelConfirm": "Yes, Cancel Appointment",
         "cancelCancel": "Keep Appointment",
+        "deleteTitle": "Delete Appointment",
+        "deleteMessage": "Are you sure you want to delete this appointment? The appointment will be cancelled and removed from the calendar. This action cannot be undone and an audit log entry will be created.",
+        "deleteConfirm": "Yes, Delete Appointment",
+        "deleteCancel": "Keep Appointment",
         "saveTitle": "Confirm Changes",
         "saveMessageTimeChange": "You are changing the appointment time. The customer will be notified via email.",
         "saveMessageServiceChange": "You are changing the service. The customer will be notified via email.",
@@ -756,12 +761,14 @@
       },
       "success": {
         "updated": "Appointment updated successfully",
-        "cancelled": "Appointment cancelled successfully"
+        "cancelled": "Appointment cancelled successfully",
+        "deleted": "Appointment deleted successfully"
       },
       "errors": {
         "loadServices": "Failed to load services",
         "updateFailed": "Failed to update appointment",
-        "cancelFailed": "Failed to cancel appointment"
+        "cancelFailed": "Failed to cancel appointment",
+        "deleteFailed": "Failed to delete appointment"
       },
       "validation": {
         "fillRequired": "Please fill in all required fields",
@@ -820,19 +827,29 @@
       "buttons": {
         "cancel": "Cancel",
         "confirm": "Confirm Reschedule",
-        "confirming": "Rescheduling..."
+        "confirming": "Rescheduling...",
+        "delete": "Delete"
+      },
+      "deleteConfirm": {
+        "title": "Delete Appointment",
+        "message": "Are you sure you want to delete this appointment? The appointment will be cancelled and removed from the calendar. This action cannot be undone.",
+        "confirm": "Delete Appointment",
+        "cancel": "Keep Appointment",
+        "deleting": "Deleting..."
       },
       "validation": {
         "selectSlot": "Please select a time slot",
         "noChanges": "No changes to save"
       },
       "success": {
-        "rescheduled": "Appointment rescheduled successfully"
+        "rescheduled": "Appointment rescheduled successfully",
+        "deleted": "Appointment deleted successfully"
       },
       "errors": {
         "loadSlots": "Failed to load available times",
         "loadServices": "Failed to load services",
-        "rescheduleFailed": "Failed to reschedule appointment"
+        "rescheduleFailed": "Failed to reschedule appointment",
+        "deleteFailed": "Failed to delete appointment"
       }
     },
     "calendar": {

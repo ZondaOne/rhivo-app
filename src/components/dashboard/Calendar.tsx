@@ -401,10 +401,13 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
   }
 
   async function handleEditSuccess(updatedAppointment?: Appointment) {
+    console.log('[Calendar] handleEditSuccess called with:', updatedAppointment ? 'updated appointment' : 'undefined (deletion)');
     setEditingAppointment(null);
 
     // Update cache with the server-returned appointment data
     if (updatedAppointment) {
+      // Optimistic update: update the appointment in cache and UI without refetching
+      console.log('[Calendar] Optimistic update for appointment:', updatedAppointment.id);
       setAppointmentCache((prevCache) => {
         if (!prevCache) return prevCache;
 
@@ -423,9 +426,12 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
         prev.map((a) => (a.id === updatedAppointment.id ? updatedAppointment : a))
       );
     } else {
-      // No appointment data returned - invalidate cache and reload
+      // No appointment data returned (e.g., deleted/cancelled appointment)
+      // Invalidate cache and reload to remove from UI
+      console.log('[Calendar] Invalidating cache and reloading appointments after deletion');
       setAppointmentCache(null);
       await loadAppointments();
+      console.log('[Calendar] Appointments reloaded successfully');
     }
   }
 

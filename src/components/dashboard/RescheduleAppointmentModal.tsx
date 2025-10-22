@@ -53,6 +53,9 @@ export function RescheduleAppointmentModal({
   // Notification toggle
   const [notifyCustomer, setNotifyCustomer] = useState(true);
 
+  // Delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Computed values
   const selectedService = services.find(s => s.id === selectedServiceId);
   const currentEnd = new Date(appointment.end_time);
@@ -140,6 +143,34 @@ export function RescheduleAppointmentModal({
     }
   }
 
+  async function handleDeleteAppointment() {
+    setLoading(true);
+    setShowDeleteConfirm(false);
+
+    try {
+      await apiRequest(`/api/appointments/${appointment.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+
+      console.log('[RescheduleAppointmentModal] Appointment deleted successfully, closing modal and triggering reload');
+
+      showToast(t('success.deleted'), 'success');
+      
+      // Close modal first, then trigger parent reload
+      onClose();
+      
+      // Pass undefined to signal the parent to reload appointments
+      // since the appointment is now deleted (soft delete with deleted_at set)
+      onSuccess(undefined);
+    } catch (error) {
+      console.error('Failed to delete appointment:', error);
+      showToast(t('errors.deleteFailed'), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function getDateRange(): Date[] {
     const dates: Date[] = [];
     const today = new Date();
@@ -170,6 +201,32 @@ export function RescheduleAppointmentModal({
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('deleteConfirm.title')}</h3>
+            <p className="text-sm text-gray-600 mb-6">{t('deleteConfirm.message')}</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={loading}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                {t('deleteConfirm.cancel')}
+              </button>
+              <button
+                onClick={handleDeleteAppointment}
+                disabled={loading}
+                className="px-4 py-2 text-sm font-semibold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-all disabled:opacity-50"
+              >
+                {loading ? t('deleteConfirm.deleting') : t('deleteConfirm.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile: Full-screen overlay, Tablet: 90% width, Desktop: Centered modal with max-width */}
       <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4">
@@ -373,21 +430,36 @@ export function RescheduleAppointmentModal({
           </div>
 
           {/* Footer - Action Buttons (Sticky on Mobile) */}
-          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-t border-gray-100 flex items-center justify-end gap-2 sm:gap-3 bg-white">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-t border-gray-100 flex items-center justify-between gap-2 sm:gap-3 bg-white">
             <button
-              onClick={onClose}
-              disabled={loading}
-              className="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50"
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={loading || appointment.status === 'canceled'}
+              className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-red-700 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2"
+              title={appointment.status === 'canceled' ? 'Appointment is already cancelled' : 'Delete this appointment'}
             >
-              {t('buttons.cancel')}
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span className="hidden sm:inline">{t('buttons.delete')}</span>
             </button>
-            <button
-              onClick={handleConfirmReschedule}
-              disabled={loading || !selectedSlot}
-              className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl sm:rounded-2xl text-xs sm:text-base font-semibold hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? t('buttons.confirming') : t('buttons.confirm')}
-            </button>
+            
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={onClose}
+                disabled={loading}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50"
+              >
+                {t('buttons.cancel')}
+              </button>
+              <button
+                onClick={handleConfirmReschedule}
+                disabled={loading || !selectedSlot}
+                className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl sm:rounded-2xl text-xs sm:text-base font-semibold hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? t('buttons.confirming') : t('buttons.confirm')}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -741,13 +741,18 @@
         "close": "Chiudi",
         "saveChanges": "Salva Modifiche",
         "saving": "Salvataggio...",
-        "cancelAppointment": "Annulla Appuntamento"
+        "cancelAppointment": "Annulla Appuntamento",
+        "deleteAppointment": "Elimina Appuntamento"
       },
       "confirmations": {
         "cancelTitle": "Annulla Appuntamento",
         "cancelMessage": "Sei sicuro di voler annullare questo appuntamento? Questa azione non può essere annullata.",
         "cancelConfirm": "Sì, Annulla Appuntamento",
         "cancelCancel": "Mantieni Appuntamento",
+        "deleteTitle": "Elimina Appuntamento",
+        "deleteMessage": "Sei sicuro di voler eliminare questo appuntamento? L'appuntamento verrà annullato e rimosso dal calendario. Questa azione non può essere annullata e verrà creata una registrazione nel log di audit.",
+        "deleteConfirm": "Sì, Elimina Appuntamento",
+        "deleteCancel": "Mantieni Appuntamento",
         "saveTitle": "Conferma Modifiche",
         "saveMessageTimeChange": "Stai modificando l'orario dell'appuntamento. Il cliente verrà notificato via email.",
         "saveMessageServiceChange": "Stai modificando il servizio. Il cliente verrà notificato via email.",
@@ -757,12 +762,14 @@
       },
       "success": {
         "updated": "Appuntamento aggiornato con successo",
-        "cancelled": "Appuntamento annullato con successo"
+        "cancelled": "Appuntamento annullato con successo",
+        "deleted": "Appuntamento eliminato con successo"
       },
       "errors": {
         "loadServices": "Errore nel caricamento dei servizi",
         "updateFailed": "Errore nell'aggiornamento dell'appuntamento",
-        "cancelFailed": "Errore nell'annullamento dell'appuntamento"
+        "cancelFailed": "Errore nell'annullamento dell'appuntamento",
+        "deleteFailed": "Errore nell'eliminazione dell'appuntamento"
       },
       "validation": {
         "fillRequired": "Si prega di compilare tutti i campi obbligatori",
@@ -821,19 +828,29 @@
       "buttons": {
         "cancel": "Annulla",
         "confirm": "Conferma Riprogrammazione",
-        "confirming": "Riprogrammazione..."
+        "confirming": "Riprogrammazione...",
+        "delete": "Elimina"
+      },
+      "deleteConfirm": {
+        "title": "Elimina Appuntamento",
+        "message": "Sei sicuro di voler eliminare questo appuntamento? L'appuntamento verrà annullato e rimosso dal calendario. Questa azione non può essere annullata.",
+        "confirm": "Elimina Appuntamento",
+        "cancel": "Mantieni Appuntamento",
+        "deleting": "Eliminazione..."
       },
       "validation": {
         "selectSlot": "Si prega di selezionare un orario",
         "noChanges": "Nessuna modifica da salvare"
       },
       "success": {
-        "rescheduled": "Appuntamento riprogrammato con successo"
+        "rescheduled": "Appuntamento riprogrammato con successo",
+        "deleted": "Appuntamento eliminato con successo"
       },
       "errors": {
         "loadSlots": "Errore nel caricamento degli orari disponibili",
         "loadServices": "Errore nel caricamento dei servizi",
-        "rescheduleFailed": "Errore nella riprogrammazione dell'appuntamento"
+        "rescheduleFailed": "Errore nella riprogrammazione dell'appuntamento",
+        "deleteFailed": "Errore nell'eliminazione dell'appuntamento"
       }
     },
     "calendar": {

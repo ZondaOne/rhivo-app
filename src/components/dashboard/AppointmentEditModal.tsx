@@ -177,13 +177,23 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
     setShowCancelConfirm(false);
 
     try {
+      // Use PATCH to update status to 'cancelled' which also sets deleted_at
+      // This is a soft delete that maintains data integrity and audit trail
       await apiRequest(`/api/appointments/${appointment.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status: 'cancelled' }),
       });
 
+      console.log('[AppointmentEditModal] Appointment deleted successfully, closing modal and triggering reload');
+      
       showToast(t('success.cancelled'), 'success');
-      onSave();
+      
+      // Close modal first, then trigger parent reload
+      onClose();
+      
+      // Pass undefined to signal the parent to reload appointments
+      // since the appointment is now deleted (soft delete with deleted_at set)
+      onSave(undefined);
     } catch (error) {
       console.error('Failed to cancel appointment:', error);
       showToast(t('errors.cancelFailed'), 'error');
@@ -214,10 +224,10 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
         isOpen={showCancelConfirm}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={confirmCancel}
-        title={t('confirmations.cancelTitle')}
-        message={t('confirmations.cancelMessage')}
-        confirmText={t('confirmations.cancelConfirm')}
-        cancelText={t('confirmations.cancelCancel')}
+        title={t('confirmations.deleteTitle')}
+        message={t('confirmations.deleteMessage')}
+        confirmText={t('confirmations.deleteConfirm')}
+        cancelText={t('confirmations.deleteCancel')}
         variant="danger"
         isLoading={loading}
       />
@@ -411,10 +421,14 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
           <button
             type="button"
             onClick={handleDelete}
-            disabled={loading}
-            className="px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
+            disabled={loading || status === 'canceled'}
+            className="px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            title={status === 'canceled' ? 'Appointment is already cancelled' : 'Cancel this appointment'}
           >
-            {t('buttons.cancelAppointment')}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {t('buttons.deleteAppointment')}
           </button>
 
           <div className="flex gap-3">
