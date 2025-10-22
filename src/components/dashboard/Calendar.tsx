@@ -43,6 +43,8 @@ interface AppointmentCache {
 
 export function Calendar({ view, currentDate, onViewChange, onDateChange, businessId }: CalendarProps) {
   const t = useTranslations('dashboard.calendar');
+  const ts = useTranslations('dashboard.appointmentCard.status');
+  const canceledLabel = ts('cancelled');
   const { toasts, showToast, removeToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
@@ -572,6 +574,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
                 draggedAppointment={draggedAppointment}
                 setDraggedAppointment={setDraggedAppointment}
                 onDateChange={onDateChange}
+                canceledLabel={canceledLabel}
               />
             </div>
             {/* On mobile/tablet, show a message if week view is selected */}
@@ -615,6 +618,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
             setDraggedAppointment={setDraggedAppointment}
             highlightedAppointmentId={highlightedAppointmentId}
             onDateChange={onDateChange}
+            canceledLabel={canceledLabel}
           />
         )}
 
@@ -903,6 +907,7 @@ function WeekView({
   draggedAppointment,
   setDraggedAppointment,
   onDateChange,
+  canceledLabel,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -911,6 +916,7 @@ function WeekView({
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
   onDateChange?: (date: Date) => void;
+  canceledLabel: string;
 }) {
   const weekStart = new Date(currentDate);
   const dayOfWeek = weekStart.getDay();
@@ -1093,6 +1099,7 @@ function WeekView({
                   onEdit={onEdit}
                   draggedAppointment={draggedAppointment}
                   setDraggedAppointment={setDraggedAppointment}
+                  canceledLabel={canceledLabel}
                 />
               );
             })}
@@ -1117,6 +1124,7 @@ function WeekDayCell({
   onEdit,
   draggedAppointment,
   setDraggedAppointment,
+  canceledLabel,
 }: {
   day: Date;
   hour: number;
@@ -1131,6 +1139,7 @@ function WeekDayCell({
   onEdit: (id: string) => void;
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
+  canceledLabel: string;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
@@ -1348,7 +1357,7 @@ function WeekDayCell({
                   )}
                   {isCanceled && heightPx > 40 && (
                     <div className="text-[10px] leading-tight mt-1 text-gray-500">
-                      Canceled
+                      {canceledLabel}
                     </div>
                   )}
                 </div>
@@ -1385,6 +1394,7 @@ function DayView({
   setDraggedAppointment,
   highlightedAppointmentId,
   onDateChange,
+  canceledLabel,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -1394,6 +1404,7 @@ function DayView({
   setDraggedAppointment: (apt: Appointment | null) => void;
   highlightedAppointmentId?: string | null;
   onDateChange?: (date: Date) => void;
+  canceledLabel: string;
 }) {
   const START_HOUR = 6;
   const END_HOUR = 22;
@@ -1599,6 +1610,7 @@ function DayView({
               draggedAppointment={draggedAppointment}
               setDraggedAppointment={setDraggedAppointment}
               highlightedAppointmentId={highlightedAppointmentId}
+              canceledLabel={canceledLabel}
             />
           </div>
         ))}
@@ -1622,6 +1634,7 @@ function DayHourCell({
   draggedAppointment,
   setDraggedAppointment,
   highlightedAppointmentId,
+  canceledLabel,
 }: {
   date: Date;
   hour: number;
@@ -1637,6 +1650,7 @@ function DayHourCell({
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
   highlightedAppointmentId?: string | null;
+  canceledLabel: string;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
@@ -1868,7 +1882,7 @@ function DayHourCell({
                   )}
                   {isCanceled && heightPx > 50 && (
                     <div className="text-xs leading-tight mt-1 text-gray-500">
-                      Canceled
+                      {canceledLabel}
                     </div>
                   )}
                   {apt.notes && heightPx > 90 && apt.totalColumns <= 2 && !isCanceled && (

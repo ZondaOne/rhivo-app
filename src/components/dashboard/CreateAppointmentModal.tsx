@@ -504,7 +504,7 @@ export function CreateAppointmentModal({
                       {t('datetime.selectTime_label')}
                     </label>
                     <span className="text-[10px] sm:text-xs text-gray-500">
-                      {t('datetime.serviceMinutes', { minutes: selectedService.duration_minutes })}
+                      {t('datetime.serviceMinutes', { minutes: selectedService.duration_minutes || 0 })}
                     </span>
                   </div>
 
