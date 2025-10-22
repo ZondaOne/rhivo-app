@@ -15,10 +15,10 @@ const createManualAppointmentSchema = z.object({
     .enum(['confirmed', 'completed', 'cancelled', 'canceled', 'no_show'])
     .optional()
     .default('confirmed'),
-  customer_email: z.string().email({ message: 'customer_email must be valid' }).optional(),
-  customer_name: z.string().min(1).max(120).optional(),
-  customer_phone: z.string().min(3).max(40).optional(),
-  notes: z.string().max(500).optional(),
+  customer_email: z.string().email({ message: 'customer_email must be valid' }),
+  customer_name: z.string().min(1, { message: 'customer_name is required' }).max(120),
+  customer_phone: z.string().min(3).max(40).optional().or(z.literal('')),
+  notes: z.string().max(500).optional().or(z.literal('')),
   idempotency_key: z.string().min(8).max(128).optional(),
 });
 
@@ -102,13 +102,6 @@ export async function POST(request: NextRequest) {
     // Snap times to 5-minute grain for consistency
     slotStart = snapToGrain(slotStart);
     slotEnd = snapToGrain(slotEnd);
-
-    if (!body.customer_email) {
-      return NextResponse.json(
-        { message: 'customer_email is required for manual appointment creation' },
-        { status: 400 }
-      );
-    }
 
     const [existingCustomer] = await sql`
       SELECT id FROM users
@@ -201,7 +194,7 @@ export async function POST(request: NextRequest) {
       guestPhone: undefined,
       idempotencyKey,
       actorId: payload.sub,
-      maxSimultaneousBookings: serviceConfig.maxSimultaneousBookings,
+      maxSimultaneousBookings: serviceConfig.maxSimultaneousBookings ?? 1,
     });
 
     const desiredStatus = STATUS_UI_TO_DB[body.status] ?? 'confirmed';

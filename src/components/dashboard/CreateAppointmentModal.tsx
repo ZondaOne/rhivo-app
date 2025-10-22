@@ -72,6 +72,16 @@ export function CreateAppointmentModal({
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState<{
+    customer_name?: string[];
+    customer_email?: string[];
+    customer_phone?: string[];
+    notes?: string[];
+    service_id?: string[];
+    start_time?: string[];
+  }>({});
+
   useEffect(() => {
     if (isOpen) {
       loadServicesAndConfig();
@@ -187,6 +197,7 @@ export function CreateAppointmentModal({
     setCustomerPhone('');
     setNotes('');
     setAvailableSlots([]);
+    setValidationErrors({});
   }
 
   async function handleCreateAppointment() {
@@ -195,6 +206,8 @@ export function CreateAppointmentModal({
       return;
     }
 
+    // Clear previous validation errors
+    setValidationErrors({});
     setLoading(true);
 
     try {
@@ -216,9 +229,18 @@ export function CreateAppointmentModal({
       onSuccess();
       onClose();
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create appointment:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+      
+      // Check if error has validation errors from the API
+      if (error?.details?.errors || error?.errors) {
+        const errors = error.details?.errors || error.errors;
+        setValidationErrors(errors);
+        // Don't show toast for validation errors, just show inline errors
+      } else {
+        // For other errors, show toast
+        showToast(mapErrorToUserMessage(error), 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -285,10 +307,12 @@ export function CreateAppointmentModal({
 
   return (
     <>
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-
       {/* Mobile: Full-screen overlay, Tablet: 90% width, Desktop: Centered modal with max-width */}
       <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        {/* Toast Container - Outside modal, above modal z-index */}
+        <div className="fixed top-4 right-4 z-[60]">
+          <ToastContainer toasts={toasts} onRemove={removeToast} />
+        </div>
         <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:w-[90%] max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col animate-slide-up sm:animate-none">
           {/* Header */}
           <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b border-gray-100 bg-white">
@@ -601,6 +625,27 @@ export function CreateAppointmentModal({
                   </div>
                 </div>
 
+                {/* Validation Error Banner */}
+                {Object.keys(validationErrors).length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 sm:p-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <div className="flex-1">
+                        <div className="text-xs sm:text-sm font-semibold text-red-900">Please correct the following errors:</div>
+                        <ul className="mt-1 text-xs text-red-700 list-disc list-inside">
+                          {Object.entries(validationErrors).map(([field, errors]) => (
+                            errors && errors.length > 0 && (
+                              <li key={field}>{errors[0]}</li>
+                            )
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Customer Form */}
                 <div>
                   <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 sm:mb-4">
@@ -616,10 +661,28 @@ export function CreateAppointmentModal({
                         id="customer_name"
                         required
                         value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
+                        onChange={(e) => {
+                          setCustomerName(e.target.value);
+                          // Clear validation error when user types
+                          if (validationErrors.customer_name) {
+                            setValidationErrors(prev => ({ ...prev, customer_name: undefined }));
+                          }
+                        }}
+                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 transition-all ${
+                          validationErrors.customer_name
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-200 focus:ring-teal-500 focus:border-teal-500'
+                        }`}
                         placeholder={t('customer.namePlaceholder')}
                       />
+                      {validationErrors.customer_name && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {validationErrors.customer_name[0]}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -632,10 +695,28 @@ export function CreateAppointmentModal({
                           id="customer_email"
                           required
                           value={customerEmail}
-                          onChange={(e) => setCustomerEmail(e.target.value)}
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
+                          onChange={(e) => {
+                            setCustomerEmail(e.target.value);
+                            // Clear validation error when user types
+                            if (validationErrors.customer_email) {
+                              setValidationErrors(prev => ({ ...prev, customer_email: undefined }));
+                            }
+                          }}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 transition-all ${
+                            validationErrors.customer_email
+                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              : 'border-gray-200 focus:ring-teal-500 focus:border-teal-500'
+                          }`}
                           placeholder={t('customer.emailPlaceholder')}
                         />
+                        {validationErrors.customer_email && (
+                          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {validationErrors.customer_email[0]}
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -646,10 +727,28 @@ export function CreateAppointmentModal({
                           type="tel"
                           id="customer_phone"
                           value={customerPhone}
-                          onChange={(e) => setCustomerPhone(e.target.value)}
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
+                          onChange={(e) => {
+                            setCustomerPhone(e.target.value);
+                            // Clear validation error when user types
+                            if (validationErrors.customer_phone) {
+                              setValidationErrors(prev => ({ ...prev, customer_phone: undefined }));
+                            }
+                          }}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 transition-all ${
+                            validationErrors.customer_phone
+                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                              : 'border-gray-200 focus:ring-teal-500 focus:border-teal-500'
+                          }`}
                           placeholder={t('customer.phonePlaceholder')}
                         />
+                        {validationErrors.customer_phone && (
+                          <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {validationErrors.customer_phone[0]}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -661,10 +760,28 @@ export function CreateAppointmentModal({
                         id="notes"
                         rows={3}
                         value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all resize-none"
+                        onChange={(e) => {
+                          setNotes(e.target.value);
+                          // Clear validation error when user types
+                          if (validationErrors.notes) {
+                            setValidationErrors(prev => ({ ...prev, notes: undefined }));
+                          }
+                        }}
+                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:ring-2 transition-all resize-none ${
+                          validationErrors.notes
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-200 focus:ring-teal-500 focus:border-teal-500'
+                        }`}
                         placeholder={t('customer.notesPlaceholder')}
                       />
+                      {validationErrors.notes && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {validationErrors.notes[0]}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
