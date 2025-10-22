@@ -36,6 +36,12 @@ const ColorHex = z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
 // URL validator
 const UrlString = z.string().url({ message: 'Must be a valid URL' });
 
+// Optional URL validator (allows empty string or undefined)
+const OptionalUrlString = z.string().optional().transform((val) => {
+  if (!val || val.trim() === '') return undefined;
+  return val;
+}).pipe(z.string().url({ message: 'Must be a valid URL' }).optional());
+
 // Email validator
 const EmailString = z.string().email({ message: 'Must be a valid email address' });
 
@@ -57,7 +63,7 @@ const ContactSchema = z.object({
   }),
   email: EmailString,
   phone: PhoneString,
-  website: UrlString.optional(),
+  website: OptionalUrlString,
   // Geolocation coordinates for map display
   latitude: z.number()
     .min(-90, 'Latitude must be between -90 and 90')
@@ -76,9 +82,9 @@ const BrandingSchema = z.object({
   primaryColor: ColorHex,
   secondaryColor: ColorHex.optional(),
   logoUrl: UrlString,
-  coverImageUrl: UrlString.optional(),
-  profileImageUrl: UrlString.optional(), // Profile picture/avatar for business cards
-  faviconUrl: UrlString.optional(),
+  coverImageUrl: OptionalUrlString,
+  profileImageUrl: OptionalUrlString, // Profile picture/avatar for business cards
+  faviconUrl: OptionalUrlString,
 });
 
 /**
@@ -132,6 +138,8 @@ const DailyAvailabilitySchema = z.object({
   slots: z.array(TimeSlotSchema).optional(),
   enabled: z.boolean().default(true),
 }).transform((data) => {
+  console.log(`[Schema Transform] Processing day ${data.day}:`, JSON.stringify(data, null, 2));
+  
   // Backward compatibility: convert single open/close to slots array
   if (data.open && data.close && !data.slots) {
     console.info(`[YAML Config] Converting single open/close times for ${data.day} to slots array format`);
@@ -142,8 +150,8 @@ const DailyAvailabilitySchema = z.object({
     };
   }
 
-  // If slots are provided, use them (remove legacy open/close from output)
-  if (data.slots) {
+  // If slots are provided (including empty array), use them
+  if (data.slots !== undefined) {
     return {
       day: data.day,
       enabled: data.enabled,

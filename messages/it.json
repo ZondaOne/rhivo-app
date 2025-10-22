@@ -387,7 +387,29 @@
     "services": {
       "title": "Servizi",
       "subtitle": "Quali servizi offri?",
-      "skipNote": "Puoi saltare questo passaggio e aggiungere i servizi più tardi nella tua dashboard"
+      "skipNote": "Puoi saltare questo passaggio e aggiungere i servizi più tardi nella tua dashboard",
+      "builder": {
+        "categoryNamePlaceholder": "Nome categoria (es., Barberia)",
+        "categoryDescriptionPlaceholder": "Descrizione categoria (opzionale)",
+        "serviceNamePlaceholder": "Nome servizio (es., Taglio di Capelli)",
+        "serviceNamePlaceholder2": "Nome servizio (es., Taglio Barba)",
+        "serviceDescriptionPlaceholder": "Descrizione del servizio",
+        "durationLabel": "Durata (minuti)",
+        "priceLabel": "Prezzo (€)",
+        "priceHelp": "es., 30.00",
+        "colorLabel": "Colore (opzionale)",
+        "useDefaultColor": "Usa colori del brand (predefinito)",
+        "addService": "Aggiungi Servizio",
+        "addCategory": "Aggiungi Categoria",
+        "noServices": "Nessun servizio ancora",
+        "noServicesHelp": "Fai clic su \"Aggiungi Categoria\" sopra per creare la tua prima categoria di servizio",
+        "exampleCategory": "Servizi per Capelli",
+        "exampleCategoryDescription": "Cura e styling professionale dei capelli",
+        "exampleService1": "Taglio di Capelli",
+        "exampleService1Description": "Taglio e styling classico",
+        "exampleService2": "Colorazione Capelli",
+        "exampleService2Description": "Trattamento colore completo"
+      }
     },
     "availability": {
       "title": "Disponibilità",

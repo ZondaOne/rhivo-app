@@ -387,7 +387,29 @@
     "services": {
       "title": "Servicios",
       "subtitle": "¿Qué servicios ofreces?",
-      "skipNote": "Puedes omitir este paso y agregar servicios más tarde en tu panel"
+      "skipNote": "Puedes omitir este paso y agregar servicios más tarde en tu panel",
+      "builder": {
+        "categoryNamePlaceholder": "Nombre de categoría (ej., Servicios de Cabello)",
+        "categoryDescriptionPlaceholder": "Descripción de categoría (opcional)",
+        "serviceNamePlaceholder": "Nombre de servicio (ej., Corte de Cabello)",
+        "serviceNamePlaceholder2": "ej., Coloración de Cabello",
+        "serviceDescriptionPlaceholder": "Descripción del servicio",
+        "durationLabel": "Duración (minutos)",
+        "priceLabel": "Precio (€)",
+        "priceHelp": "ej., 30.00",
+        "colorLabel": "Color (opcional)",
+        "useDefaultColor": "Usar colores de marca (predeterminado)",
+        "addService": "Agregar Servicio",
+        "addCategory": "Agregar Categoría",
+        "noServices": "Aún no hay servicios",
+        "noServicesHelp": "Haz clic en \"Agregar Categoría\" arriba para crear tu primera categoría de servicio",
+        "exampleCategory": "Servicios de Cabello",
+        "exampleCategoryDescription": "Cuidado y peinado profesional del cabello",
+        "exampleService1": "Corte de Cabello",
+        "exampleService1Description": "Corte y peinado clásico",
+        "exampleService2": "Coloración de Cabello",
+        "exampleService2Description": "Tratamiento de color completo"
+      }
     },
     "availability": {
       "title": "Disponibilidad",

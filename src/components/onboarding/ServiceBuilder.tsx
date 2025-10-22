@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface Service {
   id: string;
@@ -44,6 +45,7 @@ const SERVICE_COLORS = [
 ];
 
 export default function ServiceBuilder({ categories, onChange }: ServiceBuilderProps) {
+  const t = useTranslations('onboard.services.builder');
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [expandedService, setExpandedService] = useState<string | null>(null);
 
@@ -146,8 +148,8 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                     updateCategory(category.id, { id: generateId(name) });
                   }
                 }}
-                placeholder="Category name (e.g., Hair Services)"
-                className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent font-semibold text-gray-900"
+                placeholder={t('categoryNamePlaceholder')}
+                className="flex-1 px-4 py-2 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent font-semibold"
               />
               <button
                 onClick={() =>
@@ -191,9 +193,9 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                 <textarea
                   value={category.description}
                   onChange={(e) => updateCategory(category.id, { description: e.target.value })}
-                  placeholder="Category description (optional)"
+                  placeholder={t('categoryDescriptionPlaceholder')}
                   rows={2}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+                  className="w-full px-4 py-3 text-gray-900 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                 />
               </div>
             )}
@@ -221,8 +223,8 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                         updateService(category.id, service.id, { id: generateId(name) });
                       }
                     }}
-                    placeholder="Service name (e.g., Haircut)"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent font-medium text-sm"
+                    placeholder={t('serviceNamePlaceholder2')}
+                    className="flex-1 px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent font-medium text-sm"
                   />
                   <button
                     onClick={() =>
@@ -269,15 +271,15 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                       onChange={(e) =>
                         updateService(category.id, service.id, { description: e.target.value })
                       }
-                      placeholder="Service description"
+                      placeholder={t('serviceDescriptionPlaceholder')}
                       rows={2}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                     />
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Duration (minutes)
+                          {t('durationLabel')}
                         </label>
                         <input
                           type="number"
@@ -289,13 +291,13 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                           }
                           min={5}
                           step={5}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+                          className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                         />
                       </div>
 
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Price (€)
+                          {t('priceLabel')}
                         </label>
                         <input
                           type="number"
@@ -307,17 +309,17 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                           }
                           min={0}
                           step={0.5}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+                          className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          e.g., 30.00
+                          {t('priceHelp')}
                         </p>
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-2">
-                        Color (optional)
+                        {t('colorLabel')}
                       </label>
                       <div className="grid grid-cols-7 gap-2">
                         {SERVICE_COLORS.map((color) => (
@@ -340,7 +342,7 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
                           onClick={() => updateService(category.id, service.id, { color: undefined })}
                           className="mt-2 text-xs text-gray-500 hover:text-gray-700 underline"
                         >
-                          Use brand colors (default)
+                          {t('useDefaultColor')}
                         </button>
                       )}
                     </div>
@@ -353,7 +355,7 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
               onClick={() => addService(category.id)}
               className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-semibold text-gray-500 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all"
             >
-              + Add Service
+              + {t('addService')}
             </button>
           </div>
         </div>
@@ -363,14 +365,14 @@ export default function ServiceBuilder({ categories, onChange }: ServiceBuilderP
         onClick={addCategory}
         className="w-full px-6 py-4 border-2 border-dashed border-gray-300 rounded-2xl text-sm font-semibold text-gray-500 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all"
       >
-        + Add Category
+        + {t('addCategory')}
       </button>
 
       {categories.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">No services yet</p>
+          <p className="text-gray-500 mb-4">{t('noServices')}</p>
           <p className="text-sm text-gray-400">
-            Click "Add Category" above to create your first service category
+            {t('noServicesHelp')}
           </p>
         </div>
       )}

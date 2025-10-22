@@ -39,8 +39,7 @@ export interface OnboardingFormData {
   // Availability
   availability: Array<{
     day: string;
-    open: string;
-    close: string;
+    slots: Array<{ open: string; close: string }>;
     enabled: boolean;
   }>;
 
@@ -70,7 +69,7 @@ export interface OnboardingFormData {
  */
 export function generateTenantConfig(formData: OnboardingFormData): TenantConfig {
   try {
-    console.log('Generating config - availability:', formData.availability);
+    console.log('Generating config - availability:', JSON.stringify(formData.availability, null, 2));
 
     const config: TenantConfig = {
       version: '1.0.0',
@@ -120,12 +119,15 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
       timeSlotDuration: formData.timeSlotDuration,
 
       availability: Array.isArray(formData.availability)
-        ? formData.availability.map((day) => ({
-            day: day.day as any,
-            open: day.open,
-            close: day.close,
-            enabled: day.enabled,
-          }))
+        ? formData.availability.map((day) => {
+            const mapped = {
+              day: day.day as any,
+              enabled: day.enabled,
+              slots: day.slots || [],
+            };
+            console.log(`Mapping day ${day.day}:`, JSON.stringify(mapped, null, 2));
+            return mapped;
+          })
         : [],
 
       availabilityExceptions: [],
@@ -238,8 +240,8 @@ export function generateYAML(formData: OnboardingFormData): {
 
     if (!validation.success) {
       console.error('Schema validation failed:', validation.error);
-      const errors = validation.error?.errors
-        ? validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+      const errors = validation.error?.issues
+        ? validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`)
         : ['Validation failed with unknown errors'];
       return {
         success: false,

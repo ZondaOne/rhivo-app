@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 4: Check for existing owner
+    console.log('🔍 Checking for existing owner with email:', formData.email);
     const existingUser = await db`
       SELECT id, email, role, email_verified
       FROM users
@@ -91,28 +92,59 @@ export async function POST(request: NextRequest) {
     `;
 
     const isExistingOwner = existingUser.length > 0;
+    console.log('Existing owner?', isExistingOwner);
     let ownerUserId: string | null = null;
     let requiresAuth = false;
 
     // Step 5: Handle owner account
     if (isExistingOwner) {
+      console.log('Found existing user:', existingUser[0]);
       const user = existingUser[0];
 
-      // If password provided, it's a login attempt for existing owner
-      if (formData.password) {
+      // Check if user is a customer trying to become an owner
+      if (user.role === 'customer') {
+        console.log('Customer trying to register as business owner - treating as new owner');
+        // Treat as new owner registration - customer accounts are separate from owner accounts
+        // Customer will upgrade to owner role with a password
+        if (!formData.password) {
+          return NextResponse.json(
+            { success: false, errors: { password: 'Password is required to create a business account' } },
+            { status: 400 }
+          );
+        }
+        // Will create new owner account below
+        ownerUserId = null; // Force new owner creation
+      } else if (user.role === 'owner') {
+        // Existing owner - authenticate
+        if (!formData.password) {
+          return NextResponse.json(
+            {
+              success: false,
+              errors: {
+                email: 'An owner account with this email already exists. Please login with your password.'
+              },
+              requiresAuth: true,
+            },
+            { status: 409 }
+          );
+        }
+
+        console.log('Password provided for existing owner - authenticating...');
         // Authenticate
         const [userWithPassword] = await db`
           SELECT password_hash FROM users WHERE id = ${user.id}
         `;
 
         if (!userWithPassword.password_hash) {
+          console.error('Owner has no password hash in database');
           return NextResponse.json(
-            { success: false, errors: { auth: 'Invalid credentials' } },
+            { success: false, errors: { auth: 'Invalid credentials - password not set' } },
             { status: 401 }
           );
         }
 
         const passwordValid = await bcrypt.compare(formData.password, userWithPassword.password_hash);
+        console.log('Password valid?', passwordValid);
         if (!passwordValid) {
           return NextResponse.json(
             { success: false, errors: { auth: 'Invalid credentials' } },
@@ -120,29 +152,16 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Check role
-        if (user.role !== 'owner') {
-          return NextResponse.json(
-            { success: false, errors: { auth: 'Only owners can register businesses' } },
-            { status: 403 }
-          );
-        }
-
         ownerUserId = user.id;
       } else {
-        // Existing user but no password provided - return error asking for login
+        // Unknown role
         return NextResponse.json(
-          {
-            success: false,
-            errors: {
-              email: 'An account with this email already exists. Please login with your password.'
-            },
-            requiresAuth: true,
-          },
-          { status: 409 }
+          { success: false, errors: { auth: 'Invalid account type' } },
+          { status: 403 }
         );
       }
     } else {
+      console.log('New user registration - creating account');
       // New owner - must have password
       if (!formData.password) {
         return NextResponse.json(
@@ -150,6 +169,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      console.log('Password provided for new user ✓');
     }
 
     // Step 6: Create business and owner account
@@ -186,31 +206,60 @@ export async function POST(request: NextRequest) {
       let owner: { id: string; email: string };
 
       if (isExistingOwner && ownerUserId) {
+        // Existing owner linking to new business
         owner = { id: ownerUserId, email: formData.email };
       } else {
-        const [newOwner] = await db`
-          INSERT INTO users (
-            email,
-            name,
-            role,
-            business_id,
-            password_hash,
-            email_verified,
-            email_verification_token,
-            email_verification_expires_at
-          ) VALUES (
-            ${formData.email},
-            ${formData.ownerName},
-            'owner',
-            ${business.id},
-            ${passwordHash},
-            false,
-            ${verificationTokenHash},
-            ${verificationExpiry}
-          )
-          RETURNING id, email
+        // New owner OR customer upgrading to owner
+        // Check if a customer record exists that we need to upgrade
+        const existingCustomer = await db`
+          SELECT id FROM users 
+          WHERE email = ${formData.email} 
+          AND role = 'customer' 
+          AND deleted_at IS NULL
         `;
-        owner = newOwner;
+
+        if (existingCustomer.length > 0) {
+          // Upgrade existing customer to owner
+          console.log('Upgrading customer to owner role');
+          const [upgradedOwner] = await db`
+            UPDATE users
+            SET 
+              role = 'owner',
+              name = ${formData.ownerName},
+              password_hash = ${passwordHash},
+              email_verification_token = ${verificationTokenHash},
+              email_verification_expires_at = ${verificationExpiry}
+            WHERE id = ${existingCustomer[0].id}
+            RETURNING id, email
+          `;
+          owner = { id: upgradedOwner.id, email: upgradedOwner.email };
+        } else {
+          // Create completely new owner
+          console.log('Creating new owner account');
+          const [newOwner] = await db`
+            INSERT INTO users (
+              email,
+              name,
+              role,
+              business_id,
+              password_hash,
+              email_verified,
+              email_verification_token,
+              email_verification_expires_at
+            ) VALUES (
+              ${formData.email},
+              ${formData.ownerName},
+              'owner',
+              ${business.id},
+              ${passwordHash},
+              false,
+              ${verificationTokenHash},
+              ${verificationExpiry}
+            )
+            RETURNING id, email
+          `;
+          owner = { id: newOwner.id, email: newOwner.email };
+        }
       }
 
       // Create business-owner relationship
@@ -285,21 +334,30 @@ export async function POST(request: NextRequest) {
       };
 
       for (const day of formData.availability) {
-        await db`
-          INSERT INTO availability (
-            business_id,
-            day_of_week,
-            start_time,
-            end_time,
-            is_closed
-          ) VALUES (
-            ${business.id},
-            ${dayMap[day.day]},
-            ${day.open},
-            ${day.close},
-            ${!day.enabled}
-          )
-        `;
+        // Only insert availability for enabled days with slots
+        // Closed days (enabled=false) are represented by the absence of records
+        if (day.enabled && day.slots && day.slots.length > 0) {
+          // Insert each time slot for the day
+          for (const slot of day.slots) {
+            await db`
+              INSERT INTO availability (
+                business_id,
+                day_of_week,
+                start_time,
+                end_time,
+                is_closed
+              ) VALUES (
+                ${business.id},
+                ${dayMap[day.day]},
+                ${slot.open},
+                ${slot.close},
+                false
+              )
+            `;
+          }
+        }
+        // Note: Closed days (enabled=false) don't get any records
+        // The absence of an availability record means the business is closed that day
       }
 
       // Generate URLs

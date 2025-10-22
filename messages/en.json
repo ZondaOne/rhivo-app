@@ -386,7 +386,29 @@
     "services": {
       "title": "Services",
       "subtitle": "What services do you offer?",
-      "skipNote": "You can skip this step and add services later in your dashboard"
+      "skipNote": "You can skip this step and add services later in your dashboard",
+      "builder": {
+        "categoryNamePlaceholder": "Category name (e.g., Hair Services)",
+        "categoryDescriptionPlaceholder": "Category description (optional)",
+        "serviceNamePlaceholder": "Service name (e.g., Haircut)",
+        "serviceNamePlaceholder2": "e.g., Hair Coloring",
+        "serviceDescriptionPlaceholder": "Service description",
+        "durationLabel": "Duration (minutes)",
+        "priceLabel": "Price (€)",
+        "priceHelp": "e.g., 30.00",
+        "colorLabel": "Color (optional)",
+        "useDefaultColor": "Use brand colors (default)",
+        "addService": "Add Service",
+        "addCategory": "Add Category",
+        "noServices": "No services yet",
+        "noServicesHelp": "Click \"Add Category\" above to create your first service category",
+        "exampleCategory": "Hair Services",
+        "exampleCategoryDescription": "Professional hair care and styling",
+        "exampleService1": "Haircut",
+        "exampleService1Description": "Classic haircut and styling",
+        "exampleService2": "Hair Coloring",
+        "exampleService2Description": "Full color treatment"
+      }
     },
     "availability": {
       "title": "Availability",

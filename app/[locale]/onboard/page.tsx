@@ -147,7 +147,34 @@ export default function OnboardBusinessPage() {
   const [countryOpen, setCountryOpen] = useState(false);
 
   // Services
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>([
+    {
+      id: 'example-category',
+      name: '',
+      description: '',
+      sortOrder: 0,
+      services: [
+        {
+          id: 'example-service-1',
+          name: '',
+          description: '',
+          duration: 30,
+          price: 0,
+          sortOrder: 0,
+          enabled: true,
+        },
+        {
+          id: 'example-service-2',
+          name: '',
+          description: '',
+          duration: 60,
+          price: 0,
+          sortOrder: 1,
+          enabled: true,
+        }
+      ]
+    }
+  ]);
 
   // Availability - support for multiple time slots per day (for breaks)
   const [availabilityMode, setAvailabilityMode] = useState<'simple' | 'advanced'>('simple');
@@ -734,7 +761,7 @@ export default function OnboardBusinessPage() {
           <AddressAutocomplete
             onAddressSelect={handleAddressSelect}
             placeholder={t('onboard.contact.addressPlaceholder')}
-            showCoordinatesPreview={true}
+            showCoordinatesPreview={false}
             className="mb-2"
           />
 
@@ -747,7 +774,6 @@ export default function OnboardBusinessPage() {
                   </svg>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm font-medium text-green-900">{t('onboard.contact.addressSuccess')}</p>
-                    <p className="text-xs text-green-700 truncate">{latitude.toFixed(6)}, {longitude.toFixed(6)}</p>
                   </div>
                 </div>
                 <button
@@ -924,13 +950,14 @@ export default function OnboardBusinessPage() {
                 type="color"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="h-10 sm:h-12 w-16 sm:w-20 rounded-lg sm:rounded-xl border border-gray-300 cursor-pointer"
+                className="h-10 sm:h-12 w-16 sm:w-20 rounded-lg sm:rounded-xl border-2 border-gray-300 cursor-pointer hover:border-teal-400 transition-colors flex-shrink-0"
+                style={{ padding: '4px' }}
               />
               <input
                 type="text"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono"
+                className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono"
                 placeholder="#10b981"
               />
             </div>
@@ -943,13 +970,14 @@ export default function OnboardBusinessPage() {
                 type="color"
                 value={secondaryColor}
                 onChange={(e) => setSecondaryColor(e.target.value)}
-                className="h-10 sm:h-12 w-16 sm:w-20 rounded-lg sm:rounded-xl border border-gray-300 cursor-pointer"
+                className="h-10 sm:h-12 w-16 sm:w-20 rounded-lg sm:rounded-xl border-2 border-gray-300 cursor-pointer hover:border-teal-400 transition-colors flex-shrink-0"
+                style={{ padding: '4px' }}
               />
               <input
                 type="text"
                 value={secondaryColor}
                 onChange={(e) => setSecondaryColor(e.target.value)}
-                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono"
+                className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent font-mono"
                 placeholder="#14b8a6"
               />
             </div>
