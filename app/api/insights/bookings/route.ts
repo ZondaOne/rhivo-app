@@ -25,16 +25,16 @@ export async function GET(request: NextRequest) {
 
     // Fetch appointments for the time range
     const appointments = await sql`
-      SELECT 
-        DATE(start_time AT TIME ZONE 'UTC') as date,
+      SELECT
+        DATE(slot_start AT TIME ZONE 'UTC') as date,
         status,
         COUNT(*) as count
       FROM appointments
       WHERE business_id = ${businessId}
-        AND start_time >= ${startDate.toISOString()}
-        AND start_time <= ${now.toISOString()}
+        AND slot_start >= ${startDate.toISOString()}
+        AND slot_start <= ${now.toISOString()}
         AND deleted_at IS NULL
-      GROUP BY DATE(start_time AT TIME ZONE 'UTC'), status
+      GROUP BY DATE(slot_start AT TIME ZONE 'UTC'), status
       ORDER BY date ASC
     `;
 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
 
       if (row.status === 'completed') {
         totalCompleted += count;
-      } else if (row.status === 'cancelled') {
+      } else if (row.status === 'canceled') {
         totalCancelled += count;
       } else if (row.status === 'confirmed') {
         totalUpcoming += count;

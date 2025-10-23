@@ -683,6 +683,37 @@
       "debug": "Debug",
       "signOut": "Esci"
     },
+    "insights": {
+      "title": "Statistiche Aziendali",
+      "bookings": {
+        "title": "Prenotazioni",
+        "subtitle": "Tendenze degli appuntamenti nel tempo",
+        "stats": {
+          "total": "Totale",
+          "completed": "Completate",
+          "upcoming": "In Arrivo",
+          "cancelled": "Annullate"
+        },
+        "loading": "Caricamento dati...",
+        "noData": "Nessun dato di prenotazione disponibile",
+        "noDataSubtext": "I dati appariranno una volta che avrai appuntamenti"
+      },
+      "revenue": {
+        "title": "Entrate",
+        "subtitle": "Traccia i tuoi guadagni e le tendenze",
+        "stats": {
+          "total": "Entrate Totali",
+          "bookings": "Prenotazioni Pagate",
+          "average": "Media per Prenotazione"
+        },
+        "loading": "Caricamento dati...",
+        "noData": "Nessun dato sulle entrate disponibile",
+        "noDataSubtext": "I dati appariranno una volta che avrai prenotazioni pagate"
+      },
+      "comingSoon": {
+        "badge": "Prossimamente"
+      }
+    },
     "header": {
       "newAppointment": "Nuovo Appuntamento",
       "connected": "Connesso",

@@ -682,6 +682,37 @@
       "debug": "Debug",
       "signOut": "Sign Out"
     },
+    "insights": {
+      "title": "Business Insights",
+      "bookings": {
+        "title": "Bookings",
+        "subtitle": "Appointment trends over time",
+        "stats": {
+          "total": "Total",
+          "completed": "Completed",
+          "upcoming": "Upcoming",
+          "cancelled": "Cancelled"
+        },
+        "loading": "Loading data...",
+        "noData": "No booking data available",
+        "noDataSubtext": "Data will appear once you have appointments"
+      },
+      "revenue": {
+        "title": "Revenue",
+        "subtitle": "Track your earnings and trends",
+        "stats": {
+          "total": "Total Revenue",
+          "bookings": "Paid Bookings",
+          "average": "Avg Per Booking"
+        },
+        "loading": "Loading data...",
+        "noData": "No revenue data available",
+        "noDataSubtext": "Data will appear once you have paid bookings"
+      },
+      "comingSoon": {
+        "badge": "Coming Soon"
+      }
+    },
     "header": {
       "newAppointment": "New Appointment",
       "connected": "Connected",

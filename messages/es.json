@@ -683,6 +683,37 @@
       "debug": "Debug",
       "signOut": "Cerrar sesión"
     },
+    "insights": {
+      "title": "Estadísticas del Negocio",
+      "bookings": {
+        "title": "Reservas",
+        "subtitle": "Tendencias de citas a lo largo del tiempo",
+        "stats": {
+          "total": "Total",
+          "completed": "Completadas",
+          "upcoming": "Próximas",
+          "cancelled": "Canceladas"
+        },
+        "loading": "Cargando datos...",
+        "noData": "No hay datos de reservas disponibles",
+        "noDataSubtext": "Los datos aparecerán una vez que tengas citas"
+      },
+      "revenue": {
+        "title": "Ingresos",
+        "subtitle": "Rastrea tus ganancias y tendencias",
+        "stats": {
+          "total": "Ingresos Totales",
+          "bookings": "Reservas Pagadas",
+          "average": "Promedio por Reserva"
+        },
+        "loading": "Cargando datos...",
+        "noData": "No hay datos de ingresos disponibles",
+        "noDataSubtext": "Los datos aparecerán una vez que tengas reservas pagadas"
+      },
+      "comingSoon": {
+        "badge": "Próximamente"
+      }
+    },
     "header": {
       "newAppointment": "Nueva Cita",
       "connected": "Conectado",

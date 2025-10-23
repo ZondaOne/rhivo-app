@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ComingSoonWidgetProps {
   title: string;
@@ -9,12 +10,14 @@ interface ComingSoonWidgetProps {
 }
 
 export function ComingSoonWidget({ title, description, icon }: ComingSoonWidgetProps) {
+  const t = useTranslations('dashboard.insights.comingSoon');
+
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-8 relative overflow-hidden">
+    <div className="bg-white border border-gray-200/60 rounded-2xl p-8 relative overflow-hidden shadow-sm">
       {/* Coming Soon Badge */}
       <div className="absolute top-6 right-6">
         <span className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-gray-100 text-gray-600">
-          Coming Soon
+          {t('badge')}
         </span>
       </div>
 
