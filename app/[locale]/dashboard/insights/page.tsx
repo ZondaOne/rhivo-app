@@ -32,15 +32,15 @@ function InsightsContent() {
         }}
       />
 
-      {/* Main Content */}
-      <main className="ml-20 min-h-screen">
+      {/* Main Content - No left margin on mobile, ml-20 on desktop */}
+      <main className="ml-0 sm:ml-20 min-h-screen pb-20 sm:pb-0">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
-          <div className="px-12 py-5 relative flex items-center justify-between gap-8">
-            <div className="flex items-center gap-6 min-w-0 flex-1">
+          <div className="px-4 sm:px-8 lg:px-12 py-4 sm:py-5 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-8">
+            <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1 w-full sm:w-auto">
               {/* Business Selector */}
               {businesses.length > 0 ? (
-                <div className="max-w-[320px] min-w-[240px]">
+                <div className="w-full sm:max-w-[320px] sm:min-w-[240px]">
                   <BusinessSelector
                     businesses={businesses}
                     selectedBusinessId={selectedBusinessId}
@@ -50,10 +50,10 @@ function InsightsContent() {
                 </div>
               ) : (
                 <div className="flex flex-col">
-                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
                   <div className="flex items-center gap-2 mt-1">
                     <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs sm:text-sm text-gray-500">
                       {isAuthenticated ? t('header.connected') : t('header.disconnected')}
                     </span>
                   </div>
@@ -61,53 +61,56 @@ function InsightsContent() {
               )}
             </div>
 
-            {/* Centered Logo */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            {/* Centered Logo - Hidden on mobile */}
+            <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <Logo size="sm" />
             </div>
 
             {/* Time Range Selector */}
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl flex-shrink-0">
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-xl sm:rounded-2xl flex-shrink-0 w-full sm:w-auto">
               <button
                 onClick={() => setTimeRange('7d')}
-                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                   timeRange === '7d'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
-                7 Days
+                <span className="hidden sm:inline">7 Days</span>
+                <span className="sm:hidden">7d</span>
               </button>
               <button
                 onClick={() => setTimeRange('30d')}
-                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                   timeRange === '30d'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
-                30 Days
+                <span className="hidden sm:inline">30 Days</span>
+                <span className="sm:hidden">30d</span>
               </button>
               <button
                 onClick={() => setTimeRange('90d')}
-                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                   timeRange === '90d'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
-                90 Days
+                <span className="hidden sm:inline">90 Days</span>
+                <span className="sm:hidden">90d</span>
               </button>
             </div>
           </div>
         </header>
 
         {/* Insights Content */}
-        <div className="px-12 py-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">{t('insights.title')}</h2>
+        <div className="px-4 sm:px-8 lg:px-12 py-6 sm:py-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">{t('insights.title')}</h2>
 
           {/* Widgets Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             {/* Bookings Chart */}
             <BookingsChart
               businessId={selectedBusinessId}

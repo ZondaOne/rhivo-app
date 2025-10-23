@@ -1199,6 +1199,63 @@
       "selectBusiness": "Seleccionar Negocio",
       "noBusiness": "Sin negocio",
       "switchBusiness": "Cambiar negocio"
+    },
+    "settings": {
+      "title": "Configuración",
+      "businessDetails": {
+        "title": "Detalles del Negocio",
+        "name": "Nombre del Negocio",
+        "businessId": "ID del Negocio",
+        "description": "Descripción",
+        "timezone": "Zona Horaria",
+        "locale": "Configuración Regional",
+        "currency": "Moneda",
+        "contactInfo": "Información de Contacto",
+        "email": "Correo Electrónico",
+        "phone": "Teléfono",
+        "website": "Sitio Web",
+        "address": "Dirección",
+        "street": "Calle",
+        "city": "Ciudad",
+        "state": "Estado/Provincia",
+        "postalCode": "Código Postal",
+        "country": "País",
+        "coordinates": "Coordenadas",
+        "bookingSettings": "Configuración de Reservas",
+        "timeSlotDuration": "Duración de Intervalos",
+        "maxBookings": "Reservas Simultáneas Máximas",
+        "advanceBooking": "Ventana de Reserva Anticipada",
+        "minutes": "minutos",
+        "days": "días"
+      },
+      "account": {
+        "title": "Información de la Cuenta",
+        "email": "Correo Electrónico",
+        "role": "Rol",
+        "linkedBusiness": "Negocio Vinculado"
+      },
+      "password": {
+        "title": "Cambiar Contraseña",
+        "currentPassword": "Contraseña Actual",
+        "newPassword": "Nueva Contraseña",
+        "confirmPassword": "Confirmar Nueva Contraseña",
+        "updateButton": "Actualizar Contraseña",
+        "updating": "Actualizando contraseña...",
+        "changeSuccess": "Contraseña cambiada con éxito",
+        "passwordsDoNotMatch": "Las nuevas contraseñas no coinciden",
+        "samePassword": "La nueva contraseña debe ser diferente de la actual",
+        "changeFailed": "Error al cambiar la contraseña",
+        "requirementsTitle": "La contraseña debe contener:",
+        "requirement1": "Al menos 8 caracteres",
+        "requirement2": "Una letra mayúscula",
+        "requirement3": "Una letra minúscula",
+        "requirement4": "Un número"
+      },
+      "quickActions": {
+        "title": "Acciones Rápidas",
+        "viewWebsite": "Ver Sitio Web",
+        "copyBookingLink": "Copiar Enlace de Reserva"
+      }
     }
   }
 }

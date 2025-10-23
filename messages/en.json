@@ -1198,6 +1198,63 @@
       "selectBusiness": "Select Business",
       "noBusiness": "No business",
       "switchBusiness": "Switch business"
+    },
+    "settings": {
+      "title": "Settings",
+      "businessDetails": {
+        "title": "Business Details",
+        "name": "Business Name",
+        "businessId": "Business ID",
+        "description": "Description",
+        "timezone": "Timezone",
+        "locale": "Locale",
+        "currency": "Currency",
+        "contactInfo": "Contact Information",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "address": "Address",
+        "street": "Street",
+        "city": "City",
+        "state": "State/Province",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "coordinates": "Coordinates",
+        "bookingSettings": "Booking Settings",
+        "timeSlotDuration": "Time Slot Duration",
+        "maxBookings": "Max Simultaneous Bookings",
+        "advanceBooking": "Advance Booking Window",
+        "minutes": "minutes",
+        "days": "days"
+      },
+      "account": {
+        "title": "Account Information",
+        "email": "Email",
+        "role": "Role",
+        "linkedBusiness": "Linked Business"
+      },
+      "password": {
+        "title": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "updateButton": "Update Password",
+        "updating": "Updating password...",
+        "changeSuccess": "Password changed successfully",
+        "passwordsDoNotMatch": "New passwords do not match",
+        "samePassword": "New password must be different from current password",
+        "changeFailed": "Failed to change password",
+        "requirementsTitle": "Password must contain:",
+        "requirement1": "At least 8 characters",
+        "requirement2": "One uppercase letter",
+        "requirement3": "One lowercase letter",
+        "requirement4": "One number"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "viewWebsite": "View Website",
+        "copyBookingLink": "Copy Booking Link"
+      }
     }
   }
 }

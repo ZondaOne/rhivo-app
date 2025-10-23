@@ -1199,6 +1199,63 @@
       "selectBusiness": "Seleziona Attività",
       "noBusiness": "Nessuna attività",
       "switchBusiness": "Cambia attività"
+    },
+    "settings": {
+      "title": "Impostazioni",
+      "businessDetails": {
+        "title": "Dettagli Attività",
+        "name": "Nome Attività",
+        "businessId": "ID Attività",
+        "description": "Descrizione",
+        "timezone": "Fuso Orario",
+        "locale": "Localizzazione",
+        "currency": "Valuta",
+        "contactInfo": "Informazioni di Contatto",
+        "email": "Email",
+        "phone": "Telefono",
+        "website": "Sito Web",
+        "address": "Indirizzo",
+        "street": "Via",
+        "city": "Città",
+        "state": "Provincia/Regione",
+        "postalCode": "CAP",
+        "country": "Paese",
+        "coordinates": "Coordinate",
+        "bookingSettings": "Impostazioni Prenotazioni",
+        "timeSlotDuration": "Durata Slot Temporale",
+        "maxBookings": "Prenotazioni Simultanee Massime",
+        "advanceBooking": "Finestra di Prenotazione Anticipata",
+        "minutes": "minuti",
+        "days": "giorni"
+      },
+      "account": {
+        "title": "Informazioni Account",
+        "email": "Email",
+        "role": "Ruolo",
+        "linkedBusiness": "Attività Collegata"
+      },
+      "password": {
+        "title": "Cambia Password",
+        "currentPassword": "Password Attuale",
+        "newPassword": "Nuova Password",
+        "confirmPassword": "Conferma Nuova Password",
+        "updateButton": "Aggiorna Password",
+        "updating": "Aggiornamento password...",
+        "changeSuccess": "Password cambiata con successo",
+        "passwordsDoNotMatch": "Le nuove password non corrispondono",
+        "samePassword": "La nuova password deve essere diversa da quella attuale",
+        "changeFailed": "Errore nel cambio password",
+        "requirementsTitle": "La password deve contenere:",
+        "requirement1": "Almeno 8 caratteri",
+        "requirement2": "Una lettera maiuscola",
+        "requirement3": "Una lettera minuscola",
+        "requirement4": "Un numero"
+      },
+      "quickActions": {
+        "title": "Azioni Rapide",
+        "viewWebsite": "Visualizza Sito Web",
+        "copyBookingLink": "Copia Link Prenotazione"
+      }
     }
   }
 }
