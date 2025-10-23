@@ -79,14 +79,16 @@ export class CustomerNotificationService {
         throw new Error('No recipient email available');
       }
 
-      // Generate cancellation and reschedule links
+      // Generate cancellation and reschedule links with bookingId and email params
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rivo.app';
+      const bookingIdParam = appointmentData.bookingId || appointmentData.id;
+
       const cancellationLink = appointmentData.cancellationToken
-        ? `${baseUrl}/book/manage/${appointmentData.bookingId || appointmentData.id}?token=${appointmentData.cancellationToken}`
-        : undefined;
+        ? `${baseUrl}/book/manage/${bookingIdParam}?token=${appointmentData.cancellationToken}&bookingId=${bookingIdParam}&email=${encodeURIComponent(recipientEmail)}`
+        : `${baseUrl}/book/manage?bookingId=${bookingIdParam}&email=${encodeURIComponent(recipientEmail)}`;
 
       const rescheduleLink = appointmentData.cancellationToken
-        ? `${baseUrl}/book/manage/${appointmentData.bookingId || appointmentData.id}/reschedule?token=${appointmentData.cancellationToken}`
+        ? `${baseUrl}/book/manage/${bookingIdParam}/reschedule?token=${appointmentData.cancellationToken}&bookingId=${bookingIdParam}&email=${encodeURIComponent(recipientEmail)}`
         : undefined;
 
       // Format date and time
@@ -201,12 +203,14 @@ export class CustomerNotificationService {
       if (!recipientEmail) return;
 
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rivo.app';
+      const bookingIdParam = appointmentData.bookingId || appointmentData.id;
+
       const cancellationLink = appointmentData.cancellationToken
-        ? `${baseUrl}/book/manage/${appointmentData.bookingId || appointmentData.id}?token=${appointmentData.cancellationToken}`
-        : undefined;
+        ? `${baseUrl}/book/manage/${bookingIdParam}?token=${appointmentData.cancellationToken}&bookingId=${bookingIdParam}&email=${encodeURIComponent(recipientEmail)}`
+        : `${baseUrl}/book/manage?bookingId=${bookingIdParam}&email=${encodeURIComponent(recipientEmail)}`;
 
       const rescheduleLink = appointmentData.cancellationToken
-        ? `${baseUrl}/book/manage/${appointmentData.bookingId || appointmentData.id}/reschedule?token=${appointmentData.cancellationToken}`
+        ? `${baseUrl}/book/manage/${bookingIdParam}/reschedule?token=${appointmentData.cancellationToken}&bookingId=${bookingIdParam}&email=${encodeURIComponent(recipientEmail)}`
         : undefined;
 
       const emailData: RescheduleConfirmationData = {
