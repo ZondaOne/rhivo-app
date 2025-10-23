@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getDbClient } from '@/db/client';
+import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { z } from 'zod';
 
 const updateSchema = z.object({
@@ -96,12 +97,66 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       )
     `;
 
-    // If cancelling, optionally send customer notification
-    // (This is handled by the notification service in production)
+    // If cancelling, send customer email notification
     if (isCancelling) {
       try {
-        // Customer notification would be sent here via email service
         console.log(`Appointment ${id} cancelled by owner ${payload.sub}`);
+
+        // Fetch appointment details for email notification
+        const appointmentDetails = await sql`
+          SELECT
+            a.id,
+            a.business_id,
+            a.service_id,
+            a.customer_id,
+            a.guest_email,
+            a.guest_phone,
+            a.guest_name,
+            a.slot_start,
+            a.slot_end,
+            a.status,
+            u.email as customer_email
+          FROM appointments a
+          LEFT JOIN users u ON a.customer_id = u.id
+          WHERE a.id = ${id}
+          LIMIT 1
+        `;
+
+        if (appointmentDetails.length > 0) {
+          const apt = appointmentDetails[0];
+          const email = apt.customer_email || apt.guest_email;
+
+          if (email) {
+            const customerNotificationService = new CustomerNotificationService(sql);
+
+            console.log('📧 Triggering cancellation confirmation email:', {
+              appointmentId: id,
+              email,
+            });
+
+            // Send email notification (non-blocking)
+            customerNotificationService
+              .sendCancellationConfirmation({
+                id: apt.id,
+                businessId: apt.business_id,
+                serviceId: apt.service_id,
+                customerId: apt.customer_id || undefined,
+                guestEmail: apt.guest_email || undefined,
+                guestPhone: apt.guest_phone || undefined,
+                guestName: apt.guest_name || undefined,
+                slotStart: new Date(apt.slot_start),
+                slotEnd: new Date(apt.slot_end),
+                status: apt.status,
+              })
+              .then(() => {
+                console.log('✅ Cancellation confirmation email sent successfully');
+              })
+              .catch((error) => {
+                console.error('❌ Failed to send cancellation confirmation email:', error);
+                // Don't block cancellation on email failure
+              });
+          }
+        }
       } catch (notificationError) {
         console.error('Failed to send cancellation notification:', notificationError);
         // Don't fail the request if notification fails

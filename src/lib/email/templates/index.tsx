@@ -110,7 +110,7 @@ export async function renderAppointmentReminder(
 }
 
 /**
- * Get email subject line for each template
+ * Get email subject line for each template (Italian primary, English secondary)
  */
 export function getEmailSubject(
   templateName: string,
@@ -118,14 +118,14 @@ export function getEmailSubject(
 ): string {
   switch (templateName) {
     case 'appointment_confirmed':
-      return `Booking Confirmed - ${businessName}`;
+      return `Prenotazione Confermata - ${businessName}`;
     case 'appointment_cancelled':
-      return `Appointment Cancelled - ${businessName}`;
+      return `Appuntamento Annullato - ${businessName}`;
     case 'appointment_rescheduled':
-      return `Appointment Rescheduled - ${businessName}`;
+      return `Appuntamento Riprogrammato - ${businessName}`;
     case 'appointment_reminder':
-      return `Reminder: Your appointment at ${businessName} is tomorrow`;
+      return `Promemoria: Il tuo appuntamento presso ${businessName} è domani`;
     default:
-      return `Update from ${businessName}`;
+      return `Aggiornamento da ${businessName}`;
   }
 }

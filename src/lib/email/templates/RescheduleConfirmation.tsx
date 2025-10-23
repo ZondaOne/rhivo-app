@@ -48,13 +48,17 @@ export const RescheduleConfirmationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your appointment at {businessName} has been rescheduled</Preview>
+      <Preview>Il tuo appuntamento presso {businessName} è stato riprogrammato</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
           <Section style={header}>
-            <Heading style={h1}>Appointment Rescheduled</Heading>
+            <Heading style={h1}>Appuntamento Riprogrammato</Heading>
+            <Text style={h1Secondary}>Appointment Rescheduled</Text>
             <Text style={subtitle}>
+              Il tuo appuntamento presso {businessName} è stato aggiornato
+            </Text>
+            <Text style={subtitleSecondary}>
               Your appointment at {businessName} has been updated
             </Text>
           </Section>
@@ -62,21 +66,22 @@ export const RescheduleConfirmationEmail = ({
           {/* Old Appointment (Strikethrough) */}
           <Section style={oldDetailsBox}>
             <Heading as="h2" style={h2Old}>
-              Previous Time
+              Orario Precedente
             </Heading>
+            <Text style={h2Secondary}>Previous Time</Text>
 
             <Section style={detailRow}>
-              <Text style={detailLabelOld}>Service</Text>
+              <Text style={detailLabelOld}>Servizio / Service</Text>
               <Text style={detailValueOld}>{serviceName}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabelOld}>Date</Text>
+              <Text style={detailLabelOld}>Data / Date</Text>
               <Text style={detailValueOld}>{oldAppointmentDate}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabelOld}>Time</Text>
+              <Text style={detailLabelOld}>Orario / Time</Text>
               <Text style={detailValueOld}>{oldAppointmentTime}</Text>
             </Section>
           </Section>
@@ -84,33 +89,34 @@ export const RescheduleConfirmationEmail = ({
           {/* New Appointment (Highlighted) */}
           <Section style={newDetailsBox}>
             <Heading as="h2" style={h2New}>
-              New Time
+              Nuovo Orario
             </Heading>
+            <Text style={h2Secondary}>New Time</Text>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Service</Text>
+              <Text style={detailLabel}>Servizio / Service</Text>
               <Text style={detailValue}>{serviceName}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Date</Text>
+              <Text style={detailLabel}>Data / Date</Text>
               <Text style={detailValueNew}>{newAppointmentDate}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Time</Text>
+              <Text style={detailLabel}>Orario / Time</Text>
               <Text style={detailValueNew}>{newAppointmentTime}</Text>
             </Section>
 
             {price && (
               <Section style={detailRow}>
-                <Text style={detailLabel}>Price</Text>
+                <Text style={detailLabel}>Prezzo / Price</Text>
                 <Text style={detailValue}>{price}</Text>
               </Section>
             )}
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Booking ID</Text>
+              <Text style={detailLabel}>ID Prenotazione / Booking ID</Text>
               <Text style={detailValueMuted}>{bookingId}</Text>
             </Section>
           </Section>
@@ -127,7 +133,7 @@ export const RescheduleConfirmationEmail = ({
                   <Text style={businessDetail}>{businessAddress}</Text>
                 )}
                 {businessPhone && (
-                  <Text style={businessDetail}>Phone: {businessPhone}</Text>
+                  <Text style={businessDetail}>Telefono / Phone: {businessPhone}</Text>
                 )}
                 {businessEmail && (
                   <Text style={businessDetail}>Email: {businessEmail}</Text>
@@ -141,12 +147,12 @@ export const RescheduleConfirmationEmail = ({
           <Section style={actionSection}>
             {rescheduleLink && (
               <Link href={rescheduleLink} style={buttonSecondary}>
-                Reschedule Again
+                Riprogramma di Nuovo / Reschedule Again
               </Link>
             )}
             {cancellationLink && (
               <Link href={cancellationLink} style={buttonCancel}>
-                Cancel Appointment
+                Annulla / Cancel
               </Link>
             )}
           </Section>
@@ -155,9 +161,16 @@ export const RescheduleConfirmationEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
+              Questa è un'email di conferma automatica da Rivo.
+            </Text>
+            <Text style={footerTextSecondary}>
               This is an automated confirmation email from Rivo.
             </Text>
             <Text style={footerText}>
+              Conserva questa email per i tuoi archivi. Il tuo ID prenotazione è{' '}
+              <strong>{bookingId}</strong>
+            </Text>
+            <Text style={footerTextSecondary}>
               Please save this email for your records. Your booking ID is{' '}
               <strong>{bookingId}</strong>
             </Text>
@@ -197,14 +210,35 @@ const h1 = {
   fontSize: '30px',
   fontWeight: '700',
   color: '#111827',
-  margin: '0 0 8px 0',
+  margin: '0 0 4px 0',
+  letterSpacing: '-0.011em',
+};
+
+const h1Secondary = {
+  fontSize: '18px',
+  fontWeight: '500',
+  color: '#9ca3af',
+  margin: '0 0 12px 0',
   letterSpacing: '-0.011em',
 };
 
 const subtitle = {
   fontSize: '16px',
   color: '#6b7280',
+  margin: '0 0 4px 0',
+};
+
+const subtitleSecondary = {
+  fontSize: '14px',
+  color: '#9ca3af',
   margin: '0',
+};
+
+const h2Secondary = {
+  fontSize: '14px',
+  fontWeight: '500',
+  color: '#9ca3af',
+  margin: '0 0 12px 0',
 };
 
 const h2Old = {
@@ -350,5 +384,12 @@ const footerText = {
   fontSize: '12px',
   color: '#9ca3af',
   margin: '4px 0',
+  lineHeight: '1.5',
+};
+
+const footerTextSecondary = {
+  fontSize: '11px',
+  color: '#d1d5db',
+  margin: '2px 0',
   lineHeight: '1.5',
 };

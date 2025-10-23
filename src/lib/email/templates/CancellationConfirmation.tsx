@@ -38,13 +38,17 @@ export const CancellationConfirmationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your appointment at {businessName} has been cancelled</Preview>
+      <Preview>Il tuo appuntamento presso {businessName} è stato annullato</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
           <Section style={header}>
-            <Heading style={h1}>Appointment Cancelled</Heading>
+            <Heading style={h1}>Appuntamento Annullato</Heading>
+            <Text style={h1Secondary}>Appointment Cancelled</Text>
             <Text style={subtitle}>
+              Il tuo appuntamento presso {businessName} è stato annullato
+            </Text>
+            <Text style={subtitleSecondary}>
               Your appointment at {businessName} has been cancelled
             </Text>
           </Section>
@@ -52,26 +56,27 @@ export const CancellationConfirmationEmail = ({
           {/* Cancelled Appointment Details */}
           <Section style={detailsBox}>
             <Heading as="h2" style={h2}>
-              Cancelled Appointment
+              Appuntamento Annullato
             </Heading>
+            <Text style={h2Secondary}>Cancelled Appointment</Text>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Service</Text>
+              <Text style={detailLabel}>Servizio / Service</Text>
               <Text style={detailValue}>{serviceName}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Original Date</Text>
+              <Text style={detailLabel}>Data Originale / Original Date</Text>
               <Text style={detailValue}>{appointmentDate}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Original Time</Text>
+              <Text style={detailLabel}>Orario Originale / Original Time</Text>
               <Text style={detailValue}>{appointmentTime}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Booking ID</Text>
+              <Text style={detailLabel}>ID Prenotazione / Booking ID</Text>
               <Text style={detailValueMuted}>{bookingId}</Text>
             </Section>
           </Section>
@@ -79,6 +84,9 @@ export const CancellationConfirmationEmail = ({
           {/* Message */}
           <Section style={messageSection}>
             <Text style={messageText}>
+              Ci dispiace vedere che hai annullato il tuo appuntamento. Se hai domande o dubbi, non esitare a contattarci.
+            </Text>
+            <Text style={messageTextSecondary}>
               We are sorry to see you cancel your appointment. If you have any
               questions or concerns, please do not hesitate to contact us.
             </Text>
@@ -90,10 +98,10 @@ export const CancellationConfirmationEmail = ({
               <Hr style={hr} />
               <Section style={businessInfo}>
                 <Heading as="h3" style={h3}>
-                  Contact {businessName}
+                  Contatta / Contact {businessName}
                 </Heading>
                 {businessPhone && (
-                  <Text style={businessDetail}>Phone: {businessPhone}</Text>
+                  <Text style={businessDetail}>Telefono / Phone: {businessPhone}</Text>
                 )}
                 {businessEmail && (
                   <Text style={businessDetail}>Email: {businessEmail}</Text>
@@ -108,10 +116,13 @@ export const CancellationConfirmationEmail = ({
               <Hr style={hr} />
               <Section style={actionSection}>
                 <Text style={ctaText}>
+                  Vuoi prenotare un altro appuntamento?
+                </Text>
+                <Text style={ctaTextSecondary}>
                   Want to book another appointment?
                 </Text>
                 <Link href={rebookingLink} style={buttonPrimary}>
-                  Book Again
+                  Prenota di Nuovo / Book Again
                 </Link>
               </Section>
             </>
@@ -121,9 +132,15 @@ export const CancellationConfirmationEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
+              Questa è un'email di conferma automatica da Rivo.
+            </Text>
+            <Text style={footerTextSecondary}>
               This is an automated confirmation email from Rivo.
             </Text>
             <Text style={footerText}>
+              Se non hai richiesto questa cancellazione, contatta {businessName} immediatamente.
+            </Text>
+            <Text style={footerTextSecondary}>
               If you did not request this cancellation, please contact{' '}
               {businessName} immediately.
             </Text>
@@ -162,13 +179,27 @@ const h1 = {
   fontSize: '30px',
   fontWeight: '700',
   color: '#111827',
-  margin: '0 0 8px 0',
+  margin: '0 0 4px 0',
+  letterSpacing: '-0.011em',
+};
+
+const h1Secondary = {
+  fontSize: '18px',
+  fontWeight: '500',
+  color: '#9ca3af',
+  margin: '0 0 12px 0',
   letterSpacing: '-0.011em',
 };
 
 const subtitle = {
   fontSize: '16px',
   color: '#6b7280',
+  margin: '0 0 4px 0',
+};
+
+const subtitleSecondary = {
+  fontSize: '14px',
+  color: '#9ca3af',
   margin: '0',
 };
 
@@ -176,7 +207,14 @@ const h2 = {
   fontSize: '20px',
   fontWeight: '600',
   color: '#111827',
-  margin: '0 0 16px 0',
+  margin: '0 0 4px 0',
+};
+
+const h2Secondary = {
+  fontSize: '14px',
+  fontWeight: '500',
+  color: '#9ca3af',
+  margin: '0 0 12px 0',
 };
 
 const h3 = {
@@ -226,6 +264,13 @@ const messageText = {
   fontSize: '14px',
   color: '#6b7280',
   lineHeight: '1.6',
+  margin: '0 0 6px 0',
+};
+
+const messageTextSecondary = {
+  fontSize: '13px',
+  color: '#9ca3af',
+  lineHeight: '1.6',
   margin: '0',
 };
 
@@ -249,6 +294,13 @@ const actionSection = {
 const ctaText = {
   fontSize: '16px',
   color: '#111827',
+  margin: '0 0 4px 0',
+  fontWeight: '500',
+};
+
+const ctaTextSecondary = {
+  fontSize: '14px',
+  color: '#9ca3af',
   margin: '0 0 16px 0',
   fontWeight: '500',
 };
@@ -279,5 +331,12 @@ const footerText = {
   fontSize: '12px',
   color: '#9ca3af',
   margin: '4px 0',
+  lineHeight: '1.5',
+};
+
+const footerTextSecondary = {
+  fontSize: '11px',
+  color: '#d1d5db',
+  margin: '2px 0',
   lineHeight: '1.5',
 };

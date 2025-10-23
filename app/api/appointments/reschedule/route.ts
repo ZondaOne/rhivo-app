@@ -3,6 +3,7 @@ import { verifyToken } from '@/lib/auth';
 import { getDbClient } from '@/db/client';
 import { AppointmentManager } from '@/lib/booking';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 import { validateBookingTime, snapToGrain } from '@/lib/booking/validation';
 import { z } from 'zod';
@@ -174,6 +175,11 @@ export async function POST(request: NextRequest) {
 
     const appointmentManager = new AppointmentManager(sql);
     const notificationService = new NotificationService(sql);
+    const customerNotificationService = new CustomerNotificationService(sql);
+
+    // Store old slot times for email notification
+    const oldSlotStart = new Date(current.slot_start);
+    const oldSlotEnd = new Date(current.slot_end);
 
     // Determine which service's capacity to use (new service if changing, otherwise current)
     const targetServiceExternalId = body.serviceId && body.serviceId !== current.service_id
@@ -249,11 +255,43 @@ export async function POST(request: NextRequest) {
         const phone = apt.customer_phone || apt.guest_phone;
 
         if (email && body.notifyCustomer !== false) {
+          // Send in-app notification
           await notificationService.queueRescheduleNotification(
             body.appointmentId,
             email,
             phone || undefined
           );
+
+          // Send email notification (non-blocking)
+          console.log('📧 Triggering reschedule confirmation email:', {
+            appointmentId: body.appointmentId,
+            email,
+          });
+
+          customerNotificationService
+            .sendRescheduleConfirmation(
+              {
+                id: body.appointmentId,
+                businessId: current.business_id,
+                serviceId: apt.service_id,
+                customerId: undefined, // Will be fetched from DB in the service
+                guestEmail: apt.guest_email || undefined,
+                guestPhone: apt.guest_phone || undefined,
+                guestName: apt.customer_name || undefined,
+                slotStart: new Date(apt.slot_start),
+                slotEnd: new Date(apt.slot_end),
+                status: apt.status,
+              },
+              oldSlotStart,
+              oldSlotEnd
+            )
+            .then(() => {
+              console.log('✅ Reschedule confirmation email sent successfully');
+            })
+            .catch((error) => {
+              console.error('❌ Failed to send reschedule confirmation email:', error);
+              // Don't block reschedule on email failure
+            });
         }
       }
     } catch (error: unknown) {

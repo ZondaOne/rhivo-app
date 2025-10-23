@@ -45,13 +45,17 @@ export const BookingConfirmationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your appointment at {businessName} is confirmed</Preview>
+      <Preview>La tua prenotazione presso {businessName} è confermata</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
           <Section style={header}>
-            <Heading style={h1}>Booking Confirmed</Heading>
+            <Heading style={h1}>Prenotazione Confermata</Heading>
+            <Text style={h1Secondary}>Booking Confirmed</Text>
             <Text style={subtitle}>
+              La tua prenotazione presso {businessName} è confermata
+            </Text>
+            <Text style={subtitleSecondary}>
               Your appointment at {businessName} is confirmed
             </Text>
           </Section>
@@ -59,33 +63,34 @@ export const BookingConfirmationEmail = ({
           {/* Appointment Details */}
           <Section style={detailsBox}>
             <Heading as="h2" style={h2}>
-              Appointment Details
+              Dettagli Appuntamento
             </Heading>
+            <Text style={h2Secondary}>Appointment Details</Text>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Service</Text>
+              <Text style={detailLabel}>Servizio / Service</Text>
               <Text style={detailValue}>{serviceName}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Date</Text>
+              <Text style={detailLabel}>Data / Date</Text>
               <Text style={detailValue}>{appointmentDate}</Text>
             </Section>
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Time</Text>
+              <Text style={detailLabel}>Orario / Time</Text>
               <Text style={detailValue}>{appointmentTime}</Text>
             </Section>
 
             {price && (
               <Section style={detailRow}>
-                <Text style={detailLabel}>Price</Text>
+                <Text style={detailLabel}>Prezzo / Price</Text>
                 <Text style={detailValue}>{price}</Text>
               </Section>
             )}
 
             <Section style={detailRow}>
-              <Text style={detailLabel}>Booking ID</Text>
+              <Text style={detailLabel}>ID Prenotazione / Booking ID</Text>
               <Text style={detailValueMuted}>{bookingId}</Text>
             </Section>
           </Section>
@@ -102,7 +107,7 @@ export const BookingConfirmationEmail = ({
                   <Text style={businessDetail}>{businessAddress}</Text>
                 )}
                 {businessPhone && (
-                  <Text style={businessDetail}>Phone: {businessPhone}</Text>
+                  <Text style={businessDetail}>Telefono / Phone: {businessPhone}</Text>
                 )}
                 {businessEmail && (
                   <Text style={businessDetail}>Email: {businessEmail}</Text>
@@ -116,12 +121,12 @@ export const BookingConfirmationEmail = ({
           <Section style={actionSection}>
             {rescheduleLink && (
               <Link href={rescheduleLink} style={buttonSecondary}>
-                Reschedule Appointment
+                Riprogramma / Reschedule
               </Link>
             )}
             {cancellationLink && (
               <Link href={cancellationLink} style={buttonCancel}>
-                Cancel Appointment
+                Annulla / Cancel
               </Link>
             )}
           </Section>
@@ -130,9 +135,16 @@ export const BookingConfirmationEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
+              Questa è un'email di conferma automatica da Rivo.
+            </Text>
+            <Text style={footerTextSecondary}>
               This is an automated confirmation email from Rivo.
             </Text>
             <Text style={footerText}>
+              Conserva questa email per i tuoi archivi. Il tuo ID prenotazione è{' '}
+              <strong>{bookingId}</strong>
+            </Text>
+            <Text style={footerTextSecondary}>
               Please save this email for your records. Your booking ID is{' '}
               <strong>{bookingId}</strong>
             </Text>
@@ -172,13 +184,27 @@ const h1 = {
   fontSize: '30px',
   fontWeight: '700',
   color: '#111827',
-  margin: '0 0 8px 0',
+  margin: '0 0 4px 0',
+  letterSpacing: '-0.011em',
+};
+
+const h1Secondary = {
+  fontSize: '18px',
+  fontWeight: '500',
+  color: '#9ca3af',
+  margin: '0 0 12px 0',
   letterSpacing: '-0.011em',
 };
 
 const subtitle = {
   fontSize: '16px',
   color: '#6b7280',
+  margin: '0 0 4px 0',
+};
+
+const subtitleSecondary = {
+  fontSize: '14px',
+  color: '#9ca3af',
   margin: '0',
 };
 
@@ -186,7 +212,14 @@ const h2 = {
   fontSize: '20px',
   fontWeight: '600',
   color: '#111827',
-  margin: '0 0 16px 0',
+  margin: '0 0 4px 0',
+};
+
+const h2Secondary = {
+  fontSize: '14px',
+  fontWeight: '500',
+  color: '#9ca3af',
+  margin: '0 0 12px 0',
 };
 
 const h3 = {
@@ -285,5 +318,12 @@ const footerText = {
   fontSize: '12px',
   color: '#9ca3af',
   margin: '4px 0',
+  lineHeight: '1.5',
+};
+
+const footerTextSecondary = {
+  fontSize: '11px',
+  color: '#d1d5db',
+  margin: '2px 0',
   lineHeight: '1.5',
 };
