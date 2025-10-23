@@ -27,6 +27,25 @@
         "description": "Confirma tu reserva. Obtén confirmación instantánea. Eso es todo."
       }
     },
+    "useCases": {
+      "label": "Dos caras de la misma moneda",
+      "title": "Hecho para todos",
+      "subtitle": "Ya sea que estés reservando o gestionando citas, rivo lo hace fácil.",
+      "customer": {
+        "title": "Para Clientes",
+        "description": "Reserva citas en segundos. Ve la disponibilidad en tiempo real, elige tu hora y obtén confirmación instantánea—todo desde tu teléfono.",
+        "imageAlt": "Cliente reservando cita en teléfono móvil",
+        "feature1": "Reserva instantánea",
+        "feature2": "Sin cuenta necesaria"
+      },
+      "business": {
+        "title": "Para Dueños de Negocios",
+        "description": "Gestiona tu calendario, rastrea reservas y haz crecer tu negocio—todo desde un panel simple y elegante.",
+        "imageAlt": "Dueño de negocio gestionando reservas en tablet",
+        "feature1": "Calendario en tiempo real",
+        "feature2": "Análisis inteligentes"
+      }
+    },
     "forBusiness": {
       "label": "Para Dueños de Negocios",
       "title": "¿Tienes un negocio?",

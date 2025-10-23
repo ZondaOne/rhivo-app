@@ -27,6 +27,25 @@
         "description": "Conferma la prenotazione. Ricevi conferma istantanea. Ecco fatto."
       }
     },
+    "useCases": {
+      "label": "Due facce della stessa medaglia",
+      "title": "Fatto per tutti",
+      "subtitle": "Che tu stia prenotando o gestendo appuntamenti, rivo lo rende semplice.",
+      "customer": {
+        "title": "Per i Clienti",
+        "description": "Prenota appuntamenti in pochi secondi. Vedi la disponibilità in tempo reale, scegli il tuo orario e ricevi conferma istantanea—tutto dal tuo telefono.",
+        "imageAlt": "Cliente che prenota appuntamento su telefono cellulare",
+        "feature1": "Prenotazione istantanea",
+        "feature2": "Nessun account richiesto"
+      },
+      "business": {
+        "title": "Per gli Imprenditori",
+        "description": "Gestisci il tuo calendario, monitora le prenotazioni e fai crescere la tua attività—tutto da una dashboard semplice ed elegante.",
+        "imageAlt": "Imprenditore che gestisce prenotazioni su tablet",
+        "feature1": "Calendario in tempo reale",
+        "feature2": "Analisi intelligenti"
+      }
+    },
     "forBusiness": {
       "label": "Per Imprenditori",
       "title": "Gestisci un'attività?",

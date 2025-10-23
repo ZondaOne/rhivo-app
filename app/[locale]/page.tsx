@@ -2,6 +2,7 @@
 
 import { HeroSection } from '@/components/HeroSection';
 import { HowItWorksSection } from '@/components/HowItWorksSection';
+import { UseCasesSection } from '@/components/UseCasesSection';
 import { ForBusinessSection } from '@/components/ForBusinessSection';
 import { HomeFooter } from '@/components/HomeFooter';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -25,6 +26,9 @@ export default function Home() {
 
       {/* How It Works Section */}
       <HowItWorksSection />
+
+      {/* Use Cases Section - Real-life images */}
+      <UseCasesSection />
 
       {/* For Business Owners Section */}
       <ForBusinessSection />
