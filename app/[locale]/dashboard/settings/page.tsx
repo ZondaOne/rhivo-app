@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/contexts/AuthContext';
 import { BusinessProvider, useBusiness } from '@/contexts/BusinessContext';
@@ -8,6 +8,24 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { BusinessSelector } from '@/components/dashboard/BusinessSelector';
 import { Logo } from '@/components/Logo';
+
+interface OffDay {
+  date: string;
+  reason: string;
+  closed: boolean;
+  open?: string;
+  close?: string;
+}
+
+interface ExistingBooking {
+  id: string;
+  bookingId: string;
+  startTime: string;
+  endTime: string;
+  serviceName: string;
+  customerName: string;
+  customerEmail: string;
+}
 
 function SettingsContent() {
   const t = useTranslations('dashboard.settings');
@@ -22,6 +40,19 @@ function SettingsContent() {
   const [errors, setErrors] = useState<string[]>([]);
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
+
+  // Off days state
+  const [offDays, setOffDays] = useState<OffDay[]>([]);
+  const [loadingOffDays, setLoadingOffDays] = useState(false);
+  const [showAddOffDay, setShowAddOffDay] = useState(false);
+  const [offDayDate, setOffDayDate] = useState('');
+  const [offDayReason, setOffDayReason] = useState('');
+  const [offDayError, setOffDayError] = useState<string | null>(null);
+  const [offDaySuccess, setOffDaySuccess] = useState<string | null>(null);
+  const [savingOffDay, setSavingOffDay] = useState(false);
+  const [checkingBookings, setCheckingBookings] = useState(false);
+  const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
+  const [showBookingWarning, setShowBookingWarning] = useState(false);
 
   const businessName = selectedBusiness?.name || user?.email?.split('@')[0] || "My Business";
 
@@ -72,6 +103,159 @@ function SettingsContent() {
     } finally {
       setPending(false);
     }
+  }
+
+  // Fetch off days
+  useEffect(() => {
+    if (isAuthenticated && accessToken) {
+      fetchOffDays();
+    }
+  }, [isAuthenticated, accessToken]);
+
+  async function fetchOffDays() {
+    setLoadingOffDays(true);
+    try {
+      const res = await fetch('/api/settings/availability-exceptions', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch off days');
+      }
+
+      const data = await res.json();
+      setOffDays(data.exceptions || []);
+    } catch (err) {
+      console.error('Error fetching off days:', err);
+      setOffDayError(t('offDays.errors.loadFailed'));
+    } finally {
+      setLoadingOffDays(false);
+    }
+  }
+
+  async function checkExistingBookings(date: string) {
+    if (!date) return;
+
+    setCheckingBookings(true);
+    setExistingBookings([]);
+    setShowBookingWarning(false);
+
+    try {
+      const res = await fetch(`/api/settings/availability-exceptions?checkDate=${date}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to check bookings');
+      }
+
+      const data = await res.json();
+
+      if (data.hasBookings && data.bookings.length > 0) {
+        setExistingBookings(data.bookings);
+        setShowBookingWarning(true);
+      }
+    } catch (err) {
+      console.error('Error checking bookings:', err);
+    } finally {
+      setCheckingBookings(false);
+    }
+  }
+
+  async function handleAddOffDay(e: React.FormEvent) {
+    e.preventDefault();
+    setOffDayError(null);
+
+    if (!offDayDate) {
+      setOffDayError(t('offDays.errors.dateRequired'));
+      return;
+    }
+
+    if (!offDayReason.trim()) {
+      setOffDayError(t('offDays.errors.reasonRequired'));
+      return;
+    }
+
+    setSavingOffDay(true);
+
+    try {
+      const res = await fetch('/api/settings/availability-exceptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          date: offDayDate,
+          reason: offDayReason,
+          closed: true,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || t('offDays.errors.addFailed'));
+      }
+
+      // Refresh off days list
+      await fetchOffDays();
+
+      // Reset form
+      setOffDayDate('');
+      setOffDayReason('');
+      setShowAddOffDay(false);
+
+      // Show success message
+      setOffDaySuccess(t('offDays.success.added'));
+      setTimeout(() => setOffDaySuccess(null), 3000);
+    } catch (err: any) {
+      setOffDayError(err?.message || t('offDays.errors.addFailed'));
+    } finally {
+      setSavingOffDay(false);
+    }
+  }
+
+  async function handleRemoveOffDay(date: string) {
+    if (!confirm(t('offDays.confirmRemove'))) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/settings/availability-exceptions?date=${date}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(t('offDays.errors.removeFailed'));
+      }
+
+      // Refresh off days list
+      await fetchOffDays();
+
+      // Show success message
+      setOffDaySuccess(t('offDays.success.removed'));
+      setTimeout(() => setOffDaySuccess(null), 3000);
+    } catch (err: any) {
+      setOffDayError(err?.message || t('offDays.errors.removeFailed'));
+    }
+  }
+
+  function formatDate(dateString: string): string {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   }
 
   // Get business details from selected business config
@@ -263,6 +447,215 @@ function SettingsContent() {
                 </div>
               </section>
             )}
+
+            {/* Off Days Management */}
+            <section>
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{t('offDays.title')}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{t('offDays.description')}</p>
+                </div>
+                <button
+                  onClick={() => setShowAddOffDay(true)}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium"
+                >
+                  {t('offDays.addButton')}
+                </button>
+              </div>
+
+              {offDaySuccess && (
+                <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-sm font-medium text-green-800">{offDaySuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {offDayError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm text-red-800">{offDayError}</p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                {loadingOffDays ? (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                    <p className="text-sm text-gray-500 mt-2">Loading...</p>
+                  </div>
+                ) : offDays.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <h4 className="mt-2 text-sm font-medium text-gray-900">{t('offDays.noOffDays')}</h4>
+                    <p className="mt-1 text-sm text-gray-500">{t('offDays.noOffDaysDescription')}</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {t('offDays.date')}
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {t('offDays.reason')}
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {t('offDays.actions')}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        {offDays.map((offDay) => (
+                          <tr key={offDay.date} className="hover:bg-gray-50">
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {formatDate(offDay.date)}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-700">
+                              {offDay.reason}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <button
+                                onClick={() => handleRemoveOffDay(offDay.date)}
+                                className="text-red-600 hover:text-red-900 transition-colors"
+                              >
+                                {t('offDays.remove')}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Add Off Day Modal */}
+              {showAddOffDay && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('offDays.addModal.title')}</h4>
+
+                    <form onSubmit={handleAddOffDay} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('offDays.addModal.dateLabel')}
+                        </label>
+                        <input
+                          type="date"
+                          value={offDayDate}
+                          onChange={(e) => {
+                            setOffDayDate(e.target.value);
+                            checkExistingBookings(e.target.value);
+                          }}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          required
+                        />
+                        {checkingBookings && (
+                          <p className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                            <span className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-teal-600"></span>
+                            {t('offDays.addModal.checkingBookings')}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('offDays.addModal.reasonLabel')}
+                        </label>
+                        <input
+                          type="text"
+                          value={offDayReason}
+                          onChange={(e) => setOffDayReason(e.target.value)}
+                          placeholder={t('offDays.addModal.reasonPlaceholder')}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+
+                      {/* Warning for existing bookings */}
+                      {showBookingWarning && existingBookings.length > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div className="flex-1">
+                              <h5 className="text-sm font-semibold text-yellow-900 mb-1">
+                                {t('offDays.addModal.warningTitle')}
+                              </h5>
+                              <p className="text-sm text-yellow-800 mb-3">
+                                {t('offDays.addModal.warningMessage', { count: existingBookings.length })}
+                              </p>
+                              <div className="space-y-2 mb-3">
+                                {existingBookings.map((booking) => (
+                                  <div key={booking.id} className="bg-white rounded-lg p-3 text-xs">
+                                    <div className="font-medium text-gray-900">
+                                      {booking.customerName} - {booking.serviceName}
+                                    </div>
+                                    <div className="text-gray-600 mt-1">
+                                      {new Date(booking.startTime).toLocaleTimeString(undefined, {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                      {' '}{t('offDays.addModal.bookingTime')}{' '}
+                                      {new Date(booking.endTime).toLocaleTimeString(undefined, {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </div>
+                                    <div className="text-gray-500 mt-1">
+                                      {booking.customerEmail}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <p className="text-xs text-yellow-700">
+                                {t('offDays.addModal.warningNote')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {offDayError && (
+                        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{offDayError}</div>
+                      )}
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddOffDay(false);
+                            setOffDayDate('');
+                            setOffDayReason('');
+                            setOffDayError(null);
+                            setExistingBookings([]);
+                            setShowBookingWarning(false);
+                          }}
+                          className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all"
+                        >
+                          {t('offDays.addModal.cancel')}
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={savingOffDay || checkingBookings}
+                          className={`flex-1 px-4 py-3 ${showBookingWarning ? 'bg-gradient-to-r from-yellow-600 to-orange-600' : 'bg-gradient-to-r from-teal-600 to-green-600'} text-white rounded-xl font-semibold hover:shadow-lg hover:scale-[1.01] transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
+                        >
+                          {savingOffDay ? t('offDays.addModal.saving') : showBookingWarning ? t('offDays.addModal.continueAnyway') : t('offDays.addModal.save')}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </section>
 
             {/* Two Column Layout for Account & Password */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

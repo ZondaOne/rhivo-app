@@ -1255,6 +1255,51 @@
         "title": "Azioni Rapide",
         "viewWebsite": "Visualizza Sito Web",
         "copyBookingLink": "Copia Link Prenotazione"
+      },
+      "offDays": {
+        "title": "Giorni di Chiusura",
+        "description": "Gestisci i giorni in cui non accetti prenotazioni (vacanze, festività, ecc.)",
+        "addButton": "Aggiungi Giorno di Chiusura",
+        "noOffDays": "Nessun giorno di chiusura programmato",
+        "noOffDaysDescription": "Aggiungi giorni in cui la tua attività sarà chiusa o non disponibile per prenotazioni.",
+        "date": "Data",
+        "reason": "Motivo",
+        "actions": "Azioni",
+        "remove": "Rimuovi",
+        "confirmRemove": "Sei sicuro di voler rimuovere questo giorno di chiusura?",
+        "addModal": {
+          "title": "Aggiungi Giorno di Chiusura",
+          "dateLabel": "Data",
+          "datePlaceholder": "Seleziona data",
+          "reasonLabel": "Motivo",
+          "reasonPlaceholder": "es. Natale, Ferie, ecc.",
+          "closedLabel": "Chiuso tutto il giorno",
+          "customHoursLabel": "Orario personalizzato per questo giorno",
+          "openLabel": "Apertura",
+          "closeLabel": "Chiusura",
+          "cancel": "Annulla",
+          "save": "Aggiungi Giorno di Chiusura",
+          "saving": "Aggiungendo...",
+          "checkingBookings": "Controllo prenotazioni esistenti...",
+          "warningTitle": "Prenotazioni Esistenti Trovate",
+          "warningMessage": "Ci sono {count} prenotazione/i confermata/e in questa data:",
+          "warningNote": "L'aggiunta di questo giorno di chiusura non cancellerà automaticamente queste prenotazioni. Potrebbe essere necessario contattare questi clienti per riprogrammare.",
+          "continueAnyway": "Aggiungi Giorno di Chiusura Comunque",
+          "bookingTime": "alle"
+        },
+        "success": {
+          "added": "Giorno di chiusura aggiunto con successo",
+          "removed": "Giorno di chiusura rimosso con successo",
+          "updated": "Giorno di chiusura aggiornato con successo"
+        },
+        "errors": {
+          "loadFailed": "Errore nel caricamento dei giorni di chiusura",
+          "addFailed": "Errore nell'aggiunta del giorno di chiusura",
+          "removeFailed": "Errore nella rimozione del giorno di chiusura",
+          "dateRequired": "La data è obbligatoria",
+          "reasonRequired": "Il motivo è obbligatorio",
+          "pastDate": "Non è possibile creare giorni di chiusura nel passato"
+        }
       }
     }
   }

@@ -1254,6 +1254,51 @@
         "title": "Quick Actions",
         "viewWebsite": "View Website",
         "copyBookingLink": "Copy Booking Link"
+      },
+      "offDays": {
+        "title": "Off Days",
+        "description": "Manage days when you don't accept bookings (holidays, vacations, etc.)",
+        "addButton": "Add Off Day",
+        "noOffDays": "No off days scheduled",
+        "noOffDaysDescription": "Add days when your business will be closed or unavailable for bookings.",
+        "date": "Date",
+        "reason": "Reason",
+        "actions": "Actions",
+        "remove": "Remove",
+        "confirmRemove": "Are you sure you want to remove this off day?",
+        "addModal": {
+          "title": "Add Off Day",
+          "dateLabel": "Date",
+          "datePlaceholder": "Select date",
+          "reasonLabel": "Reason",
+          "reasonPlaceholder": "e.g., Christmas Day, Vacation, etc.",
+          "closedLabel": "Closed all day",
+          "customHoursLabel": "Custom hours for this day",
+          "openLabel": "Open",
+          "closeLabel": "Close",
+          "cancel": "Cancel",
+          "save": "Add Off Day",
+          "saving": "Adding...",
+          "checkingBookings": "Checking for existing bookings...",
+          "warningTitle": "Existing Bookings Found",
+          "warningMessage": "There are {count} confirmed booking(s) on this date:",
+          "warningNote": "Adding this off day will not automatically cancel these bookings. You may need to contact these customers to reschedule.",
+          "continueAnyway": "Add Off Day Anyway",
+          "bookingTime": "at"
+        },
+        "success": {
+          "added": "Off day added successfully",
+          "removed": "Off day removed successfully",
+          "updated": "Off day updated successfully"
+        },
+        "errors": {
+          "loadFailed": "Failed to load off days",
+          "addFailed": "Failed to add off day",
+          "removeFailed": "Failed to remove off day",
+          "dateRequired": "Date is required",
+          "reasonRequired": "Reason is required",
+          "pastDate": "Cannot create off days in the past"
+        }
       }
     }
   }

@@ -1255,6 +1255,51 @@
         "title": "Acciones Rápidas",
         "viewWebsite": "Ver Sitio Web",
         "copyBookingLink": "Copiar Enlace de Reserva"
+      },
+      "offDays": {
+        "title": "Días de Cierre",
+        "description": "Gestiona los días en que no aceptas reservas (vacaciones, festivos, etc.)",
+        "addButton": "Agregar Día de Cierre",
+        "noOffDays": "No hay días de cierre programados",
+        "noOffDaysDescription": "Agrega días en que tu negocio estará cerrado o no disponible para reservas.",
+        "date": "Fecha",
+        "reason": "Motivo",
+        "actions": "Acciones",
+        "remove": "Eliminar",
+        "confirmRemove": "¿Estás seguro de que deseas eliminar este día de cierre?",
+        "addModal": {
+          "title": "Agregar Día de Cierre",
+          "dateLabel": "Fecha",
+          "datePlaceholder": "Seleccionar fecha",
+          "reasonLabel": "Motivo",
+          "reasonPlaceholder": "ej. Navidad, Vacaciones, etc.",
+          "closedLabel": "Cerrado todo el día",
+          "customHoursLabel": "Horario personalizado para este día",
+          "openLabel": "Apertura",
+          "closeLabel": "Cierre",
+          "cancel": "Cancelar",
+          "save": "Agregar Día de Cierre",
+          "saving": "Agregando...",
+          "checkingBookings": "Verificando reservas existentes...",
+          "warningTitle": "Reservas Existentes Encontradas",
+          "warningMessage": "Hay {count} reserva(s) confirmada(s) en esta fecha:",
+          "warningNote": "Agregar este día de cierre no cancelará automáticamente estas reservas. Es posible que necesites contactar a estos clientes para reprogramar.",
+          "continueAnyway": "Agregar Día de Cierre de Todos Modos",
+          "bookingTime": "a las"
+        },
+        "success": {
+          "added": "Día de cierre agregado con éxito",
+          "removed": "Día de cierre eliminado con éxito",
+          "updated": "Día de cierre actualizado con éxito"
+        },
+        "errors": {
+          "loadFailed": "Error al cargar los días de cierre",
+          "addFailed": "Error al agregar el día de cierre",
+          "removeFailed": "Error al eliminar el día de cierre",
+          "dateRequired": "La fecha es obligatoria",
+          "reasonRequired": "El motivo es obligatorio",
+          "pastDate": "No se pueden crear días de cierre en el pasado"
+        }
       }
     }
   }
