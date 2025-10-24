@@ -665,7 +665,7 @@ function MonthView({
   const numWeeks = Math.ceil(days.length / 7);
 
   return (
-    <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-240px)] md:h-[calc(100vh-220px)] lg:h-[calc(100vh-200px)] xl:h-[calc(100vh-180px)] flex flex-col">
+    <div className="bg-white border border-gray-200/60 rounded-2xl overflow-hidden h-[calc(100vh-280px)] flex flex-col">
       {/* Day Labels */}
       <div className="grid grid-cols-7 border-b border-gray-200/60 flex-shrink-0">
         {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
@@ -679,9 +679,9 @@ function MonthView({
 
       {/* Days Grid - Equal height rows */}
       <div
-        className="grid grid-cols-7 flex-1 min-h-0 overflow-y-auto"
+        className="grid grid-cols-7 flex-1 overflow-y-auto"
         style={{
-          gridTemplateRows: `repeat(${numWeeks}, minmax(0, 1fr))`
+          gridTemplateRows: `repeat(${numWeeks}, 1fr)`
         }}
       >
         {days.map((day, idx) => (
@@ -764,7 +764,7 @@ function DayCell({
 
   return (
     <div
-      className={`h-full min-h-0 relative border-r border-b border-gray-200/60 last:border-r-0 ${
+      className={`h-full relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
       } ${bgClass} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50 cursor-pointer' : ''
@@ -804,7 +804,7 @@ function DayCell({
       )}
 
       {/* Content */}
-      <div className="day-cell-content h-full min-h-0 p-1 md:p-2 lg:p-2.5 xl:p-3 flex flex-col gap-0.5 md:gap-1 lg:gap-1.5">
+      <div className="day-cell-content p-1 md:p-2 lg:p-3 xl:p-4 flex flex-col gap-0.5 md:gap-1.5 lg:gap-2">
         {/* Day Number */}
         <div className="day-cell-content flex-shrink-0 flex items-center gap-1">
           {day.isToday ? (
@@ -831,7 +831,7 @@ function DayCell({
         </div>
 
         {/* Appointments - VERTICAL stacking, max 2 visible */}
-        <div className="flex flex-col gap-0.5 md:gap-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col gap-0.5 md:gap-1">
           {(() => {
             const maxVisible = 2;
             const visibleAppointments = day.appointments.slice(0, maxVisible);
@@ -848,7 +848,7 @@ function DayCell({
                       key={apt.id}
                       draggable={!isCanceled}
                       style={{ animationDelay: `${idx * 50}ms` }}
-                      className={`text-[9px] md:text-xs lg:text-sm xl:text-base px-2 md:px-3 lg:px-4 xl:px-4.5 py-0.5 md:py-1 lg:py-1.5 xl:py-2 box-border flex items-center rounded-md md:rounded-lg lg:rounded-lg xl:rounded-xl font-semibold overflow-hidden flex-shrink-0 transition-all duration-200 ease-out animate-in fade-in slide-in-from-left-2 ${
+                      className={`text-[9px] md:text-sm lg:text-base xl:text-lg px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center rounded-md md:rounded-lg lg:rounded-xl font-semibold overflow-hidden flex-shrink-0 transition-all duration-200 ease-out animate-in fade-in slide-in-from-left-2 ${
                         isCanceled
                           ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
                           : isDragging
@@ -882,7 +882,7 @@ function DayCell({
                 {overflow > 0 && (
                   <div className="flex-shrink-0">
                     <div
-                      className="px-2 md:px-3 lg:px-4 xl:px-4.5 py-0.5 md:py-1 lg:py-1.5 xl:py-2 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-lg xl:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] text-[9px] md:text-xs lg:text-sm xl:text-base font-semibold cursor-pointer transition-all duration-200 ease-out"
+                      className="px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] text-[9px] md:text-sm lg:text-base xl:text-lg font-semibold cursor-pointer transition-all duration-200 ease-out"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Navigate to list view filtered to this date
