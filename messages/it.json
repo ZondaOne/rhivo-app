@@ -1201,6 +1201,39 @@
     },
     "settings": {
       "title": "Impostazioni",
+      "subtitle": "Gestisci la tua attività e le preferenze dell'account",
+      "categories": {
+        "profile": {
+          "label": "Profilo",
+          "title": "Informazioni Profilo",
+          "description": "Visualizza i dettagli del tuo account e ruolo"
+        },
+        "business": {
+          "label": "Attività",
+          "title": "Informazioni Attività",
+          "description": "Gestisci i dettagli della tua attività, informazioni di contatto e posizione"
+        },
+        "booking": {
+          "label": "Prenotazioni",
+          "title": "Impostazioni Prenotazioni",
+          "description": "Configura slot temporali e regole di prenotazione"
+        },
+        "availability": {
+          "label": "Disponibilità",
+          "title": "Giorni di Chiusura e Festività",
+          "description": "Gestisci i giorni in cui sei chiuso o non disponibile"
+        },
+        "security": {
+          "label": "Sicurezza",
+          "title": "Password e Sicurezza",
+          "description": "Aggiorna la tua password e proteggi il tuo account"
+        },
+        "actions": {
+          "label": "Azioni Rapide",
+          "title": "Azioni Rapide",
+          "description": "Attività comuni e scorciatoie"
+        }
+      },
       "businessDetails": {
         "title": "Dettagli Attività",
         "name": "Nome Attività",

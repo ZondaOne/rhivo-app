@@ -1201,6 +1201,39 @@
     },
     "settings": {
       "title": "Configuración",
+      "subtitle": "Administra tu negocio y preferencias de cuenta",
+      "categories": {
+        "profile": {
+          "label": "Perfil",
+          "title": "Información de Perfil",
+          "description": "Ver detalles de tu cuenta y rol"
+        },
+        "business": {
+          "label": "Negocio",
+          "title": "Información del Negocio",
+          "description": "Administra detalles de tu negocio, información de contacto y ubicación"
+        },
+        "booking": {
+          "label": "Reservas",
+          "title": "Configuración de Reservas",
+          "description": "Configura intervalos de tiempo y reglas de reserva"
+        },
+        "availability": {
+          "label": "Disponibilidad",
+          "title": "Días No Laborables y Feriados",
+          "description": "Administra días en los que estás cerrado o no disponible"
+        },
+        "security": {
+          "label": "Seguridad",
+          "title": "Contraseña y Seguridad",
+          "description": "Actualiza tu contraseña y asegura tu cuenta"
+        },
+        "actions": {
+          "label": "Acciones Rápidas",
+          "title": "Acciones Rápidas",
+          "description": "Tareas comunes y atajos"
+        }
+      },
       "businessDetails": {
         "title": "Detalles del Negocio",
         "name": "Nombre del Negocio",
