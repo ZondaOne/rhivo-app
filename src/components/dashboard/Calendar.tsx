@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Fragment, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration } from '@/lib/calendar-utils';
+import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration, isItalianHoliday, isClosingDay } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
 import { DragDropRescheduleModal } from './DragDropRescheduleModal';
@@ -755,11 +755,18 @@ function DayCell({
     setDraggedAppointment(null);
   };
 
+  // Determine background styling based on day type
+  const bgClass = !day.isCurrentMonth
+    ? 'bg-gray-50/30'
+    : day.isClosingDay
+      ? 'bg-gray-50/50' // Subtle gray for closed days
+      : 'bg-white';
+
   return (
     <div
       className={`h-full relative border-r border-b border-gray-200/60 last:border-r-0 ${
         isLastRow ? 'border-b-0' : ''
-      } ${!day.isCurrentMonth ? 'bg-gray-50/30' : 'bg-white'} ${
+      } ${bgClass} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50 cursor-pointer' : ''
       } transition-colors`}
       onDragOver={(e) => {
@@ -799,7 +806,7 @@ function DayCell({
       {/* Content */}
       <div className="day-cell-content p-1 md:p-2 lg:p-3 xl:p-4 flex flex-col gap-0.5 md:gap-1.5 lg:gap-2">
         {/* Day Number */}
-        <div className="day-cell-content flex-shrink-0">
+        <div className="day-cell-content flex-shrink-0 flex items-center gap-1">
           {day.isToday ? (
             <div className="inline-flex items-center justify-center w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
               <span className="text-[10px] md:text-xs lg:text-sm xl:text-base font-bold text-white">{day.date.getDate()}</span>
@@ -812,6 +819,14 @@ function DayCell({
             >
               {day.date.getDate()}
             </span>
+          )}
+
+          {/* Holiday indicator - small dot */}
+          {day.isHoliday && day.isCurrentMonth && (
+            <div
+              className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500 flex-shrink-0"
+              title="Holiday"
+            />
           )}
         </div>
 
@@ -1027,23 +1042,35 @@ function WeekView({
         {weekDays.map((day, idx) => {
           const isToday = day.toDateString() === todayStr;
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+          const isHoliday = isItalianHoliday(day);
+          const isClosed = isClosingDay(day);
 
           return (
             <div key={day.toISOString()} className="py-4 text-center border-r border-gray-200/60 last:border-r-0">
               <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                 {day.toLocaleDateString('en-US', { weekday: 'short' })}
               </div>
-              {isToday ? (
-                <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
-                  <span className="text-sm font-bold text-white">
+              <div className="flex items-center justify-center gap-1">
+                {isToday ? (
+                  <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-green-500">
+                    <span className="text-sm font-bold text-white">
+                      {day.getDate()}
+                    </span>
+                  </div>
+                ) : (
+                  <span className={`text-sm font-semibold ${isWeekend ? 'text-gray-500' : 'text-gray-900'}`}>
                     {day.getDate()}
                   </span>
-                </div>
-              ) : (
-                <span className={`text-sm font-semibold ${isWeekend ? 'text-gray-500' : 'text-gray-900'}`}>
-                  {day.getDate()}
-                </span>
-              )}
+                )}
+
+                {/* Holiday indicator */}
+                {isHoliday && (
+                  <div
+                    className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"
+                    title="Holiday"
+                  />
+                )}
+              </div>
             </div>
           );
         })}
@@ -1063,6 +1090,7 @@ function WeekView({
             {/* Day Cells */}
             {weekDays.map((day, dayIdx) => {
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              const isClosed = isClosingDay(day);
 
               // Get appointments that START in this hour OR overlap into this hour
               const cellAppointments = appointmentsByDay[dayIdx].filter(apt => {
@@ -1092,6 +1120,7 @@ function WeekView({
                   isLastHour={hourIdx === hours.length - 1}
                   isLastDay={dayIdx === 6}
                   isWeekend={isWeekend}
+                  isClosed={isClosed}
                   appointments={appointmentsToRender}
                   allDayAppointments={appointmentsByDay[dayIdx]}
                   startHour={START_HOUR}
@@ -1117,6 +1146,7 @@ function WeekDayCell({
   isLastHour,
   isLastDay,
   isWeekend,
+  isClosed,
   appointments,
   allDayAppointments,
   startHour,
@@ -1132,6 +1162,7 @@ function WeekDayCell({
   isLastHour: boolean;
   isLastDay: boolean;
   isWeekend: boolean;
+  isClosed: boolean;
   appointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   allDayAppointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   startHour: number;
@@ -1172,15 +1203,16 @@ function WeekDayCell({
     setDraggedAppointment(null);
   };
 
+  // Determine background based on closed day status
+  const bgClass = isClosed ? 'bg-gray-50/50' : isWeekend ? 'bg-gray-50/30' : 'bg-white';
+
   return (
     <div
       className={`relative min-h-[120px] border-r border-b border-gray-200/60 ${
         isLastDay ? 'border-r-0' : ''
       } ${
         isLastHour ? 'border-b-0' : ''
-      } ${
-        isWeekend ? 'bg-gray-50/30' : 'bg-white'
-      } transition-colors`}
+      } ${bgClass} transition-colors`}
     >
       {/* 15-minute drop zones (4 zones per hour: 0, 15, 30, 45) */}
       {Array.from({ length: DROP_ZONES_PER_HOUR }).map((_, dropZoneIndex) => {
@@ -1412,6 +1444,7 @@ function DayView({
   const now = new Date();
   const isToday = currentDate.toDateString() === now.toDateString();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isClosed = isClosingDay(currentDate);
 
   // Calculate current time indicator position
   const currentHour = now.getHours();
@@ -1518,12 +1551,13 @@ function DayView({
               const isCurrent = date.toDateString() === currentDate.toDateString();
               const isCurrentDay = date.toDateString() === now.toDateString();
               const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              const isHoliday = isItalianHoliday(date);
 
               return (
                 <button
                   key={date.toISOString()}
                   onClick={() => onDateChange?.(date)}
-                  className={`flex flex-col items-center justify-center rounded-xl transition-all ${
+                  className={`flex flex-col items-center justify-center rounded-xl transition-all relative ${
                     isCurrent
                       ? 'bg-gray-50 text-gray-900 px-4 sm:px-5 py-3 sm:py-4 shadow-sm'
                       : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50 px-2 sm:px-3 py-2'
@@ -1532,6 +1566,14 @@ function DayView({
                   }`}
                   title={date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 >
+                  {/* Holiday indicator - top right */}
+                  {isHoliday && (
+                    <div
+                      className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"
+                      title="Holiday"
+                    />
+                  )}
+
                   {/* Weekday */}
                   <div className={`font-semibold uppercase tracking-wider mb-1 ${
                     isCurrent ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs'
@@ -1600,6 +1642,7 @@ function DayView({
               hour={hour}
               hourIdx={hourIdx}
               isLastHour={hourIdx === hours.length - 1}
+              isClosed={isClosed}
               appointments={appointmentsByHour[hourIdx]}
               allDayAppointments={allDayAppointments}
               startHour={START_HOUR}
@@ -1624,6 +1667,7 @@ function DayHourCell({
   hour,
   hourIdx,
   isLastHour,
+  isClosed,
   appointments,
   allDayAppointments,
   startHour,
@@ -1640,6 +1684,7 @@ function DayHourCell({
   hour: number;
   hourIdx: number;
   isLastHour: boolean;
+  isClosed: boolean;
   appointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   allDayAppointments: Array<Appointment & { rowStart: number; rowSpan: number }>;
   startHour: number;
@@ -1683,11 +1728,14 @@ function DayHourCell({
     setDraggedAppointment(null);
   };
 
+  // Determine background based on closed day status
+  const bgClass = isClosed ? 'bg-gray-50/50' : 'bg-white';
+
   return (
     <div
       className={`relative min-h-[120px] border-b border-gray-200/60 ${
         isLastHour ? 'border-b-0' : ''
-      } bg-white transition-colors`}
+      } ${bgClass} transition-colors`}
     >
       {/* 15-minute drop zones (4 zones per hour: 0, 15, 30, 45) */}
       {Array.from({ length: DROP_ZONES_PER_HOUR }).map((_, dropZoneIndex) => {

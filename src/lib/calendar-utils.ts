@@ -89,7 +89,7 @@ export function getViewDateRange(
  * Italian holidays (hardcoded for now - will be configurable via YAML later)
  * TODO: Move to tenant YAML config under business.holidays
  */
-function isItalianHoliday(date: Date): boolean {
+export function isItalianHoliday(date: Date): boolean {
   const month = date.getMonth() + 1; // 1-based month
   const day = date.getDate();
   const year = date.getFullYear();
@@ -135,7 +135,7 @@ function isItalianHoliday(date: Date): boolean {
  * Currently hardcoded to Sunday (0) - will be configurable via YAML later
  * TODO: Move to tenant YAML config under business.closingDays (array of day numbers: 0=Sunday, 6=Saturday)
  */
-function isClosingDay(date: Date): boolean {
+export function isClosingDay(date: Date): boolean {
   const dayOfWeek = date.getDay();
   // Hardcoded: Sunday only
   return dayOfWeek === 0;
