@@ -768,7 +768,7 @@ function DayCell({
         isLastRow ? 'border-b-0' : ''
       } ${bgClass} ${
         day.isCurrentMonth ? 'hover:bg-gray-50/50 cursor-pointer' : ''
-      } transition-colors`}
+      } transition-all duration-200 ease-out ${isDragOver ? 'scale-[0.98]' : ''}`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -785,18 +785,18 @@ function DayCell({
       }}
     >
       {isDragOver && (
-        <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10 rounded-sm">
+        <div className="absolute inset-0 bg-teal-50/80 border-2 border-teal-500 pointer-events-none z-10 rounded-sm animate-in fade-in duration-150">
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-semibold text-teal-700">{t('dropHere')}</span>
+            <span className="text-sm font-semibold text-teal-700 animate-in zoom-in-50 duration-200">{t('dropHere')}</span>
           </div>
         </div>
       )}
 
       {/* Capacity indicator bar */}
       {day.appointments.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 h-1 z-10">
+        <div className="absolute top-0 left-0 right-0 h-1 z-10 overflow-hidden">
           <div
-            className={`h-full ${capacityColor} transition-all`}
+            className={`h-full ${capacityColor} transition-all duration-300 ease-out`}
             style={{ width: `${capacityPercent}%` }}
             title={`${day.appointments.length} appointments (${Math.round(capacityPercent)}% capacity)`}
           />
@@ -842,14 +842,18 @@ function DayCell({
                 {/* Vertically stacked appointments */}
                 {visibleAppointments.map((apt, idx) => {
                   const isCanceled = apt.status === 'cancelled';
+                  const isDragging = draggedAppointment?.id === apt.id;
                   return (
                     <div
                       key={apt.id}
                       draggable={!isCanceled}
-                      className={`text-[9px] md:text-xs lg:text-sm xl:text-base px-2 md:px-3 lg:px-4 xl:px-4.5 py-0.5 md:py-1 lg:py-1.5 xl:py-2 box-border flex items-center rounded-md md:rounded-lg lg:rounded-lg xl:rounded-xl font-semibold overflow-hidden flex-shrink-0 ${
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                      className={`text-[9px] md:text-xs lg:text-sm xl:text-base px-2 md:px-3 lg:px-4 xl:px-4.5 py-0.5 md:py-1 lg:py-1.5 xl:py-2 box-border flex items-center rounded-md md:rounded-lg lg:rounded-lg xl:rounded-xl font-semibold overflow-hidden flex-shrink-0 transition-all duration-200 ease-out animate-in fade-in slide-in-from-left-2 ${
                         isCanceled
                           ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
-                          : 'bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 cursor-pointer'
+                          : isDragging
+                          ? 'bg-teal-100 border border-teal-200 text-teal-900 opacity-40 cursor-grabbing'
+                          : 'bg-teal-50 border border-teal-100 text-teal-900 hover:bg-teal-100 hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-grab'
                       }`}
                       onDragStart={(e) => {
                         if (isCanceled) {
@@ -878,7 +882,7 @@ function DayCell({
                 {overflow > 0 && (
                   <div className="flex-shrink-0">
                     <div
-                      className="px-2 md:px-3 lg:px-4 xl:px-4.5 py-0.5 md:py-1 lg:py-1.5 xl:py-2 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-lg xl:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 text-[9px] md:text-xs lg:text-sm xl:text-base font-semibold cursor-pointer"
+                      className="px-2 md:px-3 lg:px-4 xl:px-4.5 py-0.5 md:py-1 lg:py-1.5 xl:py-2 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-lg xl:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] text-[9px] md:text-xs lg:text-sm xl:text-base font-semibold cursor-pointer transition-all duration-200 ease-out"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Navigate to list view filtered to this date

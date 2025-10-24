@@ -45,7 +45,7 @@ export function CalendarSection({
                 }
                 onDateChange(newDate);
               }}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all flex-shrink-0"
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 hover:scale-105 active:scale-95 transition-all duration-200 ease-out flex-shrink-0"
             >
               <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -93,7 +93,7 @@ export function CalendarSection({
                 }
                 onDateChange(newDate);
               }}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all flex-shrink-0"
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 hover:scale-105 active:scale-95 transition-all duration-200 ease-out flex-shrink-0"
             >
               <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -102,7 +102,7 @@ export function CalendarSection({
 
             <button
               onClick={() => onDateChange(new Date())}
-              className="ml-4 px-5 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+              className="ml-4 px-5 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 hover:scale-105 active:scale-95 rounded-xl transition-all duration-200 ease-out"
             >
               {t('dateNavigation.today')}
             </button>
@@ -117,10 +117,10 @@ export function CalendarSection({
           {/* Month view - Desktop only (hidden below md: 768px) */}
           <button
             onClick={() => onViewChange('month')}
-            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ease-out ${
               view === 'month'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-white text-gray-900 shadow-sm scale-[1.02]'
+                : 'text-gray-500 hover:text-gray-900 hover:scale-105 active:scale-95'
             }`}
           >
             {t('viewMode.month')}
@@ -128,10 +128,10 @@ export function CalendarSection({
           {/* Week view - Desktop only (hidden below md: 768px) */}
           <button
             onClick={() => onViewChange('week')}
-            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`hidden md:flex px-6 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ease-out ${
               view === 'week'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-white text-gray-900 shadow-sm scale-[1.02]'
+                : 'text-gray-500 hover:text-gray-900 hover:scale-105 active:scale-95'
             }`}
           >
             {t('viewMode.week')}
@@ -139,10 +139,10 @@ export function CalendarSection({
           {/* Day view - All screens */}
           <button
             onClick={() => onViewChange('day')}
-            className={`flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-xl text-sm font-semibold transition-all duration-200 ease-out ${
               view === 'day'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-white text-gray-900 shadow-sm scale-[1.02]'
+                : 'text-gray-500 hover:text-gray-900 hover:scale-105 active:scale-95'
             }`}
           >
             {t('viewMode.day')}
@@ -150,10 +150,10 @@ export function CalendarSection({
           {/* List view - All screens */}
           <button
             onClick={() => onViewChange('list')}
-            className={`flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-xl text-sm font-semibold transition-all duration-200 ease-out ${
               view === 'list'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                ? 'bg-white text-gray-900 shadow-sm scale-[1.02]'
+                : 'text-gray-500 hover:text-gray-900 hover:scale-105 active:scale-95'
             }`}
           >
             {t('viewMode.list')}
@@ -165,8 +165,8 @@ export function CalendarSection({
       <div className="relative">
         {/* Switching Business Overlay */}
         {isSwitchingBusiness && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-opacity duration-200">
-            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200 animate-fade-in">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl animate-in fade-in duration-200">
+            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200 animate-in zoom-in-95 fade-in duration-300">
               <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-medium text-gray-700">
                 {t('loading.loadingBusiness', { businessName: selectedBusinessName || '' })}
