@@ -1200,8 +1200,42 @@
     },
     "settings": {
       "title": "Settings",
+      "subtitle": "Manage your business and account preferences",
+      "categories": {
+        "profile": {
+          "label": "Profile",
+          "title": "Profile Information",
+          "description": "View your account details and role"
+        },
+        "business": {
+          "label": "Business",
+          "title": "Business Information",
+          "description": "Manage your business details, contact info, and location"
+        },
+        "booking": {
+          "label": "Booking",
+          "title": "Booking Settings",
+          "description": "Configure time slots and booking rules"
+        },
+        "availability": {
+          "label": "Availability",
+          "title": "Off Days & Holidays",
+          "description": "Manage days when you're closed or unavailable"
+        },
+        "security": {
+          "label": "Security",
+          "title": "Password & Security",
+          "description": "Update your password and secure your account"
+        },
+        "actions": {
+          "label": "Quick Actions",
+          "title": "Quick Actions",
+          "description": "Common tasks and shortcuts"
+        }
+      },
       "businessDetails": {
         "title": "Business Details",
+        "basicInfo": "Basic Information",
         "name": "Business Name",
         "businessId": "Business ID",
         "description": "Description",
