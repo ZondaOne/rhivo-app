@@ -2028,7 +2028,7 @@ function ListView({ currentDate, appointments, onReschedule, onEdit }: { current
                         {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {dayAppointments.length} {t(dayAppointments.length === 1 ? 'appointments' : 'appointments_plural', { count: dayAppointments.length })}
+                        {t('appointments', { count: dayAppointments.length })}
                       </div>
                     </div>
                   </div>

@@ -988,8 +988,7 @@
       "list": {
         "noAppointments": "Nessun appuntamento",
         "noAppointmentsFound": "Nessun appuntamento trovato per questo periodo",
-        "appointments": "{{count}} appuntamento",
-        "appointments_plural": "{{count}} appuntamenti"
+        "appointments": "{count, plural, =0 {Nessun appuntamento} =1 {1 appuntamento} other {# appuntamenti}}"
       }
     },
     "createAppointment": {

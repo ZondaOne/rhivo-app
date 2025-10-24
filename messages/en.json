@@ -987,8 +987,7 @@
       "list": {
         "noAppointments": "No appointments",
         "noAppointmentsFound": "No appointments found for this period",
-        "appointments": "{{count}} appointment",
-        "appointments_plural": "{{count}} appointments"
+        "appointments": "{count, plural, =0 {No appointments} =1 {1 appointment} other {# appointments}}"
       }
     },
     "createAppointment": {

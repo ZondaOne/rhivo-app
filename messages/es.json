@@ -988,8 +988,7 @@
       "list": {
         "noAppointments": "Sin citas",
         "noAppointmentsFound": "No se encontraron citas para este período",
-        "appointments": "{{count}} cita",
-        "appointments_plural": "{{count}} citas"
+        "appointments": "{count, plural, =0 {Sin citas} =1 {1 cita} other {# citas}}"
       }
     },
     "createAppointment": {
