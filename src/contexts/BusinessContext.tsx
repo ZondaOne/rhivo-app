@@ -10,6 +10,8 @@ export interface Business {
   name: string;
   isPrimary: boolean;
   joinedAt: string;
+  profileImageUrl?: string;
+  logoUrl?: string;
 }
 
 interface BusinessContextType {

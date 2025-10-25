@@ -63,18 +63,24 @@ export function DashboardHeader({
           <Logo size="sm" />
         </div>
 
-        {/* New Appointment Button */}
-        <button
-          onClick={onNewAppointmentClick}
-          disabled={!isAuthenticated}
-          className="px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 lg:px-6 lg:py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl sm:rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2 flex-shrink-0 relative z-10 text-sm sm:text-base"
-        >
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="hidden sm:inline">{t('header.newAppointment')}</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Logo - Visible only on mobile (max-sm), on the right */}
+          <div className="max-sm:flex hidden items-center justify-center flex-shrink-0">
+            <Logo size="sm" showText={true} />
+          </div>
+
+          {/* New Appointment Button - Hidden on mobile (max-sm), visible on sm and up */}
+          <button
+            onClick={onNewAppointmentClick}
+            disabled={!isAuthenticated}
+            className="max-sm:hidden flex px-4 py-2.5 md:px-5 md:py-3 lg:px-6 lg:py-3 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl sm:rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-2 flex-shrink-0 relative z-10 text-sm sm:text-base"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>{t('header.newAppointment')}</span>
+          </button>
+        </div>
       </div>
     </header>
   );
