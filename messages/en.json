@@ -898,13 +898,15 @@
         "label": "Service"
       },
       "date": {
-        "label": "Select Date"
+        "label": "Select Date",
+        "today": "Today"
       },
       "time": {
         "label": "Available Times",
         "noSlots": "No available times",
         "noSlotsHint": "Try selecting a different date",
-        "loading": "Loading available times..."
+        "loading": "Loading available times...",
+        "duration": "{minutes} min"
       },
       "preview": {
         "title": "New appointment time",
@@ -1051,6 +1053,7 @@
         "loadingSlots": "Loading available times...",
         "selectedSlot": "Selected time",
         "at": "at",
+        "today": "Today",
         "serviceMinutes": "{minutes, plural, =1 {1 minute service} other {# minute service}}",
         "available": "Available",
         "booked": "Booked",

@@ -38,28 +38,32 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
   const [pendingSaveData, setPendingSaveData] = useState<any>(null);
 
   // Form state
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [availableSlots, setAvailableSlots] = useState<{ start: string; end: string; available: boolean }[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<{ start: string; end: string; available: boolean } | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<string>('confirmed');
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
+  const [dateAvailability, setDateAvailability] = useState<Map<string, boolean>>(new Map());
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Computed values
   const selectedService = services.find(s => s.id === selectedServiceId);
-  const endTime = selectedService && selectedTime
-    ? calculateEndTime(selectedTime, selectedService.duration_minutes)
-    : '';
 
   useEffect(() => {
     loadServices();
 
     // Initialize form with appointment data
     const startDate = new Date(appointment.start_time);
-    setSelectedDate(startDate.toISOString().split('T')[0]);
-    setSelectedTime(formatTimeForInput(startDate));
+    setSelectedDate(startDate);
+    setCurrentWeekStart(getWeekStart(startDate));
     setSelectedServiceId(appointment.service_id || '');
     setCustomerName(appointment.customer_name || '');
     setCustomerEmail(appointment.customer_email || appointment.guest_email || '');
@@ -67,6 +71,18 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
     setNotes(appointment.notes || '');
     setStatus(appointment.status);
   }, [appointment]);
+
+  useEffect(() => {
+    if (selectedServiceId && selectedDate) {
+      loadAvailableSlots();
+    }
+  }, [selectedServiceId, selectedDate]);
+
+  useEffect(() => {
+    if (selectedServiceId) {
+      loadWeekAvailability();
+    }
+  }, [selectedServiceId, currentWeekStart]);
 
   async function loadServices() {
     try {
@@ -78,48 +94,173 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
     }
   }
 
-  function formatTimeForInput(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  }
+  async function loadAvailableSlots() {
+    if (!selectedServiceId) return;
 
-  function calculateEndTime(startTime: string, durationMinutes: number): string {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const start = new Date();
-    start.setHours(hours, minutes, 0, 0);
+    setLoadingSlots(true);
+    try {
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
 
-    const end = new Date(start);
-    end.setMinutes(end.getMinutes() + durationMinutes);
-
-    return formatTimeForInput(end);
-  }
-
-  // Generate 5-minute grain time options
-  function generateTimeOptions(): string[] {
-    const options: string[] = [];
-    const startHour = 6;
-    const endHour = 22;
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += GRAIN_MINUTES) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        options.push(time);
-      }
+      const response = await apiRequest<{ slots: { start: string; end: string; available: boolean }[] }>(
+        `/api/appointments/available-slots?serviceId=${selectedServiceId}&date=${dateStr}`
+      );
+      setAvailableSlots(response.slots || []);
+      setSelectedSlot(null);
+    } catch (error) {
+      console.error('Failed to load slots:', error);
+      showToast(t('errors.loadSlots'), 'error');
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
     }
+  }
 
-    return options;
+  function getWeekStart(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const weekStart = new Date(d.setDate(diff));
+    weekStart.setHours(0, 0, 0, 0);
+    return weekStart;
+  }
+
+  function getWeekDates(weekStart: Date): Date[] {
+    const dates: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  }
+
+  function goToPreviousWeek() {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() - 7);
+    setCurrentWeekStart(newWeekStart);
+  }
+
+  function goToNextWeek() {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() + 7);
+    setCurrentWeekStart(newWeekStart);
+  }
+
+  function goToCurrentWeek() {
+    const today = new Date();
+    setCurrentWeekStart(getWeekStart(today));
+    setSelectedDate(today);
+  }
+
+  async function loadWeekAvailability() {
+    if (!selectedServiceId) return;
+
+    setLoadingAvailability(true);
+    const weekDates = getWeekDates(currentWeekStart);
+    const availabilityMap = new Map<string, boolean>();
+
+    try {
+      const availabilityPromises = weekDates.map(async (date) => {
+        try {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+
+          const response = await apiRequest<{ slots: { start: string; end: string; available: boolean }[] }>(
+            `/api/appointments/available-slots?serviceId=${selectedServiceId}&date=${dateStr}`
+          );
+
+          const hasAvailableSlots = response.slots.some(slot => slot.available);
+          return { dateStr, hasAvailableSlots };
+        } catch (error) {
+          console.error(`Failed to load availability for ${date.toISOString()}:`, error);
+          return { dateStr: '', hasAvailableSlots: false };
+        }
+      });
+
+      const results = await Promise.all(availabilityPromises);
+      results.forEach(({ dateStr, hasAvailableSlots }) => {
+        if (dateStr) {
+          availabilityMap.set(dateStr, hasAvailableSlots);
+        }
+      });
+
+      setDateAvailability(availabilityMap);
+    } catch (error) {
+      console.error('Failed to load week availability:', error);
+    } finally {
+      setLoadingAvailability(false);
+    }
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    setTouchEnd(e.targetTouches[0].clientX);
+  }
+
+  function handleTouchEnd() {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextWeek();
+    } else if (isRightSwipe) {
+      goToPreviousWeek();
+    }
+  }
+
+  function formatDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function getMonthLabel(dates: Date[]): string {
+    if (dates.length === 0) return '';
+
+    const firstDate = dates[0];
+    const lastDate = dates[dates.length - 1];
+
+    const firstMonth = firstDate.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+    const lastMonth = lastDate.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+
+    if (firstMonth === lastMonth) {
+      return firstMonth;
+    } else {
+      return `${firstDate.toLocaleDateString('en', { month: 'short' })} - ${lastDate.toLocaleDateString('en', { month: 'short', year: 'numeric' })}`;
+    }
+  }
+
+  function isToday(date: Date): boolean {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  }
+
+  function isSameDay(date1: Date, date2: Date): boolean {
+    return date1.toDateString() === date2.toDateString();
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!selectedDate || !selectedTime || !selectedServiceId) {
+    if (!selectedSlot || !selectedServiceId) {
       showToast(t('validation.fillRequired'), 'warning');
       return;
     }
 
-    const newStartTime = new Date(`${selectedDate}T${selectedTime}`);
+    const newStartTime = new Date(selectedSlot.start);
     const snappedTime = snapToGrain(newStartTime);
 
     const originalStart = new Date(appointment.start_time);
@@ -271,37 +412,199 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
             <div className="space-y-4">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('schedule.title')}</h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+              {/* Week Navigation */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider">
                     {t('schedule.date')}
                   </label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
-                    required
-                  />
+                  <button
+                    type="button"
+                    onClick={goToCurrentWeek}
+                    className="text-[10px] sm:text-xs font-semibold text-teal-600 hover:text-teal-700 px-2 py-1 hover:bg-teal-50 rounded-lg transition-all"
+                  >
+                    {t('schedule.today', 'Today')}
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    {t('schedule.startTime')}
-                  </label>
-                  <select
-                    value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMS41TDYgNi41TDExIDEuNSIgc3Ryb2tlPSIjNkI3MjgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==')] bg-[length:12px] bg-[right_1rem_center] bg-no-repeat pr-10"
-                    required
+                {/* Month Label */}
+                <div className="flex items-center justify-between mb-2">
+                  <button
+                    type="button"
+                    onClick={goToPreviousWeek}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all flex-shrink-0"
+                    aria-label="Previous week"
                   >
-                    <option value="">{t('schedule.selectTime')}</option>
-                    {generateTimeOptions().map(time => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
-                  </select>
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <div className="text-sm sm:text-base font-semibold text-gray-700 text-center">
+                    {getMonthLabel(getWeekDates(currentWeekStart))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={goToNextWeek}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all flex-shrink-0"
+                    aria-label="Next week"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Week View with Swipe Support */}
+                <div
+                  className="relative touch-pan-y"
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  {/* Loading Overlay */}
+                  {loadingAvailability && (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-xl">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <div className="absolute inset-0 border-3 border-teal-200 rounded-full" />
+                          <div className="absolute inset-0 border-3 border-teal-600 rounded-full border-t-transparent animate-spin" />
+                        </div>
+                        <span className="text-xs text-gray-600 font-medium">Loading...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`grid grid-cols-7 gap-1 sm:gap-2 transition-opacity ${loadingAvailability ? 'opacity-40' : 'opacity-100'}`}>
+                    {getWeekDates(currentWeekStart).map((date) => {
+                      const isSelected = isSameDay(date, selectedDate);
+                      const isCurrentDay = isToday(date);
+                      const dateKey = formatDateKey(date);
+                      const hasAvailability = dateAvailability.get(dateKey);
+                      const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+                      const isDisabled = isPast || (hasAvailability === false && !loadingAvailability);
+
+                      return (
+                        <button
+                          type="button"
+                          key={date.toISOString()}
+                          onClick={() => !isDisabled && setSelectedDate(date)}
+                          disabled={isDisabled || loadingAvailability}
+                          className={`
+                            relative flex flex-col items-center justify-center px-1 sm:px-2 py-3 sm:py-4 rounded-xl border-2 transition-all duration-200
+                            ${isSelected
+                              ? 'bg-teal-600 border-teal-600 text-white shadow-md scale-105'
+                              : isDisabled
+                                ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
+                                : 'bg-white border-gray-200 text-gray-900 hover:border-teal-400 hover:bg-gradient-to-br hover:from-teal-50 hover:to-green-50 hover:shadow-md active:scale-95'
+                            }
+                          `}
+                        >
+                          {/* Weekday */}
+                          <div className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-0.5 sm:mb-1 ${isSelected ? 'text-white/90' : isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {date.toLocaleDateString('en', { weekday: 'short' })}
+                          </div>
+
+                          {/* Date Number */}
+                          <div className={`text-sm sm:text-lg font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-gray-900'}`}>
+                            {date.getDate()}
+                          </div>
+
+                          {/* Availability Badge */}
+                          {!isSelected && !isDisabled && hasAvailability && (
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 sm:w-10 h-0.5 bg-gradient-to-r from-teal-400 to-green-400 rounded-t-full" />
+                          )}
+
+                          {/* Today Indicator */}
+                          {isCurrentDay && !isSelected && (
+                            <div className="absolute inset-0 border-2 border-teal-500 rounded-xl pointer-events-none" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+
+              {/* Time Slots */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    {t('schedule.startTime')}
+                  </label>
+                  {selectedService && (
+                    <span className="text-[10px] sm:text-xs text-gray-500">
+                      {selectedService.duration_minutes} min
+                    </span>
+                  )}
+                </div>
+
+                {loadingSlots ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-teal-600" />
+                  </div>
+                ) : availableSlots.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 border border-gray-100 rounded-xl">
+                    <svg className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900">No slots available</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Try selecting another date</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-2 max-h-[240px] overflow-y-auto">
+                    {availableSlots.map((slot, index) => {
+                      const slotStart = new Date(slot.start);
+                      const isSelected = selectedSlot?.start === slot.start;
+                      const isAvailable = slot.available;
+
+                      return (
+                        <button
+                          type="button"
+                          key={index}
+                          onClick={() => isAvailable && setSelectedSlot(slot)}
+                          disabled={!isAvailable}
+                          className={`
+                            relative px-2 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95
+                            ${isSelected
+                              ? 'bg-teal-600 text-white shadow-md border-2 border-teal-600'
+                              : isAvailable
+                                ? 'bg-white border-2 border-gray-200 text-gray-900 hover:border-teal-400 hover:bg-teal-50 hover:shadow-sm'
+                                : 'bg-gray-50 border-2 border-gray-100 text-gray-400 cursor-not-allowed'
+                            }
+                          `}
+                        >
+                          {formatTime(slotStart, 'en')}
+                          {/* Checkmark for selected slot */}
+                          {isSelected && (
+                            <svg className="absolute top-0.5 right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected Slot Preview */}
+              {selectedSlot && selectedService && (
+                <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 sm:p-4">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs sm:text-sm font-semibold text-gray-900">Selected time</div>
+                      <div className="text-xs sm:text-sm text-gray-700 mt-0.5 sm:mt-1">
+                        {formatDate(selectedDate, 'long', 'en')} at {formatTime(new Date(selectedSlot.start), 'en')} - {formatTime(new Date(selectedSlot.end), 'en')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Service Section */}
@@ -323,24 +626,6 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
                   ))}
                 </select>
               </div>
-
-              {/* Duration Preview */}
-              {selectedService && (
-                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">{t('schedule.duration')}</span>
-                      <span className="font-semibold text-gray-900">{selectedService.duration_minutes} min</span>
-                    </div>
-                    {endTime && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t('schedule.endTime')}</span>
-                        <span className="font-semibold text-gray-900">{endTime}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Customer Information Section */}

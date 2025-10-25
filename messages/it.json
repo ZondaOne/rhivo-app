@@ -899,13 +899,15 @@
         "label": "Servizio"
       },
       "date": {
-        "label": "Seleziona Data"
+        "label": "Seleziona Data",
+        "today": "Oggi"
       },
       "time": {
         "label": "Orari Disponibili",
         "noSlots": "Nessun orario disponibile",
         "noSlotsHint": "Prova a selezionare un'altra data",
-        "loading": "Caricamento orari disponibili..."
+        "loading": "Caricamento orari disponibili...",
+        "duration": "{minutes} min"
       },
       "preview": {
         "title": "Nuovo orario appuntamento",
@@ -1052,6 +1054,7 @@
         "loadingSlots": "Caricamento orari disponibili...",
         "selectedSlot": "Orario selezionato",
         "at": "alle",
+        "today": "Oggi",
         "serviceMinutes": "{minutes, plural, =1 {Servizio di 1 minuto} other {Servizio di # minuti}}",
         "available": "Disponibile",
         "booked": "Prenotato",

@@ -50,6 +50,11 @@ export function RescheduleAppointmentModal({
   const [selectedDate, setSelectedDate] = useState<Date>(currentStart);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getWeekStart(currentStart));
+  const [dateAvailability, setDateAvailability] = useState<Map<string, boolean>>(new Map());
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   // Notification toggle
   const [notifyCustomer, setNotifyCustomer] = useState(true);
@@ -72,6 +77,12 @@ export function RescheduleAppointmentModal({
     }
   }, [selectedServiceId, selectedDate]);
 
+  useEffect(() => {
+    if (selectedServiceId) {
+      loadWeekAvailability();
+    }
+  }, [selectedServiceId, currentWeekStart]);
+
   async function loadServices() {
     try {
       const data = await apiRequest<Service[]>('/api/services');
@@ -87,7 +98,12 @@ export function RescheduleAppointmentModal({
 
     setLoadingSlots(true);
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Format date in local timezone to avoid timezone conversion bugs
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
       const response = await apiRequest<{ slots: TimeSlot[] }>(
         `/api/appointments/available-slots?serviceId=${selectedServiceId}&date=${dateStr}`
       );
@@ -172,22 +188,131 @@ export function RescheduleAppointmentModal({
     }
   }
 
-  function getDateRange(): Date[] {
-    const dates: Date[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  function getWeekStart(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const weekStart = new Date(d.setDate(diff));
+    weekStart.setHours(0, 0, 0, 0);
+    return weekStart;
+  }
 
-    for (let i = 0; i < 60; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
+  function getWeekDates(weekStart: Date): Date[] {
+    const dates: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
       dates.push(date);
     }
-
     return dates;
   }
 
-  function formatDateShort(date: Date): string {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  function goToPreviousWeek() {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() - 7);
+    setCurrentWeekStart(newWeekStart);
+  }
+
+  function goToNextWeek() {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() + 7);
+    setCurrentWeekStart(newWeekStart);
+  }
+
+  function goToCurrentWeek() {
+    const today = new Date();
+    setCurrentWeekStart(getWeekStart(today));
+    setSelectedDate(today);
+  }
+
+  async function loadWeekAvailability() {
+    if (!selectedServiceId) return;
+
+    setLoadingAvailability(true);
+    const weekDates = getWeekDates(currentWeekStart);
+    const availabilityMap = new Map<string, boolean>();
+
+    try {
+      // Fetch availability for all dates in the week in parallel
+      const availabilityPromises = weekDates.map(async (date) => {
+        try {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${month}-${day}`;
+
+          const response = await apiRequest<{ slots: TimeSlot[] }>(
+            `/api/appointments/available-slots?serviceId=${selectedServiceId}&date=${dateStr}`
+          );
+
+          // Check if there are any available slots
+          const hasAvailableSlots = response.slots.some(slot => slot.available);
+          return { dateStr, hasAvailableSlots };
+        } catch (error) {
+          console.error(`Failed to load availability for ${date.toISOString()}:`, error);
+          return { dateStr: '', hasAvailableSlots: false };
+        }
+      });
+
+      const results = await Promise.all(availabilityPromises);
+      results.forEach(({ dateStr, hasAvailableSlots }) => {
+        if (dateStr) {
+          availabilityMap.set(dateStr, hasAvailableSlots);
+        }
+      });
+
+      setDateAvailability(availabilityMap);
+    } catch (error) {
+      console.error('Failed to load week availability:', error);
+    } finally {
+      setLoadingAvailability(false);
+    }
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    setTouchEnd(e.targetTouches[0].clientX);
+  }
+
+  function handleTouchEnd() {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextWeek();
+    } else if (isRightSwipe) {
+      goToPreviousWeek();
+    }
+  }
+
+  function formatDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function getMonthLabel(dates: Date[]): string {
+    if (dates.length === 0) return '';
+
+    const firstDate = dates[0];
+    const lastDate = dates[dates.length - 1];
+
+    const firstMonth = firstDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+    const lastMonth = lastDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+
+    if (firstMonth === lastMonth) {
+      return firstMonth;
+    } else {
+      return `${firstDate.toLocaleDateString(locale, { month: 'short' })} - ${lastDate.toLocaleDateString(locale, { month: 'short', year: 'numeric' })}`;
+    }
   }
 
   function isToday(date: Date): boolean {
@@ -298,41 +423,124 @@ export function RescheduleAppointmentModal({
                 </div>
               )}
 
-              {/* Date Selector - Horizontal Scroll */}
+              {/* Week Navigation */}
               <div>
-                <label className="block text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-2 sm:mb-3">
-                  {t('date.label')}
-                </label>
-                <div className="relative">
-                  <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-thin">
-                    {getDateRange().map((date) => {
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <label className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    {t('date.label')}
+                  </label>
+                  <button
+                    onClick={goToCurrentWeek}
+                    className="text-[10px] sm:text-xs font-semibold text-teal-600 hover:text-teal-700 px-2 py-1 hover:bg-teal-50 rounded-lg transition-all"
+                  >
+                    {t('date.today', 'Today')}
+                  </button>
+                </div>
+
+                {/* Month Label */}
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <button
+                    onClick={goToPreviousWeek}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all flex-shrink-0"
+                    aria-label="Previous week"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <div className="text-sm sm:text-base font-semibold text-gray-700 text-center">
+                    {getMonthLabel(getWeekDates(currentWeekStart))}
+                  </div>
+
+                  <button
+                    onClick={goToNextWeek}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all flex-shrink-0"
+                    aria-label="Next week"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Week View with Swipe Support */}
+                <div
+                  className="relative touch-pan-y"
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  {/* Loading Overlay */}
+                  {loadingAvailability && (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-xl">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="relative w-8 h-8">
+                          <div className="absolute inset-0 border-3 border-teal-200 rounded-full" />
+                          <div className="absolute inset-0 border-3 border-teal-600 rounded-full border-t-transparent animate-spin" />
+                        </div>
+                        <span className="text-xs text-gray-600 font-medium">Loading...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`grid grid-cols-7 gap-1 sm:gap-2 transition-opacity ${loadingAvailability ? 'opacity-40' : 'opacity-100'}`}>
+                    {getWeekDates(currentWeekStart).map((date) => {
                       const isSelected = isSameDay(date, selectedDate);
                       const isCurrentDay = isToday(date);
+                      const dateKey = formatDateKey(date);
+                      const hasAvailability = dateAvailability.get(dateKey);
+                      const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+                      const isDisabled = isPast || (hasAvailability === false && !loadingAvailability);
 
                       return (
                         <button
                           key={date.toISOString()}
-                          onClick={() => setSelectedDate(date)}
+                          onClick={() => !isDisabled && setSelectedDate(date)}
+                          disabled={isDisabled || loadingAvailability}
                           className={`
-                            flex-shrink-0 flex flex-col items-center justify-center px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 transition-all min-w-[64px] sm:min-w-[80px]
+                            relative flex flex-col items-center justify-center px-1 sm:px-2 py-3 sm:py-4 rounded-xl border-2 transition-all duration-200
                             ${isSelected
-                              ? 'bg-gradient-to-br from-teal-600 to-green-600 border-teal-600 text-white shadow-lg'
-                              : 'bg-white border-gray-200 text-gray-900 hover:border-teal-300 hover:bg-teal-50 active:scale-95'
+                              ? 'bg-teal-600 border-teal-600 text-white shadow-md scale-105'
+                              : isDisabled
+                                ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
+                                : 'bg-white border-gray-200 text-gray-900 hover:border-teal-400 hover:bg-gradient-to-br hover:from-teal-50 hover:to-green-50 hover:shadow-md active:scale-95'
                             }
                           `}
                         >
-                          <div className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${isSelected ? 'text-white/80' : 'text-gray-500'}`}>
-                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                          {/* Weekday */}
+                          <div className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-0.5 sm:mb-1 ${isSelected ? 'text-white/90' : isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {date.toLocaleDateString(locale, { weekday: 'short' })}
                           </div>
-                          <div className={`text-base sm:text-lg font-bold mt-0.5 sm:mt-1 ${isSelected ? 'text-white' : 'text-gray-900'}`}>
+
+                          {/* Date Number */}
+                          <div className={`text-sm sm:text-lg font-bold ${isSelected ? 'text-white' : isDisabled ? 'text-gray-300' : 'text-gray-900'}`}>
                             {date.getDate()}
                           </div>
+
+                          {/* Availability Badge - Subtle bar at bottom instead of dot */}
+                          {!isSelected && !isDisabled && hasAvailability && (
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 sm:w-10 h-0.5 bg-gradient-to-r from-teal-400 to-green-400 rounded-t-full" />
+                          )}
+
+                          {/* Today Indicator - Small ring around date */}
                           {isCurrentDay && !isSelected && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-teal-600 mt-0.5 sm:mt-1" />
+                            <div className="absolute inset-0 border-2 border-teal-500 rounded-xl pointer-events-none" />
                           )}
                         </button>
                       );
                     })}
+                  </div>
+
+                  {/* Swipe Indicator for Mobile */}
+                  <div className="mt-3 sm:hidden flex items-center justify-center gap-1.5">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span className="text-[10px] text-gray-400 font-medium">Swipe to navigate</span>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -345,7 +553,7 @@ export function RescheduleAppointmentModal({
                   </label>
                   {selectedService && (
                     <span className="text-[10px] sm:text-xs text-gray-500">
-                      {selectedService.duration_minutes} min
+                      {t('time.duration', { minutes: selectedService.duration_minutes })}
                     </span>
                   )}
                 </div>
@@ -375,20 +583,21 @@ export function RescheduleAppointmentModal({
                           onClick={() => isAvailable && setSelectedSlot(slot)}
                           disabled={!isAvailable}
                           className={`
-                            px-2 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all active:scale-95
+                            relative px-2 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95
                             ${isSelected
-                              ? 'bg-gradient-to-br from-teal-600 to-green-600 text-white shadow-lg'
+                              ? 'bg-teal-600 text-white shadow-md border-2 border-teal-600'
                               : isAvailable
-                                ? 'bg-white border border-gray-200 text-gray-900 hover:border-teal-300 hover:bg-teal-50'
-                                : 'bg-gray-50 border border-gray-100 text-gray-400 cursor-not-allowed'
+                                ? 'bg-white border-2 border-gray-200 text-gray-900 hover:border-teal-400 hover:bg-teal-50 hover:shadow-sm'
+                                : 'bg-gray-50 border-2 border-gray-100 text-gray-400 cursor-not-allowed'
                             }
                           `}
                         >
                           {formatTime(slotStart, locale)}
-                          {slot.capacity && isAvailable && !isSelected && (
-                            <div className="text-[10px] text-gray-500 mt-0.5 hidden sm:block">
-                              {slot.capacity.current}/{slot.capacity.max}
-                            </div>
+                          {/* Checkmark for selected slot */}
+                          {isSelected && (
+                            <svg className="absolute top-0.5 right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
                           )}
                         </button>
                       );
