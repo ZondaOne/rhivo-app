@@ -169,18 +169,6 @@ function DesktopSidebar({ currentPage, onNotificationClick }: DashboardSidebarPr
 
       {/* Bottom Actions */}
       <div className="flex flex-col gap-2 w-full px-3">
-        <Link
-          href="/debug/api"
-          className="w-full h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all relative group"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap">
-            {t('navigation.debug')}
-          </div>
-        </Link>
-
         {isAuthenticated && (
           <div className="relative group">
             <button className="w-full h-12 flex items-center justify-center">
