@@ -1,5 +1,18 @@
 {
   "home": {
+    "nav": {
+      "howItWorks": "Come funziona",
+      "useCases": "Casi d'uso",
+      "forBusiness": "Per aziende",
+      "login": "Accedi",
+      "getStarted": "Inizia",
+      "mobileMenu": {
+        "title": "Menu",
+        "subtitle": "Naviga alle sezioni",
+        "accountLabel": "Account",
+        "tagline": "Semplice per design"
+      }
+    },
     "hero": {
       "title": {
         "line1": "Ovunque tu voglia essere.",
@@ -1035,7 +1048,7 @@
         "loadingSlots": "Caricamento orari disponibili...",
         "selectedSlot": "Orario selezionato",
         "at": "alle",
-        "serviceMinutes": "Servizio di {{minutes}} minuti",
+        "serviceMinutes": "{minutes, plural, =1 {Servizio di 1 minuto} other {Servizio di # minuti}}",
         "available": "Disponibile",
         "booked": "Prenotato",
         "limited": "Limitato"
@@ -1236,6 +1249,7 @@
       },
       "businessDetails": {
         "title": "Dettagli Attività",
+        "basicInfo": "Informazioni di Base",
         "name": "Nome Attività",
         "businessId": "ID Attività",
         "description": "Descrizione",
@@ -1287,6 +1301,12 @@
         "title": "Azioni Rapide",
         "viewWebsite": "Visualizza Sito Web",
         "copyBookingLink": "Copia Link Prenotazione"
+      },
+      "contactTeam": {
+        "title": "Vuoi modificare qualcosa?",
+        "description": "Hai bisogno di aggiornare le informazioni della tua attività? Contatta il nostro team e ti aiuteremo a effettuare le modifiche.",
+        "futureNote": "In futuro, potrai modificare queste impostazioni direttamente da questa pagina.",
+        "button": "Contatta il Team"
       },
       "offDays": {
         "title": "Giorni di Chiusura",

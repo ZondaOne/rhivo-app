@@ -38,6 +38,7 @@ export function UseCasesSection() {
 
   return (
     <section
+      id="use-cases"
       ref={sectionRef}
       className="py-20 sm:py-32 md:py-40 bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden"
     >

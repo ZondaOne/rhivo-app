@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         ) VALUES (
           ${body.customer_email},
           ${body.customer_name ?? 'Guest'},
-          ${body.customer_phone ?? null},
+          ${body.customer_phone && body.customer_phone.trim() ? body.customer_phone : null},
           'customer',
           ${payload.business_id},
           true,

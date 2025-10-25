@@ -596,10 +596,10 @@ function SettingsContent() {
                   <div className="bg-gradient-to-br from-teal-50 to-green-50 border border-teal-200/60 rounded-2xl p-8 shadow-sm">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 tracking-tight mb-2">Want to change something?</h3>
+                        <h3 className="text-xl font-bold text-gray-900 tracking-tight mb-2">{t('contactTeam.title')}</h3>
                         <p className="text-sm text-gray-600 leading-relaxed">
-                          Need to update your business information? Contact our team and we'll help you make the changes.
-                          <span className="block mt-1 text-xs text-gray-500">In the future, you'll be able to edit these settings directly on this page.</span>
+                          {t('contactTeam.description')}
+                          <span className="block mt-1 text-xs text-gray-500">{t('contactTeam.futureNote')}</span>
                         </p>
                       </div>
                       <a
@@ -609,7 +609,7 @@ function SettingsContent() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Contact Team
+                        {t('contactTeam.button')}
                       </a>
                     </div>
                   </div>

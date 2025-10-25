@@ -40,7 +40,7 @@ export function ForBusinessSection() {
   ];
 
   return (
-    <section className="py-20 sm:py-32 md:py-40 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
+    <section id="for-business" className="py-20 sm:py-32 md:py-40 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
       {/* Premium background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-gradient-to-br from-teal-500/10 via-green-500/5 to-transparent rounded-full blur-3xl" />

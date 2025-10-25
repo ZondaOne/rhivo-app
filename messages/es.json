@@ -1,5 +1,18 @@
 {
   "home": {
+    "nav": {
+      "howItWorks": "Cómo funciona",
+      "useCases": "Casos de uso",
+      "forBusiness": "Para negocios",
+      "login": "Iniciar sesión",
+      "getStarted": "Comenzar",
+      "mobileMenu": {
+        "title": "Menú",
+        "subtitle": "Navegar a secciones",
+        "accountLabel": "Cuenta",
+        "tagline": "Simple por diseño"
+      }
+    },
     "hero": {
       "title": {
         "line1": "Donde quieras estar.",
@@ -1035,7 +1048,7 @@
         "loadingSlots": "Cargando horarios disponibles...",
         "selectedSlot": "Hora seleccionada",
         "at": "a las",
-        "serviceMinutes": "Servicio de {{minutes}} minutos",
+        "serviceMinutes": "{minutes, plural, =1 {Servicio de 1 minuto} other {Servicio de # minutos}}",
         "available": "Disponible",
         "booked": "Reservado",
         "limited": "Limitado"
@@ -1236,6 +1249,7 @@
       },
       "businessDetails": {
         "title": "Detalles del Negocio",
+        "basicInfo": "Información Básica",
         "name": "Nombre del Negocio",
         "businessId": "ID del Negocio",
         "description": "Descripción",
@@ -1287,6 +1301,12 @@
         "title": "Acciones Rápidas",
         "viewWebsite": "Ver Sitio Web",
         "copyBookingLink": "Copiar Enlace de Reserva"
+      },
+      "contactTeam": {
+        "title": "¿Quieres cambiar algo?",
+        "description": "¿Necesitas actualizar la información de tu negocio? Contacta a nuestro equipo y te ayudaremos a realizar los cambios.",
+        "futureNote": "En el futuro, podrás editar estas configuraciones directamente en esta página.",
+        "button": "Contactar Equipo"
       },
       "offDays": {
         "title": "Días de Cierre",

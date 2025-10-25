@@ -1,5 +1,18 @@
 {
   "home": {
+    "nav": {
+      "howItWorks": "How it works",
+      "useCases": "Use cases",
+      "forBusiness": "For business",
+      "login": "Login",
+      "getStarted": "Get started",
+      "mobileMenu": {
+        "title": "Menu",
+        "subtitle": "Navigate to sections",
+        "accountLabel": "Account",
+        "tagline": "Simple by design"
+      }
+    },
     "hero": {
       "title": {
         "line1": "Everywhere you want to be.",
@@ -1034,7 +1047,7 @@
         "loadingSlots": "Loading available times...",
         "selectedSlot": "Selected time",
         "at": "at",
-        "serviceMinutes": "{{minutes}} minute service",
+        "serviceMinutes": "{minutes, plural, =1 {1 minute service} other {# minute service}}",
         "available": "Available",
         "booked": "Booked",
         "limited": "Limited"
@@ -1287,6 +1300,12 @@
         "title": "Quick Actions",
         "viewWebsite": "View Website",
         "copyBookingLink": "Copy Booking Link"
+      },
+      "contactTeam": {
+        "title": "Want to change something?",
+        "description": "Need to update your business information? Contact our team and we'll help you make the changes.",
+        "futureNote": "In the future, you'll be able to edit these settings directly on this page.",
+        "button": "Contact Team"
       },
       "offDays": {
         "title": "Off Days",
