@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Appointment } from '@/db/types';
 import { formatTime, formatDate } from '@/lib/calendar-utils';
 
@@ -20,6 +20,7 @@ export function RescheduleConfirmationModal({
   onCancel,
 }: RescheduleConfirmationModalProps) {
   const t = useTranslations('dashboard.rescheduleConfirmation');
+  const locale = useLocale();
   const originalEnd = new Date(appointment.end_time);
   const duration = Math.round((originalEnd.getTime() - originalTime.getTime()) / (1000 * 60));
   const newEnd = new Date(newTime);
@@ -84,13 +85,13 @@ export function RescheduleConfirmationModal({
                   {t('original')}
                 </div>
                 <div className="text-sm font-semibold text-gray-900">
-                  {formatDate(originalTime, 'long')}
+                  {formatDate(originalTime, 'long', locale)}
                 </div>
                 <div className="text-lg font-bold text-gray-900 mt-1">
-                  {formatTime(originalTime)}
+                  {formatTime(originalTime, locale)}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {formatTime(originalEnd)}
+                  {formatTime(originalEnd, locale)}
                 </div>
               </div>
 
@@ -100,13 +101,13 @@ export function RescheduleConfirmationModal({
                   {t('new')}
                 </div>
                 <div className="text-sm font-semibold text-gray-900">
-                  {formatDate(newTime, 'long')}
+                  {formatDate(newTime, 'long', locale)}
                 </div>
                 <div className="text-lg font-bold text-gray-900 mt-1">
-                  {formatTime(newTime)}
+                  {formatTime(newTime, locale)}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {formatTime(newEnd)}
+                  {formatTime(newEnd, locale)}
                 </div>
               </div>
             </div>

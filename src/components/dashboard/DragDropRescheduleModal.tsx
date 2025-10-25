@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Appointment } from '@/db/types';
 import { formatTime, formatDate } from '@/lib/calendar-utils';
 
@@ -22,6 +22,7 @@ export function DragDropRescheduleModal({
   loading = false,
 }: DragDropRescheduleModalProps) {
   const t = useTranslations('dashboard.dragReschedule');
+  const locale = useLocale();
   const originalEnd = new Date(appointment.end_time);
   const duration = Math.round((originalEnd.getTime() - originalTime.getTime()) / (1000 * 60));
   const newEnd = new Date(newTime);
@@ -73,14 +74,14 @@ export function DragDropRescheduleModal({
                 </div>
                 {!isSameDay && (
                   <div className="text-sm font-semibold text-gray-900">
-                    {formatDate(originalTime, 'long')}
+                    {formatDate(originalTime, 'long', locale)}
                   </div>
                 )}
                 <div className="text-lg font-bold text-gray-900 mt-1">
-                  {formatTime(originalTime)}
+                  {formatTime(originalTime, locale)}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  to {formatTime(originalEnd)}
+                  to {formatTime(originalEnd, locale)}
                 </div>
               </div>
 
@@ -91,14 +92,14 @@ export function DragDropRescheduleModal({
                 </div>
                 {!isSameDay && (
                   <div className="text-sm font-semibold text-gray-900">
-                    {formatDate(newTime, 'long')}
+                    {formatDate(newTime, 'long', locale)}
                   </div>
                 )}
                 <div className="text-lg font-bold text-gray-900 mt-1">
-                  {formatTime(newTime)}
+                  {formatTime(newTime, locale)}
                 </div>
                 <div className="text-xs text-gray-700 mt-1">
-                  to {formatTime(newEnd)}
+                  to {formatTime(newEnd, locale)}
                 </div>
               </div>
             </div>

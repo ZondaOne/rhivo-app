@@ -1190,11 +1190,15 @@
       "invalidTime": "Orario selezionato non valido",
       "customerNotified": "Il cliente sarà notificato via email"
     },
-    "notifications": {
+    "notificationCenter": {
+      "tooltip": "Centro Notifiche",
+      "loading": "Caricamento notifiche...",
+      "deleteButton": "Elimina",
       "title": "Notifiche",
       "markAsRead": "Segna come letta",
       "markAllRead": "Segna tutte come lette",
-      "noNotifications": "Nessuna notifica",
+      "noNotificationsHint": "Vedrai gli aggiornamenti delle prenotazioni qui",
+      "noNotifications": "Non ci sono nuove notifiche",
       "viewAll": "Vedi tutte",
       "types": {
         "booking_created": "Nuova Prenotazione",

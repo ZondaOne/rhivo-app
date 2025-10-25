@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Appointment } from '@/db/types';
 import { formatTime, formatDate, snapToGrain } from '@/lib/calendar-utils';
 import { apiRequest } from '@/lib/auth/api-client';
@@ -36,6 +36,7 @@ export function RescheduleAppointmentModal({
   onSuccess,
 }: RescheduleAppointmentModalProps) {
   const t = useTranslations('dashboard.rescheduleModal');
+  const locale = useLocale();
   const { toasts, showToast, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -268,10 +269,10 @@ export function RescheduleAppointmentModal({
                   </div>
                   <div className="text-left sm:text-right w-full sm:w-auto">
                     <div className="text-xs sm:text-sm font-semibold text-gray-900">
-                      {formatDate(currentStart, 'long')}
+                      {formatDate(currentStart, 'long', locale)}
                     </div>
                     <div className="text-base sm:text-lg font-bold text-gray-900 mt-0.5 sm:mt-1">
-                      {formatTime(currentStart)} - {formatTime(currentEnd)}
+                      {formatTime(currentStart, locale)} - {formatTime(currentEnd, locale)}
                     </div>
                   </div>
                 </div>
@@ -383,7 +384,7 @@ export function RescheduleAppointmentModal({
                             }
                           `}
                         >
-                          {formatTime(slotStart)}
+                          {formatTime(slotStart, locale)}
                           {slot.capacity && isAvailable && !isSelected && (
                             <div className="text-[10px] text-gray-500 mt-0.5 hidden sm:block">
                               {slot.capacity.current}/{slot.capacity.max}
@@ -406,7 +407,7 @@ export function RescheduleAppointmentModal({
                     <div className="flex-1 min-w-0">
                       <div className="text-xs sm:text-sm font-semibold text-gray-900">{t('preview.title')}</div>
                       <div className="text-xs sm:text-sm text-gray-700 mt-0.5 sm:mt-1">
-                        {formatDate(selectedDate, 'long')} {t('preview.at')} {formatTime(new Date(selectedSlot.start))} - {formatTime(new Date(selectedSlot.end))}
+                        {formatDate(selectedDate, 'long', locale)} {t('preview.at')} {formatTime(new Date(selectedSlot.start), locale)} - {formatTime(new Date(selectedSlot.end), locale)}
                       </div>
                     </div>
                   </div>

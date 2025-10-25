@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Fragment, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { CalendarView, generateMonthCalendar, generateTimeSlots, formatDate, formatTime, CalendarDay, TimeSlot, snapToGrain, getAppointmentDuration, isItalianHoliday, isClosingDay } from '@/lib/calendar-utils';
 import { Appointment } from '@/db/types';
 import { AppointmentCard } from './AppointmentCard';
@@ -45,6 +45,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
   const t = useTranslations('dashboard.calendar');
   const ts = useTranslations('dashboard.appointmentCard.status');
   const canceledLabel = ts('cancelled');
+  const locale = useLocale();
   const { toasts, showToast, removeToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentCache, setAppointmentCache] = useState<AppointmentCache | null>(null);
@@ -527,6 +528,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
               onDateChange={onDateChange}
               onDayCellClick={handleDayCellClick}
               onAppointmentClick={handleAppointmentClick}
+              locale={locale}
             />
           </div>
         )}
@@ -575,6 +577,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
                 setDraggedAppointment={setDraggedAppointment}
                 onDateChange={onDateChange}
                 canceledLabel={canceledLabel}
+                locale={locale}
               />
             </div>
             {/* On mobile/tablet, show a message if week view is selected */}
@@ -619,6 +622,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
             highlightedAppointmentId={highlightedAppointmentId}
             onDateChange={onDateChange}
             canceledLabel={canceledLabel}
+            locale={locale}
           />
         )}
 
@@ -628,6 +632,7 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
             appointments={appointments}
             onReschedule={requestReschedule}
             onEdit={handleEdit}
+            locale={locale}
           />
         )}
       </ViewTransition>
@@ -646,6 +651,7 @@ function MonthView({
   onDateChange,
   onDayCellClick,
   onAppointmentClick,
+  locale,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -657,6 +663,7 @@ function MonthView({
   onDateChange?: (date: Date) => void;
   onDayCellClick?: (date: Date) => void;
   onAppointmentClick?: (appointmentId: string, appointmentDate: Date) => void;
+  locale: string;
 }) {
   const t = useTranslations('dashboard.calendar.dayLabels');
   const year = currentDate.getFullYear();
@@ -697,6 +704,7 @@ function MonthView({
             onDateChange={onDateChange}
             onDayCellClick={onDayCellClick}
             onAppointmentClick={onAppointmentClick}
+            locale={locale}
           />
         ))}
       </div>
@@ -715,6 +723,7 @@ function DayCell({
   onDateChange,
   onDayCellClick,
   onAppointmentClick,
+  locale,
 }: {
   day: CalendarDay;
   isLastRow: boolean;
@@ -726,6 +735,7 @@ function DayCell({
   onDateChange?: (date: Date) => void;
   onDayCellClick?: (date: Date) => void;
   onAppointmentClick?: (appointmentId: string, appointmentDate: Date) => void;
+  locale: string;
 }) {
   const t = useTranslations('dashboard.calendar.actions');
   const [isDragOver, setIsDragOver] = useState(false);
@@ -872,7 +882,7 @@ function DayCell({
                       }}
                     >
                       <span className="truncate block flex-1 leading-none">
-                        {formatTime(new Date(apt.start_time))}
+                        {formatTime(new Date(apt.start_time), locale)}
                       </span>
                     </div>
                   );
@@ -927,6 +937,7 @@ function WeekView({
   setDraggedAppointment,
   onDateChange,
   canceledLabel,
+  locale,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -936,6 +947,7 @@ function WeekView({
   setDraggedAppointment: (apt: Appointment | null) => void;
   onDateChange?: (date: Date) => void;
   canceledLabel: string;
+  locale: string;
 }) {
   const weekStart = new Date(currentDate);
   const dayOfWeek = weekStart.getDay();
@@ -1052,7 +1064,7 @@ function WeekView({
           return (
             <div key={day.toISOString()} className="py-4 text-center border-r border-gray-200/60 last:border-r-0">
               <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
-                {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                {day.toLocaleDateString(locale, { weekday: 'short' })}
               </div>
               <div className="flex items-center justify-center gap-1">
                 {isToday ? (
@@ -1133,6 +1145,7 @@ function WeekView({
                   draggedAppointment={draggedAppointment}
                   setDraggedAppointment={setDraggedAppointment}
                   canceledLabel={canceledLabel}
+                  locale={locale}
                 />
               );
             })}
@@ -1159,6 +1172,7 @@ function WeekDayCell({
   draggedAppointment,
   setDraggedAppointment,
   canceledLabel,
+  locale,
 }: {
   day: Date;
   hour: number;
@@ -1175,6 +1189,7 @@ function WeekDayCell({
   draggedAppointment: Appointment | null;
   setDraggedAppointment: (apt: Appointment | null) => void;
   canceledLabel: string;
+  locale: string;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
@@ -1226,7 +1241,7 @@ function WeekDayCell({
 
         // Calculate the time this drop zone represents
         const minutes = dropZoneIndex * DROP_ZONE_MINUTES;
-        const displayTime = formatTime(new Date(day.setHours(hour, minutes, 0, 0)));
+        const displayTime = formatTime(new Date(day.setHours(hour, minutes, 0, 0)), locale);
 
         return (
           <div
@@ -1379,7 +1394,7 @@ function WeekDayCell({
               <div className="flex items-start justify-between gap-1 h-full">
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-semibold leading-tight truncate">
-                    {formatTime(new Date(apt.start_time))}
+                    {formatTime(new Date(apt.start_time), locale)}
                   </div>
                   {heightPx > 30 && apt.totalColumns <= 3 && (
                     <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through' : 'text-gray-900'}`}>
@@ -1431,6 +1446,7 @@ function DayView({
   highlightedAppointmentId,
   onDateChange,
   canceledLabel,
+  locale,
 }: {
   currentDate: Date;
   appointments: Appointment[];
@@ -1441,6 +1457,7 @@ function DayView({
   highlightedAppointmentId?: string | null;
   onDateChange?: (date: Date) => void;
   canceledLabel: string;
+  locale: string;
 }) {
   const START_HOUR = 6;
   const END_HOUR = 22;
@@ -1568,7 +1585,7 @@ function DayView({
                   } ${
                     !isCurrent ? 'opacity-30 hover:opacity-100' : ''
                   }`}
-                  title={date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  title={date.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric' })}
                 >
                   {/* Holiday indicator - top right */}
                   {isHoliday && (
@@ -1582,7 +1599,7 @@ function DayView({
                   <div className={`font-semibold uppercase tracking-wider mb-1 ${
                     isCurrent ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs'
                   }`}>
-                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                    {date.toLocaleDateString(locale, { weekday: 'short' })}
                   </div>
 
                   {/* Day Number */}
@@ -1607,7 +1624,7 @@ function DayView({
                   {/* Month indicator for first day of month (only on non-current) */}
                   {!isCurrent && date.getDate() === 1 && (
                     <div className="text-[9px] sm:text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">
-                      {date.toLocaleDateString('en-US', { month: 'short' })}
+                      {date.toLocaleDateString(locale, { month: 'short' })}
                     </div>
                   )}
                 </button>
@@ -1658,6 +1675,7 @@ function DayView({
               setDraggedAppointment={setDraggedAppointment}
               highlightedAppointmentId={highlightedAppointmentId}
               canceledLabel={canceledLabel}
+              locale={locale}
             />
           </div>
         ))}
@@ -1683,6 +1701,7 @@ function DayHourCell({
   setDraggedAppointment,
   highlightedAppointmentId,
   canceledLabel,
+  locale,
 }: {
   date: Date;
   hour: number;
@@ -1700,6 +1719,7 @@ function DayHourCell({
   setDraggedAppointment: (apt: Appointment | null) => void;
   highlightedAppointmentId?: string | null;
   canceledLabel: string;
+  locale: string;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
@@ -1749,7 +1769,7 @@ function DayHourCell({
 
         // Calculate the time this drop zone represents
         const minutes = dropZoneIndex * DROP_ZONE_MINUTES;
-        const displayTime = formatTime(new Date(date.setHours(hour, minutes, 0, 0)));
+        const displayTime = formatTime(new Date(date.setHours(hour, minutes, 0, 0)), locale);
 
         return (
           <div
@@ -1920,7 +1940,7 @@ function DayHourCell({
               <div className="flex items-start justify-between gap-1 h-full">
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm font-semibold leading-tight truncate ${isCanceled ? 'text-gray-400' : 'text-gray-900'}`}>
-                    {formatTime(new Date(apt.start_time))}
+                    {formatTime(new Date(apt.start_time), locale)}
                   </div>
                   {heightPx > 40 && apt.totalColumns <= 3 && (
                     <div className={`text-sm leading-tight truncate mt-0.5 ${isCanceled ? 'line-through text-gray-400' : 'text-gray-900'}`}>
@@ -1967,7 +1987,7 @@ function DayHourCell({
   );
 }
 
-function ListView({ currentDate, appointments, onReschedule, onEdit }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void; onEdit: (id: string) => void }) {
+function ListView({ currentDate, appointments, onReschedule, onEdit, locale }: { currentDate: Date; appointments: Appointment[]; onReschedule: (id: string, date: Date) => void; onEdit: (id: string) => void; locale: string }) {
   const t = useTranslations('dashboard.calendar.list');
   // Group appointments by date
   const appointmentsByDate = appointments.reduce((acc, apt) => {
@@ -2029,7 +2049,7 @@ function ListView({ currentDate, appointments, onReschedule, onEdit }: { current
                     )}
                     <div>
                       <div className="text-sm font-semibold text-gray-900">
-                        {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                        {date.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                       </div>
                       <div className="text-xs text-gray-500">
                         {t('appointments', { count: dayAppointments.length })}
@@ -2048,6 +2068,7 @@ function ListView({ currentDate, appointments, onReschedule, onEdit }: { current
                       isLast={idx === dayAppointments.length - 1}
                       onReschedule={onReschedule}
                       onEdit={onEdit}
+                      locale={locale}
                     />
                   ))}
                 </div>
@@ -2065,13 +2086,15 @@ function ListAppointmentCard({
   isFirst,
   isLast,
   onReschedule,
-  onEdit
+  onEdit,
+  locale,
 }: {
   appointment: Appointment;
   isFirst: boolean;
   isLast: boolean;
   onReschedule: (id: string, date: Date) => void;
   onEdit: (id: string) => void;
+  locale: string;
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const startTime = new Date(appointment.start_time);
@@ -2105,7 +2128,7 @@ function ListAppointmentCard({
         {/* Time Badge */}
         <div className="flex-shrink-0 text-right min-w-[80px]">
           <div className={`text-base font-semibold ${isCanceled ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-            {formatTime(startTime)}
+            {formatTime(startTime, locale)}
           </div>
           <div className="text-xs text-gray-500 mt-0.5">
             {duration} min

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Appointment } from '@/db/types';
 import { formatTime, getAppointmentDuration } from '@/lib/calendar-utils';
 
@@ -14,6 +14,7 @@ interface AppointmentCardProps {
 
 export function AppointmentCard({ appointment, onReschedule, onCancel, onEdit }: AppointmentCardProps) {
   const t = useTranslations('dashboard.appointmentCard');
+  const locale = useLocale();
   const [isDragging, setIsDragging] = useState(false);
   const duration = getAppointmentDuration(appointment);
 
@@ -40,7 +41,7 @@ export function AppointmentCard({ appointment, onReschedule, onCancel, onEdit }:
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="font-medium text-sm mb-1">
-            {formatTime(new Date(appointment.start_time))} - {formatTime(new Date(appointment.end_time))}
+            {formatTime(new Date(appointment.start_time), locale)} - {formatTime(new Date(appointment.end_time), locale)}
           </div>
           <div className="text-xs opacity-75">
             {duration} {t('minutes')}

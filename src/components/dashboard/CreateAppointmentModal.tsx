@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { apiRequest } from '@/lib/auth/api-client';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
 import { formatTime, formatDate } from '@/lib/calendar-utils';
@@ -50,6 +50,7 @@ export function CreateAppointmentModal({
   businessId
 }: CreateAppointmentModalProps) {
   const t = useTranslations('dashboard.createAppointment');
+  const locale = useLocale();
   const { toasts, showToast, removeToast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>('category');
   const [loading, setLoading] = useState(false);
@@ -566,7 +567,7 @@ export function CreateAppointmentModal({
                               }
                             `}
                           >
-                            {formatTime(slotStart)}
+                            {formatTime(slotStart, locale)}
                           </button>
                         );
                       })}
@@ -584,7 +585,7 @@ export function CreateAppointmentModal({
                       <div className="flex-1 min-w-0">
                         <div className="text-xs sm:text-sm font-semibold text-gray-900">{t('datetime.selectedSlot')}</div>
                         <div className="text-xs sm:text-sm text-gray-700 mt-0.5 sm:mt-1">
-                          {formatDate(selectedDate, 'long')} {t('datetime.at')} {formatTime(new Date(selectedSlot.start))} - {formatTime(new Date(selectedSlot.end))}
+                          {formatDate(selectedDate, 'long', locale)} {t('datetime.at')} {formatTime(new Date(selectedSlot.start), locale)} - {formatTime(new Date(selectedSlot.end), locale)}
                         </div>
                       </div>
                     </div>
@@ -609,7 +610,7 @@ export function CreateAppointmentModal({
                     <div className="flex justify-between text-xs sm:text-sm gap-3">
                       <span className="text-gray-600">{t('summary.dateTime')}</span>
                       <span className="font-semibold text-gray-900 text-right">
-                        {formatDate(selectedDate, 'short')} {t('summary.at')} {formatTime(new Date(selectedSlot.start))}
+                        {formatDate(selectedDate, 'short', locale)} {t('summary.at')} {formatTime(new Date(selectedSlot.start), locale)}
                       </span>
                     </div>
                     <div className="flex justify-between text-xs sm:text-sm gap-3">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { CalendarView } from '@/lib/calendar-utils';
 
@@ -27,6 +27,7 @@ export function CalendarSection({
   selectedBusinessName
 }: CalendarSectionProps) {
   const t = useTranslations('dashboard');
+  const locale = useLocale();
 
   return (
     <div className="px-4 py-4 md:px-8 md:py-6 lg:px-12 lg:py-8">
@@ -54,7 +55,7 @@ export function CalendarSection({
 
             {view === 'month' && (
               <h2 className="text-2xl font-bold text-gray-900 min-w-[180px] text-center">
-                {currentDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                {currentDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}
               </h2>
             )}
 
@@ -73,11 +74,11 @@ export function CalendarSection({
                   const isSameYear = weekStart.getFullYear() === weekEnd.getFullYear();
                   
                   if (isSameMonth) {
-                    return `${weekStart.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} - ${weekEnd.getDate()}, ${weekEnd.getFullYear()}`;
+                    return `${weekStart.toLocaleDateString(locale, { month: 'long', day: 'numeric' })} - ${weekEnd.getDate()}, ${weekEnd.getFullYear()}`;
                   } else if (isSameYear) {
-                    return `${weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}, ${weekEnd.getFullYear()}`;
+                    return `${weekStart.toLocaleDateString(locale, { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}, ${weekEnd.getFullYear()}`;
                   } else {
-                    return `${weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} - ${weekEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                    return `${weekStart.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })} - ${weekEnd.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`;
                   }
                 })()}
               </h2>

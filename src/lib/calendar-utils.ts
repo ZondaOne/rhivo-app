@@ -282,10 +282,29 @@ function getAppointmentsInSlot(
 }
 
 /**
- * Format time for display
+ * Normalize locale string to JavaScript format
+ * Converts next-intl locales (e.g., 'en', 'it') to JS locales (e.g., 'en-US', 'it-IT')
  */
-export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
+function normalizeLocale(locale: string): string {
+  const localeMap: Record<string, string> = {
+    'en': 'en-US',
+    'it': 'it-IT',
+    'es': 'es-ES',
+    'fr': 'fr-FR',
+    'de': 'de-DE',
+    // Add more mappings as needed
+  };
+  return localeMap[locale] || locale || 'en-US';
+}
+
+/**
+ * Format time for display
+ * @param date - The date to format
+ * @param locale - The locale to use (defaults to 'en-US'). Accepts both 'en' and 'en-US' formats.
+ */
+export function formatTime(date: Date, locale: string = 'en-US'): string {
+  const normalizedLocale = normalizeLocale(locale);
+  return date.toLocaleTimeString(normalizedLocale, {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -294,17 +313,21 @@ export function formatTime(date: Date): string {
 
 /**
  * Format date for display
+ * @param date - The date to format
+ * @param format - Format type: 'short' or 'long'
+ * @param locale - The locale to use (defaults to 'en-US'). Accepts both 'en' and 'en-US' formats.
  */
-export function formatDate(date: Date, format: 'short' | 'long' = 'short'): string {
+export function formatDate(date: Date, format: 'short' | 'long' = 'short', locale: string = 'en-US'): string {
+  const normalizedLocale = normalizeLocale(locale);
   if (format === 'long') {
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(normalizedLocale, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   }
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(normalizedLocale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
