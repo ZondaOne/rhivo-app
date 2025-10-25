@@ -4,6 +4,7 @@ import BookingConfirmationEmail from './BookingConfirmation';
 import CancellationConfirmationEmail from './CancellationConfirmation';
 import RescheduleConfirmationEmail from './RescheduleConfirmation';
 import AppointmentReminderEmail from './AppointmentReminder';
+import EmailVerification from './EmailVerification';
 
 // Re-export templates for direct use
 export {
@@ -11,6 +12,7 @@ export {
   CancellationConfirmationEmail,
   RescheduleConfirmationEmail,
   AppointmentReminderEmail,
+  EmailVerification,
 };
 
 // Template data interfaces
@@ -76,6 +78,12 @@ export interface AppointmentReminderData {
   unsubscribeLink?: string;
 }
 
+export interface EmailVerificationData {
+  userName: string;
+  verificationUrl: string;
+  expiryHours?: number;
+}
+
 /**
  * Render email templates to HTML string
  * Note: render() is async in @react-email/render v1.3.2+
@@ -109,12 +117,19 @@ export async function renderAppointmentReminder(
   return await render(element);
 }
 
+export async function renderEmailVerification(
+  data: EmailVerificationData
+): Promise<string> {
+  const element = React.createElement(EmailVerification, data);
+  return await render(element);
+}
+
 /**
  * Get email subject line for each template (Italian primary, English secondary)
  */
 export function getEmailSubject(
   templateName: string,
-  businessName: string
+  businessName?: string
 ): string {
   switch (templateName) {
     case 'appointment_confirmed':
@@ -125,7 +140,9 @@ export function getEmailSubject(
       return `Appuntamento Riprogrammato - ${businessName}`;
     case 'appointment_reminder':
       return `Promemoria: Il tuo appuntamento presso ${businessName} è domani`;
+    case 'email_verification':
+      return 'Verifica la tua Email - Verify Your Email | Rivo';
     default:
-      return `Aggiornamento da ${businessName}`;
+      return `Aggiornamento da ${businessName || 'Rivo'}`;
   }
 }

@@ -9,7 +9,8 @@ export type EmailTemplate =
   | 'appointment_confirmed'
   | 'appointment_cancelled'
   | 'appointment_rescheduled'
-  | 'appointment_reminder';
+  | 'appointment_reminder'
+  | 'email_verification';
 
 export interface SendEmailParams {
   to: string;

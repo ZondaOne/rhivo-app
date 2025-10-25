@@ -1,0 +1,121 @@
+version: 1.0.0
+business:
+  id: dsf
+  name: dsf
+  description: ""
+  timezone: Europe/Rome
+  locale: it-IT
+  currency: EUR
+contact:
+  address:
+    street: Via Tre
+    city: Fiumicino
+    state: Lazio
+    postalCode: "00121"
+    country: IT
+  email: team@zonda.one
+  phone: "123456789"
+  website: ""
+  latitude: 41.7591949
+  longitude: 12.2506292
+branding:
+  primaryColor: "#10b981"
+  secondaryColor: "#14b8a6"
+  logoUrl: https://placehold.co/200x200
+  coverImageUrl: https://placehold.co/1200x400
+  profileImageUrl: https://placehold.co/400x400
+  faviconUrl: https://placehold.co/32x32
+timeSlotDuration: 30
+availability:
+  - day: monday
+    enabled: true
+    slots:
+      - open: 09:00
+        close: 17:00
+  - day: tuesday
+    enabled: true
+    slots:
+      - open: 09:00
+        close: 17:00
+  - day: wednesday
+    enabled: true
+    slots:
+      - open: 09:00
+        close: 17:00
+  - day: thursday
+    enabled: true
+    slots:
+      - open: 09:00
+        close: 17:00
+  - day: friday
+    enabled: true
+    slots:
+      - open: 09:00
+        close: 17:00
+  - day: saturday
+    enabled: false
+    slots:
+      - open: 10:00
+        close: 14:00
+  - day: sunday
+    enabled: false
+    slots:
+      - open: 10:00
+        close: 14:00
+availabilityExceptions: []
+categories:
+  - id: general
+    name: General Services
+    description: Add your services in the dashboard
+    sortOrder: 0
+    services:
+      - id: consultation
+        name: Consultation
+        description: General consultation service
+        duration: 30
+        price: 0
+        color: "#10b981"
+        sortOrder: 0
+        enabled: true
+        requiresDeposit: false
+        bufferBefore: 0
+        bufferAfter: 0
+bookingRequirements:
+  requireEmail: true
+  requirePhone: false
+  requireName: true
+  allowGuestBooking: true
+  requireEmailVerification: false
+  requirePhoneVerification: false
+  customFields: []
+bookingLimits:
+  maxSimultaneousBookings: 1
+  advanceBookingDays: 30
+  minAdvanceBookingMinutes: 60
+  maxBookingsPerCustomerPerDay: 3
+cancellationPolicy:
+  allowCancellation: true
+  cancellationDeadlineHours: 24
+  allowRescheduling: true
+  rescheduleDeadlineHours: 12
+  refundPolicy: full
+notifications:
+  sendConfirmationEmail: true
+  sendReminderEmail: true
+  reminderHoursBefore: 24
+  sendConfirmationSMS: false
+  sendReminderSMS: false
+  ownerNotificationEmail: team@zonda.one
+  notifyOwnerOnNewBooking: true
+  notifyOwnerOnCancellation: true
+features:
+  enableOnlinePayments: false
+  enableWaitlist: false
+  enableReviews: false
+  enableMultipleStaff: false
+metadata:
+  createdVia: self-service-onboarding
+  createdAt: 2025-10-25T15:14:23.743Z
+  parkingAvailable: false
+  wheelchairAccessible: false
+  acceptsWalkIns: false

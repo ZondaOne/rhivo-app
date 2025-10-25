@@ -8,6 +8,8 @@ import {
 } from '@/lib/auth/tokens';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { z } from 'zod';
+import { createEmailService } from '@/lib/email/email-service';
+import { renderEmailVerification } from '@/lib/email/templates';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -146,11 +148,36 @@ export async function POST(request: NextRequest) {
       console.log(`Linked ${linkedCount} guest bookings to new customer account ${user.id}`);
     }
 
-    // TODO: Send verification email with token after debugging phase
-    // Currently skipping email verification for frictionless UX during development
+    // Send verification email if email was provided
+    if (validatedData.email && verificationUrl) {
+      const emailService = createEmailService(sql);
+
+      const emailHtml = await renderEmailVerification({
+        userName: user.name || 'Customer',
+        verificationUrl,
+        expiryHours: 24,
+      });
+
+      const emailResult = await emailService.sendEmail({
+        to: validatedData.email,
+        subject: 'Verifica la tua Email - Verify Your Email | Rivo',
+        html: emailHtml,
+        templateName: 'email_verification',
+        appointmentId: undefined,
+      });
+
+      if (!emailResult.success) {
+        console.error('Failed to send verification email:', emailResult.error);
+        // Note: We still return success because the user was created
+        // They can request a new verification email later
+      }
+    }
 
     return NextResponse.json({
-      message: 'Account created successfully',
+      message: validatedData.email
+        ? 'Account created successfully. Please check your email to verify your account.'
+        : 'Account created successfully.',
+      requiresVerification: !!validatedData.email,
       user: {
         id: user.id,
         email: user.email,
@@ -159,8 +186,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
       linkedBookings: linkedCount,
-      // Remove in production - for debugging only
-      ...(verificationUrl && { verificationUrl }),
+      // NO verificationUrl in response
     }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, useRouter } from '@/i18n/routing';
+import { EmailVerificationModal } from '@/components/auth/EmailVerificationModal';
 
 export default function LoginPage() {
   const t = useTranslations('auth');
@@ -16,6 +17,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -31,8 +34,16 @@ export default function LoginPage() {
       // Role check and redirect will happen in the useEffect below
       setPending(false);
     } catch (err: any) {
-      setError(err?.message || t('login.loginFailed'));
       setPending(false);
+
+      // Check if error is due to unverified email
+      if (err?.message?.includes('verify your email') || err?.requiresVerification) {
+        setUnverifiedEmail(email);
+        setShowVerificationModal(true);
+        setError(null); // Clear error since we're showing modal
+      } else {
+        setError(err?.message || t('login.loginFailed'));
+      }
     }
   }
 
@@ -196,6 +207,24 @@ export default function LoginPage() {
           <span>{t('common.secureAuth')}</span>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={unverifiedEmail}
+        onResend={async () => {
+          const response = await fetch('/api/auth/resend-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: unverifiedEmail }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to resend verification email');
+          }
+        }}
+      />
 
       <style jsx>{`
         @keyframes float {

@@ -68,10 +68,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email is verified (skip in non-production for testing)
-    if (!user.email_verified && process.env.NODE_ENV === 'production') {
+    // Check if email is verified
+    // CRITICAL: Always enforce email verification for security
+    if (!user.email_verified) {
       return NextResponse.json(
-        { error: 'Please verify your email before logging in' },
+        {
+          error: 'Please verify your email before logging in',
+          requiresVerification: true,
+          email: user.email,
+        },
         { status: 403 }
       );
     }

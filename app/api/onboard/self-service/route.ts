@@ -6,6 +6,9 @@ import { onboardBusiness } from '@/lib/onboarding/business-onboarding';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { stringify } from 'yaml';
+import { createEmailService } from '@/lib/email/email-service';
+import { renderEmailVerification } from '@/lib/email/templates';
+import { hashToken } from '@/lib/auth/tokens';
 
 /**
  * POST /api/onboard/self-service
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
       AND deleted_at IS NULL
     `;
 
-    const isExistingOwner = existingUser.length > 0;
+    let isExistingOwner = existingUser.length > 0;
     console.log('Existing owner?', isExistingOwner);
     let ownerUserId: string | null = null;
     let requiresAuth = false;
@@ -114,6 +117,7 @@ export async function POST(request: NextRequest) {
         }
         // Will create new owner account below
         ownerUserId = null; // Force new owner creation
+        isExistingOwner = false; // Treat as new owner for password generation
       } else if (user.role === 'owner') {
         // Existing owner - authenticate
         if (!formData.password) {
@@ -178,7 +182,7 @@ export async function POST(request: NextRequest) {
     const tempPassword = isExistingOwner ? null : formData.password;
     const passwordHash = !isExistingOwner ? await bcrypt.hash(formData.password!, 12) : null;
     const verificationToken = !isExistingOwner ? crypto.randomBytes(32).toString('hex') : null;
-    const verificationTokenHash = verificationToken ? await bcrypt.hash(verificationToken, 10) : null;
+    const verificationTokenHash = verificationToken ? hashToken(verificationToken) : null;
     const verificationExpiry = !isExistingOwner ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
 
     try {
@@ -362,20 +366,45 @@ export async function POST(request: NextRequest) {
 
       // Generate URLs
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const verificationUrl = verificationToken ? `${baseUrl}/auth/verify-email?token=${verificationToken}` : undefined;
       const bookingPageUrl = `${baseUrl}/book/${formData.businessId}`;
 
-      // Return success
+      // Send verification email for new owners
+      if (!isExistingOwner && verificationToken) {
+        try {
+          const emailService = createEmailService(db);
+          const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+          const emailHtml = await renderEmailVerification({
+            userName: formData.ownerName,
+            verificationUrl,
+            expiryHours: 24,
+          });
+
+          await emailService.sendEmail({
+            to: formData.email,
+            subject: 'Verify your Rivo account',
+            html: emailHtml,
+            templateName: 'email_verification',
+            appointmentId: undefined,
+          });
+
+          console.log('✅ Verification email sent to:', formData.email);
+        } catch (emailError) {
+          console.error('❌ Failed to send verification email:', emailError);
+          // Don't fail the whole request if email fails - user can resend later
+        }
+      }
+
+      // Return success (NO verification URL in response for security)
       return NextResponse.json({
         success: true,
         businessId: business.id,
         subdomain: formData.businessId,
-        verificationUrl,
         bookingPageUrl,
-        isExistingOwner,
+        requiresVerification: !isExistingOwner,
+        email: formData.email,
         message: isExistingOwner
           ? 'Business created successfully and linked to your account!'
-          : 'Business created! Please verify your email to activate your account.',
+          : 'Business created! Please check your email to verify your account.',
       });
 
     } catch (dbError) {

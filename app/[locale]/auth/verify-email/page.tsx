@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
 import { useTranslations, useLocale } from 'next-intl';
 
 export default function VerifyEmailPage() {
   const t = useTranslations('auth');
   const locale = useLocale();
+  const router = useRouter();
   const params = useSearchParams();
   const [status, setStatus] = useState<'idle'|'pending'|'success'|'error'>('idle');
   const [message, setMessage] = useState<string>('');
+  const [countdown, setCountdown] = useState<number>(3);
 
   useEffect(() => {
     const token = params.get('token');
@@ -42,6 +44,24 @@ export default function VerifyEmailPage() {
     verify();
   }, [params, t]);
 
+  // Auto-redirect to login after successful verification
+  useEffect(() => {
+    if (status === 'success') {
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            router.push('/auth/login');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [status, router]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-teal-50/30 to-white flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[20px] sm:rounded-[28px] shadow-2xl shadow-teal-500/10 p-6 sm:p-10 border border-gray-200/60 text-center">
@@ -69,14 +89,17 @@ export default function VerifyEmailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-sm sm:text-base text-green-700 font-medium mb-6 sm:mb-8">
+            <p className="text-sm sm:text-base text-green-700 font-medium mb-2">
               {message}
             </p>
-            <Link 
-              href={`/${locale}/auth/login`} 
+            <p className="text-xs sm:text-sm text-gray-600 mb-6 sm:mb-8">
+              Redirecting to login in {countdown} second{countdown !== 1 ? 's' : ''}...
+            </p>
+            <Link
+              href="/auth/login"
               className="inline-block px-5 sm:px-6 py-2.5 sm:py-3 bg-teal-600 text-white text-sm sm:text-base rounded-xl font-semibold hover:bg-teal-700 active:scale-95 transition-all"
             >
-              {t('verifyEmail.goToLogin')}
+              {t('verifyEmail.goToLogin')} Now
             </Link>
           </div>
         )}
@@ -91,8 +114,8 @@ export default function VerifyEmailPage() {
             <p className="text-sm sm:text-base text-red-600 font-medium mb-6 sm:mb-8 break-words">
               {message}
             </p>
-            <Link 
-              href={`/${locale}/auth/login`} 
+            <Link
+              href="/auth/login"
               className="inline-block px-5 sm:px-6 py-2.5 sm:py-3 bg-gray-600 text-white text-sm sm:text-base rounded-xl font-semibold hover:bg-gray-700 active:scale-95 transition-all"
             >
               {t('verifyEmail.goToLogin')}

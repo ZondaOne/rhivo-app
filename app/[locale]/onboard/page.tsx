@@ -8,6 +8,7 @@ import LocationMapPreview from '@/components/geocoding/LocationMapPreview';
 import type { GeocodingResult } from '@/lib/geocoding/nominatim';
 import { Logo } from '@/components/Logo';
 import ServiceBuilder, { type Category } from '@/components/onboarding/ServiceBuilder';
+import { EmailVerificationModal } from '@/components/auth/EmailVerificationModal';
 
 type OnboardingStep = 'auth' | 'business' | 'contact' | 'branding' | 'services' | 'availability' | 'rules' | 'details' | 'review';
 
@@ -105,6 +106,8 @@ export default function OnboardBusinessPage() {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('auth');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
 
   // Auth step: Login or register
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -1718,9 +1721,9 @@ export default function OnboardBusinessPage() {
         // Existing owner - go to dashboard
         router.push('/dashboard');
       } else {
-        // New owner - show verification message
-        alert(`Success! Please check your email (${email}) to verify your account. Verification link: ${result.verificationUrl}`);
-        router.push('/auth/login');
+        // New owner - show verification modal
+        setVerificationEmail(email);
+        setShowVerificationModal(true);
       }
     } catch (err: any) {
       console.error('Submission error:', err);
@@ -1839,6 +1842,27 @@ export default function OnboardBusinessPage() {
           onClose={() => setShowMapPreview(false)}
         />
       )}
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => {
+          setShowVerificationModal(false);
+          router.push('/auth/login');
+        }}
+        email={verificationEmail}
+        onResend={async () => {
+          const response = await fetch('/api/auth/resend-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: verificationEmail }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to resend verification email');
+          }
+        }}
+      />
     </div>
   );
 }

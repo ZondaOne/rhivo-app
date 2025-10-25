@@ -5,11 +5,11 @@ import {
   generateEmailVerificationToken,
   getEmailVerificationExpiry,
   hashToken,
-  generateAccessToken,
-  generateRefreshToken,
 } from '@/lib/auth/tokens';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { z } from 'zod';
+import { createEmailService } from '@/lib/email/email-service';
+import { renderEmailVerification } from '@/lib/email/templates';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -113,45 +113,40 @@ export async function POST(request: NextRequest) {
       RETURNING id, email, name, role
     `;
 
-    const result = { business, user };
-
-    // Generate tokens for testing (in production, only after email verification)
-    const accessToken = generateAccessToken({
-      sub: user.id,
-      email: user.email,
-      role: 'owner',
-      business_id: business.id,
-    });
-
-    const refreshToken = generateRefreshToken();
-
-    // Store refresh token
-    await sql`
-      INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
-      VALUES (${user.id}, ${hashToken(refreshToken)}, NOW() + INTERVAL '30 days')
-    `;
-
-    // TODO: Send verification email with token
-    // For now, return the token in response (development only)
+    // Send verification email
+    const emailService = createEmailService(sql);
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${verificationToken}`;
 
-    return NextResponse.json({
-      message: 'Account created successfully. Please verify your email.',
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        name: result.user.name,
-        role: result.user.role,
-      },
-      business: {
-        id: result.business.id,
-        subdomain: result.business.subdomain,
-      },
-      // Tokens for testing (remove after implementing email verification flow)
-      accessToken,
-      refreshToken,
-      // Remove in production
+    const emailHtml = await renderEmailVerification({
+      userName: user.name,
       verificationUrl,
+      expiryHours: 24,
+    });
+
+    const emailResult = await emailService.sendEmail({
+      to: user.email,
+      subject: 'Verifica la tua Email - Verify Your Email | Rivo',
+      html: emailHtml,
+      templateName: 'email_verification',
+      appointmentId: undefined,
+    });
+
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+      // Note: We still return success because the user was created
+      // They can request a new verification email later
+    }
+
+    // DO NOT return tokens until email is verified
+    return NextResponse.json({
+      message: 'Account created successfully. Please check your email to verify your account.',
+      requiresVerification: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      // NO tokens, NO verificationUrl
     }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
