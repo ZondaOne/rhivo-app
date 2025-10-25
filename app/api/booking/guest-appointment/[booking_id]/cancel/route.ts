@@ -88,24 +88,23 @@ export async function POST(request: NextRequest, { params }: { params: { booking
       // Don't fail the cancellation if notification fails
     }
 
-    // Send cancellation confirmation email to guest (non-blocking)
+    // Send cancellation confirmation email to guest (completely non-blocking)
     const customerNotificationService = new CustomerNotificationService(db);
-    customerNotificationService
-      .sendCancellationConfirmation({
-        id: appointment.id,
-        businessId: appointment.business_id,
-        serviceId: appointment.service_id,
-        guestEmail: appointment.guest_email,
-        guestName: appointment.guest_name,
-        slotStart: new Date(appointment.slot_start),
-        slotEnd: new Date(appointment.slot_end),
-        status: 'canceled',
-        bookingId,
-      })
-      .catch((error) => {
-        console.error('Failed to send cancellation confirmation email:', error);
-        // Don't block cancellation on email failure
-      });
+    customerNotificationService.sendCancellationConfirmation({
+      id: appointment.id,
+      businessId: appointment.business_id,
+      serviceId: appointment.service_id,
+      guestEmail: appointment.guest_email,
+      guestName: appointment.guest_name,
+      slotStart: new Date(appointment.slot_start),
+      slotEnd: new Date(appointment.slot_end),
+      status: 'canceled',
+      bookingId,
+    }).then(() => {
+      console.log('✅ Cancellation confirmation email sent successfully');
+    }).catch((error) => {
+      console.error('❌ Failed to send cancellation confirmation email:', error);
+    });
 
     return NextResponse.json({ success: true });
 

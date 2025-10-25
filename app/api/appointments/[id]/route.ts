@@ -134,27 +134,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               email,
             });
 
-            // Send email notification (non-blocking)
-            customerNotificationService
-              .sendCancellationConfirmation({
-                id: apt.id,
-                businessId: apt.business_id,
-                serviceId: apt.service_id,
-                customerId: apt.customer_id || undefined,
-                guestEmail: apt.guest_email || undefined,
-                guestPhone: apt.guest_phone || undefined,
-                guestName: apt.guest_name || undefined,
-                slotStart: new Date(apt.slot_start),
-                slotEnd: new Date(apt.slot_end),
-                status: apt.status,
-              })
-              .then(() => {
-                console.log('✅ Cancellation confirmation email sent successfully');
-              })
-              .catch((error) => {
-                console.error('❌ Failed to send cancellation confirmation email:', error);
-                // Don't block cancellation on email failure
-              });
+            // Send email notification (completely non-blocking)
+            customerNotificationService.sendCancellationConfirmation({
+              id: apt.id,
+              businessId: apt.business_id,
+              serviceId: apt.service_id,
+              customerId: apt.customer_id || undefined,
+              guestEmail: apt.guest_email || undefined,
+              guestPhone: apt.guest_phone || undefined,
+              guestName: apt.guest_name || undefined,
+              slotStart: new Date(apt.slot_start),
+              slotEnd: new Date(apt.slot_end),
+              status: apt.status,
+            }).then(() => {
+              console.log('✅ Cancellation confirmation email sent successfully');
+            }).catch((error) => {
+              console.error('❌ Failed to send cancellation confirmation email:', error);
+            });
           }
         }
       } catch (notificationError) {

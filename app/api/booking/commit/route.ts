@@ -66,16 +66,20 @@ export async function POST(request: NextRequest) {
       // Don't fail the booking if notification fails
     }
 
-    // Send booking confirmation email to customer (non-blocking)
+    // Send booking confirmation email to customer (completely non-blocking)
     console.log('📧 Triggering booking confirmation email:', {
       appointmentId: appointment.id,
       guestEmail: data.guestEmail,
       bookingId: appointment.booking_id,
+      slotStart: appointment.slot_start,
+      slotEnd: appointment.slot_end,
     });
 
     const customerNotificationService = new CustomerNotificationService(db);
-    customerNotificationService
-      .sendBookingConfirmation({
+    
+    // Fire and forget - email sends in background
+    if (appointment.slot_start && appointment.slot_end) {
+      customerNotificationService.sendBookingConfirmation({
         id: appointment.id,
         businessId: appointment.business_id,
         serviceId: appointment.service_id,
@@ -87,15 +91,15 @@ export async function POST(request: NextRequest) {
         slotEnd: new Date(appointment.slot_end),
         status: appointment.status,
         bookingId: appointment.booking_id,
-        cancellationToken: appointment.cancellation_token,
-      })
-      .then(() => {
+        cancellationToken: appointment.cancellation_token || undefined,
+      }).then(() => {
         console.log('✅ Booking confirmation email sent successfully');
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.error('❌ Failed to send booking confirmation email:', error);
-        // Don't block booking on email failure
       });
+    } else {
+      console.error('❌ Cannot send booking confirmation: missing slot_start or slot_end');
+    }
 
     return NextResponse.json({
       success: true,

@@ -372,28 +372,27 @@ export async function POST(
       // Don't fail the request if notification queueing fails
     }
 
-    // Send reschedule confirmation email to customer (step 7u - immediate delivery)
+    // Send reschedule confirmation email to customer (completely non-blocking)
     const customerNotificationService = new CustomerNotificationService(getDbClient());
     if (appointment.customer_email) {
-      customerNotificationService
-        .sendRescheduleConfirmation(
-          {
-            id: appointmentId,
-            businessId: appointment.business_id,
-            serviceId: appointment.service_id,
-            customerId: appointment.customer_id,
-            slotStart: new Date(newSlotStart),
-            slotEnd: new Date(newSlotEnd),
-            status: 'confirmed',
-            bookingId: appointment.booking_id,
-          },
-          new Date(appointment.slot_start),
-          new Date(appointment.slot_end)
-        )
-        .catch((error) => {
-          console.error('Failed to send reschedule confirmation email:', error);
-          // Don't block reschedule on email failure
-        });
+      customerNotificationService.sendRescheduleConfirmation(
+        {
+          id: appointmentId,
+          businessId: appointment.business_id,
+          serviceId: appointment.service_id,
+          customerId: appointment.customer_id,
+          slotStart: new Date(newSlotStart),
+          slotEnd: new Date(newSlotEnd),
+          status: 'confirmed',
+          bookingId: appointment.booking_id,
+        },
+        new Date(appointment.slot_start),
+        new Date(appointment.slot_end)
+      ).then(() => {
+        console.log('✅ Reschedule confirmation email sent successfully');
+      }).catch((error) => {
+        console.error('❌ Failed to send reschedule confirmation email:', error);
+      });
     }
 
     return NextResponse.json({

@@ -4,6 +4,7 @@ import { verifyAccessToken } from '@/lib/auth/tokens';
 import { getDbClient } from '@/db/client';
 import { OwnerNotificationService } from '@/lib/notifications/owner-notification-service';
 import { NotificationService } from '@/lib/notifications/notification-service';
+import { CustomerNotificationService } from '@/lib/email/customer-notification-service';
 import { v4 as uuidv4 } from 'uuid';
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -143,20 +144,23 @@ export async function POST(
       // Don't fail the request if notification fails
     }
 
-    // Queue email confirmation to customer
-    try {
-      const db = getDbClient();
-      const notificationService = new NotificationService(db);
-      if (appointment.customer_email) {
-        await notificationService.queueCancellationNotification(
-          appointmentId,
-          appointment.customer_email,
-          appointment.customer_phone
-        );
-      }
-    } catch (error) {
-      console.error('Failed to queue customer notification:', error);
-      // Don't fail the request if notification fails
+    // Send cancellation confirmation email to customer (completely non-blocking)
+    const customerNotificationService = new CustomerNotificationService(getDbClient());
+    if (appointment.customer_email) {
+      customerNotificationService.sendCancellationConfirmation({
+        id: appointmentId,
+        businessId: appointment.business_id,
+        serviceId: '', // Not needed for cancellation email
+        customerId: appointment.customer_id,
+        slotStart: new Date(appointment.slot_start),
+        slotEnd: new Date(appointment.slot_end),
+        status: 'canceled',
+        bookingId: appointment.booking_id,
+      }).then(() => {
+        console.log('✅ Cancellation confirmation email sent successfully');
+      }).catch((error) => {
+        console.error('❌ Failed to send cancellation confirmation email:', error);
+      });
     }
 
     return NextResponse.json({

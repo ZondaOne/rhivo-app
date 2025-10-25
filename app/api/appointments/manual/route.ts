@@ -103,18 +103,38 @@ export async function POST(request: NextRequest) {
     slotStart = snapToGrain(slotStart);
     slotEnd = snapToGrain(slotEnd);
 
-    const [existingCustomer] = await sql`
-      SELECT id FROM users
+    // Check if customer already exists (by email only - customers can book with multiple businesses)
+    // Note: We check for ANY user with this email, not just customers, to avoid duplicate key errors
+    const [existingUser] = await sql`
+      SELECT id, name, phone, role FROM users
       WHERE email = ${body.customer_email}
-        AND role = 'customer'
         AND deleted_at IS NULL
-        AND (business_id = ${payload.business_id} OR business_id IS NULL)
       LIMIT 1
     `;
 
-    let customerId = existingCustomer?.id ?? null;
+    console.log('Looking for existing user with email:', body.customer_email);
+    console.log('Found existing user:', existingUser);
+
+    let customerId = null;
+
+    if (existingUser) {
+      if (existingUser.role === 'customer') {
+        // Existing customer - reuse
+        customerId = existingUser.id;
+      } else {
+        // User exists with different role (owner/staff) - cannot create appointment for them
+        return NextResponse.json(
+          {
+            error: 'Email conflict',
+            message: `A user with this email already exists with role: ${existingUser.role}. Please use a different email for the customer.`
+          },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!customerId) {
+      // Create new customer (not tied to a specific business)
       const [newCustomer] = await sql`
         INSERT INTO users (
           email,
@@ -129,7 +149,7 @@ export async function POST(request: NextRequest) {
           ${body.customer_name ?? 'Guest'},
           ${body.customer_phone && body.customer_phone.trim() ? body.customer_phone : null},
           'customer',
-          ${payload.business_id},
+          NULL,
           true,
           NOW()
         )
@@ -137,6 +157,26 @@ export async function POST(request: NextRequest) {
       `;
 
       customerId = newCustomer.id as string;
+      console.log('Created new customer with ID:', customerId);
+    } else {
+      // Update existing customer info if provided and different
+      if (body.customer_name && body.customer_name !== existingUser.name) {
+        await sql`
+          UPDATE users
+          SET name = ${body.customer_name}
+          WHERE id = ${existingUser.id}
+        `;
+        console.log('Updated customer name');
+      }
+      if (body.customer_phone && body.customer_phone !== existingUser.phone) {
+        await sql`
+          UPDATE users
+          SET phone = ${body.customer_phone}
+          WHERE id = ${existingUser.id}
+        `;
+        console.log('Updated customer phone');
+      }
+      console.log('Reusing existing customer with ID:', customerId);
     }
 
     // Load capacity from YAML config (single source of truth)
