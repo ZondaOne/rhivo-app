@@ -81,10 +81,14 @@
     },
     "footer": {
       "tagline": "Mantenlo simple.",
+      "quickLinks": "Enlaces Rápidos",
+      "legal": "Legal",
       "manageBooking": "Gestionar Reserva",
       "businessLogin": "Acceso Negocios",
       "privacy": "Privacidad",
-      "terms": "Términos"
+      "terms": "Términos",
+      "madeBy": "Hecho por",
+      "copyright": "Todos los derechos reservados."
     }
   },
   "discovery": {

@@ -81,10 +81,14 @@
     },
     "footer": {
       "tagline": "Keep it simple.",
+      "quickLinks": "Quick Links",
+      "legal": "Legal",
       "manageBooking": "Manage Booking",
       "businessLogin": "Business Login",
       "privacy": "Privacy",
-      "terms": "Terms"
+      "terms": "Terms",
+      "madeBy": "Made by",
+      "copyright": "All rights reserved."
     }
   },
   "discovery": {

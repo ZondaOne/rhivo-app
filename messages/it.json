@@ -81,10 +81,14 @@
     },
     "footer": {
       "tagline": "Mantienilo semplice.",
+      "quickLinks": "Link Rapidi",
+      "legal": "Legale",
       "manageBooking": "Gestisci Prenotazione",
       "businessLogin": "Accesso Attività",
       "privacy": "Privacy",
-      "terms": "Termini"
+      "terms": "Termini",
+      "madeBy": "Fatto da",
+      "copyright": "Tutti i diritti riservati."
     }
   },
   "discovery": {
