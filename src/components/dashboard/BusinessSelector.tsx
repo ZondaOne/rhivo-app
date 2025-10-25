@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface Business {
   id: string;
@@ -23,6 +24,7 @@ export function BusinessSelector({
   onBusinessChange,
   isLoading = false,
 }: BusinessSelectorProps) {
+  const t = useTranslations('dashboard.businessSelector');
   const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
 
   if (isLoading) {
@@ -46,8 +48,8 @@ export function BusinessSelector({
           </svg>
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight">No Business</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Set up your business first</p>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{t('noBusiness')}</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">{t('setupBusiness')}</p>
         </div>
       </div>
     );
@@ -69,7 +71,7 @@ export function BusinessSelector({
             </h1>
             {business.isPrimary && (
               <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1 bg-teal-100 text-teal-700 rounded-md font-semibold uppercase tracking-wide flex-shrink-0">
-                Primary
+                {t('primary')}
               </span>
             )}
           </div>
@@ -92,11 +94,11 @@ export function BusinessSelector({
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight truncate">
-              {selectedBusiness?.name || 'Select Business'}
+              {selectedBusiness?.name || t('selectBusiness')}
             </h1>
             {selectedBusiness?.isPrimary && (
               <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1 bg-teal-100 text-teal-700 rounded-md font-semibold uppercase tracking-wide flex-shrink-0">
-                Primary
+                {t('primary')}
               </span>
             )}
             <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +146,7 @@ export function BusinessSelector({
                   </p>
                   {business.isPrimary && (
                     <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded font-semibold uppercase tracking-wide flex-shrink-0">
-                      Primary
+                      {t('primary')}
                     </span>
                   )}
                 </div>

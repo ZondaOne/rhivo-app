@@ -1213,8 +1213,10 @@
     },
     "businessSelector": {
       "selectBusiness": "Seleccionar Negocio",
-      "noBusiness": "Sin negocio",
-      "switchBusiness": "Cambiar negocio"
+      "noBusiness": "Sin Negocio",
+      "setupBusiness": "Configura tu negocio primero",
+      "switchBusiness": "Cambiar negocio",
+      "primary": "Principal"
     },
     "settings": {
       "title": "Configuración",
@@ -1356,6 +1358,166 @@
           "reasonRequired": "El motivo es obligatorio",
           "pastDate": "No se pueden crear días de cierre en el pasado"
         }
+      },
+      "rescheduleConfirmation": {
+        "title": "Confirmar Reagendamiento",
+        "subtitle": "Revisa los cambios de la cita antes de confirmar",
+        "customer": "Cliente",
+        "service": "Servicio",
+        "timeChange": "Cambio de Hora",
+        "original": "Original",
+        "new": "Nuevo",
+        "sameDay": "Cambio de hora el mismo día",
+        "differentDay": "Cambio de fecha y hora",
+        "notes": "Notas",
+        "notification": {
+          "title": "El cliente será notificado",
+          "message": "Se enviará un correo con la hora actualizada de la cita."
+        },
+        "buttons": {
+          "cancel": "Cancelar",
+          "confirm": "Confirmar Reagendamiento"
+        }
+      },
+      "notificationCenter": {
+        "title": "Notificaciones",
+        "tooltip": "Notificaciones",
+        "markAllRead": "Marcar todas como leídas",
+        "loading": "Cargando notificaciones...",
+        "noNotifications": "Sin notificaciones aún",
+        "noNotificationsHint": "Verás actualizaciones de reservas aquí",
+        "deleteButton": "Eliminar"
+      }
+    },
+    "onboarding": {
+      "welcome": {
+        "title": "Bienvenido a Rivo",
+        "description": "Hagamos un recorrido rápido de tu panel con ejemplos reales"
+      },
+      "calendar": {
+        "title": "Tu Calendario",
+        "description": "Ve todas tus citas en un solo lugar. Cambia entre vistas de mes, semana, día y lista para ver tu agenda",
+        "views": {
+          "month": "Mes",
+          "week": "Semana",
+          "day": "Día",
+          "list": "Lista"
+        },
+        "days": {
+          "mon": "Lun",
+          "tue": "Mar",
+          "wed": "Mié",
+          "thu": "Jue",
+          "fri": "Vie",
+          "sat": "Sáb",
+          "sun": "Dom"
+        }
+      },
+      "createAppointment": {
+        "title": "Crear Citas",
+        "description": "Haz clic en el botón Nueva Cita o en cualquier espacio vacío para reservar tiempo con clientes. Completa el servicio, hora y detalles del cliente",
+        "steps": {
+          "service": "Servicio",
+          "dateTime": "Fecha y Hora",
+          "details": "Detalles"
+        },
+        "serviceStep": {
+          "title": "Elige un Servicio",
+          "haircut": "Corte de Pelo - 60 min - €30",
+          "color": "Tratamiento de Color - 120 min - €80",
+          "styling": "Peinado - 45 min - €25"
+        },
+        "dateTimeStep": {
+          "title": "Selecciona Fecha y Hora",
+          "dateLabel": "Fecha",
+          "timeLabel": "Hora",
+          "sampleDate": "15 de Marzo, 2025"
+        },
+        "detailsStep": {
+          "title": "Información del Cliente",
+          "nameLabel": "Nombre del Cliente",
+          "emailLabel": "Correo",
+          "phoneLabel": "Teléfono",
+          "namePlaceholder": "Sara García",
+          "emailPlaceholder": "sara@ejemplo.com",
+          "phonePlaceholder": "+34 123 456 789"
+        }
+      },
+      "dragDrop": {
+        "title": "Arrastra para Reagendar",
+        "description": "Simplemente arrastra las citas a nuevos horarios. Los clientes son notificados automáticamente por correo de cualquier cambio",
+        "tip": "💡 Prueba haciendo clic en diferentes horarios para ver cómo funciona la reagendación",
+        "appointmentName": "Sara G. - Corte de Pelo",
+        "notification": "Cliente notificado automáticamente por correo"
+      },
+      "manageBookings": {
+        "title": "Gestionar Reservas",
+        "description": "Haz clic en cualquier cita para ver detalles, editar información, reagendar o cancelar. Mantén tu agenda organizada sin esfuerzo",
+        "customerName": "Sara García",
+        "service": "Corte de Pelo",
+        "time": "2:00 PM - 3:00 PM",
+        "price": "€30",
+        "labels": {
+          "customer": "Cliente",
+          "service": "Servicio",
+          "time": "Hora",
+          "status": "Estado"
+        },
+        "status": {
+          "confirmed": "Confirmado"
+        },
+        "actions": {
+          "edit": "Editar Detalles",
+          "reschedule": "Reagendar",
+          "cancel": "Cancelar"
+        },
+        "feedback": {
+          "updated": "¡Cita Actualizada!",
+          "cancelled": "Cita Cancelada"
+        }
+      },
+      "insights": {
+        "title": "Estadísticas del Negocio",
+        "description": "Rastrea tus reservas, ingresos y tendencias del negocio. Ve estadísticas y toma decisiones basadas en datos",
+        "stats": {
+          "totalBookings": "Reservas Totales",
+          "revenue": "Ingresos",
+          "avgRating": "Calificación Prom."
+        },
+        "chart": {
+          "title": "Tendencia de Reservas"
+        }
+      },
+      "settings": {
+        "title": "Configuración",
+        "description": "Gestiona los detalles de tu negocio, servicios, disponibilidad y reglas de reserva. Todo lo que necesitas en un solo lugar",
+        "sections": {
+          "profile": {
+            "title": "Perfil",
+            "description": "Detalles de cuenta y rol"
+          },
+          "business": {
+            "title": "Negocio",
+            "description": "Info, contacto y ubicación"
+          },
+          "booking": {
+            "title": "Reservas",
+            "description": "Horarios y reglas"
+          },
+          "security": {
+            "title": "Seguridad",
+            "description": "Contraseña y seguridad"
+          }
+        }
+      },
+      "dontShowAgain": "No mostrar esto de nuevo",
+      "buttons": {
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "getStarted": "Comenzar"
+      },
+      "progress": {
+        "stepOf": "Paso {current} de {total}"
       }
     }
   }

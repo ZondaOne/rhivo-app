@@ -1213,8 +1213,10 @@
     },
     "businessSelector": {
       "selectBusiness": "Seleziona Attività",
-      "noBusiness": "Nessuna attività",
-      "switchBusiness": "Cambia attività"
+      "noBusiness": "Nessuna Attività",
+      "setupBusiness": "Configura prima la tua attività",
+      "switchBusiness": "Cambia attività",
+      "primary": "Principale"
     },
     "settings": {
       "title": "Impostazioni",
@@ -1356,6 +1358,166 @@
           "reasonRequired": "Il motivo è obbligatorio",
           "pastDate": "Non è possibile creare giorni di chiusura nel passato"
         }
+      },
+      "rescheduleConfirmation": {
+        "title": "Conferma Riprogrammazione",
+        "subtitle": "Rivedi i cambiamenti dell'appuntamento prima di confermare",
+        "customer": "Cliente",
+        "service": "Servizio",
+        "timeChange": "Cambio Orario",
+        "original": "Originale",
+        "new": "Nuovo",
+        "sameDay": "Cambio orario nello stesso giorno",
+        "differentDay": "Cambio data e orario",
+        "notes": "Note",
+        "notification": {
+          "title": "Il cliente sarà notificato",
+          "message": "Verrà inviata un'email con l'orario aggiornato dell'appuntamento."
+        },
+        "buttons": {
+          "cancel": "Annulla",
+          "confirm": "Conferma Riprogrammazione"
+        }
+      },
+      "notificationCenter": {
+        "title": "Notifiche",
+        "tooltip": "Notifiche",
+        "markAllRead": "Segna tutto come letto",
+        "loading": "Caricamento notifiche...",
+        "noNotifications": "Ancora nessuna notifica",
+        "noNotificationsHint": "Vedrai gli aggiornamenti delle prenotazioni qui",
+        "deleteButton": "Elimina"
+      }
+    },
+    "onboarding": {
+      "welcome": {
+        "title": "Benvenuto su Rivo",
+        "description": "Facciamo un rapido tour della tua dashboard con esempi reali"
+      },
+      "calendar": {
+        "title": "Il Tuo Calendario",
+        "description": "Visualizza tutti i tuoi appuntamenti in un unico posto. Passa dalla vista mese, settimana, giorno e lista per vedere il tuo programma",
+        "views": {
+          "month": "Mese",
+          "week": "Settimana",
+          "day": "Giorno",
+          "list": "Lista"
+        },
+        "days": {
+          "mon": "Lun",
+          "tue": "Mar",
+          "wed": "Mer",
+          "thu": "Gio",
+          "fri": "Ven",
+          "sat": "Sab",
+          "sun": "Dom"
+        }
+      },
+      "createAppointment": {
+        "title": "Creare Appuntamenti",
+        "description": "Clicca sul pulsante Nuovo Appuntamento o su qualsiasi slot vuoto per prenotare tempo con i clienti. Compila servizio, ora e dettagli del cliente",
+        "steps": {
+          "service": "Servizio",
+          "dateTime": "Data e Ora",
+          "details": "Dettagli"
+        },
+        "serviceStep": {
+          "title": "Scegli un Servizio",
+          "haircut": "Taglio - 60 min - €30",
+          "color": "Trattamento Colore - 120 min - €80",
+          "styling": "Acconciatura - 45 min - €25"
+        },
+        "dateTimeStep": {
+          "title": "Seleziona Data e Ora",
+          "dateLabel": "Data",
+          "timeLabel": "Ora",
+          "sampleDate": "15 Marzo, 2025"
+        },
+        "detailsStep": {
+          "title": "Informazioni Cliente",
+          "nameLabel": "Nome Cliente",
+          "emailLabel": "Email",
+          "phoneLabel": "Telefono",
+          "namePlaceholder": "Sara Rossi",
+          "emailPlaceholder": "sara@esempio.it",
+          "phonePlaceholder": "+39 123 456 7890"
+        }
+      },
+      "dragDrop": {
+        "title": "Trascina per Riprogrammare",
+        "description": "Trascina semplicemente gli appuntamenti su nuovi orari. I clienti vengono notificati automaticamente via email di qualsiasi modifica",
+        "tip": "💡 Prova a cliccare su diversi orari per vedere come funziona la riprogrammazione",
+        "appointmentName": "Sara R. - Taglio",
+        "notification": "Cliente notificato automaticamente via email"
+      },
+      "manageBookings": {
+        "title": "Gestione Prenotazioni",
+        "description": "Clicca su qualsiasi appuntamento per visualizzare dettagli, modificare informazioni, riprogrammare o cancellare. Mantieni il tuo programma organizzato senza sforzo",
+        "customerName": "Sara Rossi",
+        "service": "Taglio",
+        "time": "14:00 - 15:00",
+        "price": "€30",
+        "labels": {
+          "customer": "Cliente",
+          "service": "Servizio",
+          "time": "Ora",
+          "status": "Stato"
+        },
+        "status": {
+          "confirmed": "Confermato"
+        },
+        "actions": {
+          "edit": "Modifica Dettagli",
+          "reschedule": "Riprogramma",
+          "cancel": "Annulla"
+        },
+        "feedback": {
+          "updated": "Appuntamento Aggiornato!",
+          "cancelled": "Appuntamento Annullato"
+        }
+      },
+      "insights": {
+        "title": "Statistiche Aziendali",
+        "description": "Traccia le tue prenotazioni, entrate e tendenze aziendali. Visualizza statistiche e prendi decisioni basate sui dati",
+        "stats": {
+          "totalBookings": "Prenotazioni Totali",
+          "revenue": "Entrate",
+          "avgRating": "Valutazione Media"
+        },
+        "chart": {
+          "title": "Andamento Prenotazioni"
+        }
+      },
+      "settings": {
+        "title": "Impostazioni e Configurazione",
+        "description": "Gestisci i dettagli della tua attività, servizi, disponibilità e regole di prenotazione. Tutto ciò di cui hai bisogno in un unico posto",
+        "sections": {
+          "profile": {
+            "title": "Profilo",
+            "description": "Dettagli account e ruolo"
+          },
+          "business": {
+            "title": "Attività",
+            "description": "Info, contatti e posizione"
+          },
+          "booking": {
+            "title": "Prenotazioni",
+            "description": "Orari e regole"
+          },
+          "security": {
+            "title": "Sicurezza",
+            "description": "Password e sicurezza"
+          }
+        }
+      },
+      "dontShowAgain": "Non mostrare più",
+      "buttons": {
+        "previous": "Precedente",
+        "next": "Avanti",
+        "getStarted": "Inizia"
+      },
+      "progress": {
+        "stepOf": "Passo {current} di {total}"
       }
     }
   }

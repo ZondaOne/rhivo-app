@@ -1212,8 +1212,10 @@
     },
     "businessSelector": {
       "selectBusiness": "Select Business",
-      "noBusiness": "No business",
-      "switchBusiness": "Switch business"
+      "noBusiness": "No Business",
+      "setupBusiness": "Set up your business first",
+      "switchBusiness": "Switch business",
+      "primary": "Primary"
     },
     "settings": {
       "title": "Settings",
@@ -1355,6 +1357,166 @@
           "reasonRequired": "Reason is required",
           "pastDate": "Cannot create off days in the past"
         }
+      },
+      "rescheduleConfirmation": {
+        "title": "Confirm Reschedule",
+        "subtitle": "Review the appointment changes before confirming",
+        "customer": "Customer",
+        "service": "Service",
+        "timeChange": "Time Change",
+        "original": "Original",
+        "new": "New",
+        "sameDay": "Time change on same day",
+        "differentDay": "Date and time change",
+        "notes": "Notes",
+        "notification": {
+          "title": "Customer will be notified",
+          "message": "An email will be sent with the updated appointment time."
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "confirm": "Confirm Reschedule"
+        }
+      },
+      "notificationCenter": {
+        "title": "Notifications",
+        "tooltip": "Notifications",
+        "markAllRead": "Mark all read",
+        "loading": "Loading notifications...",
+        "noNotifications": "No notifications yet",
+        "noNotificationsHint": "You'll see booking updates here",
+        "deleteButton": "Delete"
+      }
+    },
+    "onboarding": {
+      "welcome": {
+        "title": "Welcome to Rivo",
+        "description": "Let's take a quick tour of your dashboard with real examples"
+      },
+      "calendar": {
+        "title": "Your Calendar",
+        "description": "View all your appointments in one place. Switch between month, week, day, and list views to see your schedule",
+        "views": {
+          "month": "Month",
+          "week": "Week",
+          "day": "Day",
+          "list": "List"
+        },
+        "days": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        }
+      },
+      "createAppointment": {
+        "title": "Creating Appointments",
+        "description": "Click the New Appointment button or any empty slot to book time with customers. Fill in service, time, and customer details",
+        "steps": {
+          "service": "Service",
+          "dateTime": "Date & Time",
+          "details": "Details"
+        },
+        "serviceStep": {
+          "title": "Choose a Service",
+          "haircut": "Haircut - 60 min - €30",
+          "color": "Color Treatment - 120 min - €80",
+          "styling": "Styling - 45 min - €25"
+        },
+        "dateTimeStep": {
+          "title": "Pick Date & Time",
+          "dateLabel": "Date",
+          "timeLabel": "Time",
+          "sampleDate": "March 15, 2025"
+        },
+        "detailsStep": {
+          "title": "Customer Information",
+          "nameLabel": "Customer Name",
+          "emailLabel": "Email",
+          "phoneLabel": "Phone",
+          "namePlaceholder": "Sarah Johnson",
+          "emailPlaceholder": "sarah@example.com",
+          "phonePlaceholder": "+39 123 456 7890"
+        }
+      },
+      "dragDrop": {
+        "title": "Drag to Reschedule",
+        "description": "Simply drag appointments to new time slots. Customers are automatically notified by email of any changes",
+        "tip": "💡 Try clicking different time slots to see how rescheduling works",
+        "appointmentName": "Sarah J. - Haircut",
+        "notification": "Customer automatically notified by email"
+      },
+      "manageBookings": {
+        "title": "Managing Bookings",
+        "description": "Click any appointment to view details, edit information, reschedule, or cancel. Keep your schedule organized effortlessly",
+        "customerName": "Sarah Johnson",
+        "service": "Haircut",
+        "time": "2:00 PM - 3:00 PM",
+        "price": "€30",
+        "labels": {
+          "customer": "Customer",
+          "service": "Service",
+          "time": "Time",
+          "status": "Status"
+        },
+        "status": {
+          "confirmed": "Confirmed"
+        },
+        "actions": {
+          "edit": "Edit Details",
+          "reschedule": "Reschedule",
+          "cancel": "Cancel"
+        },
+        "feedback": {
+          "updated": "Appointment Updated!",
+          "cancelled": "Appointment Cancelled"
+        }
+      },
+      "insights": {
+        "title": "Business Insights",
+        "description": "Track your bookings, revenue, and business trends. View statistics and make data-driven decisions",
+        "stats": {
+          "totalBookings": "Total Bookings",
+          "revenue": "Revenue",
+          "avgRating": "Avg Rating"
+        },
+        "chart": {
+          "title": "Bookings Trend"
+        }
+      },
+      "settings": {
+        "title": "Settings & Configuration",
+        "description": "Manage your business details, services, availability, and booking rules. Everything you need in one place",
+        "sections": {
+          "profile": {
+            "title": "Profile",
+            "description": "Account details and role"
+          },
+          "business": {
+            "title": "Business",
+            "description": "Info, contact & location"
+          },
+          "booking": {
+            "title": "Booking",
+            "description": "Time slots & rules"
+          },
+          "security": {
+            "title": "Security",
+            "description": "Password & security"
+          }
+        }
+      },
+      "dontShowAgain": "Don't show this again",
+      "buttons": {
+        "previous": "Previous",
+        "next": "Next",
+        "getStarted": "Get Started"
+      },
+      "progress": {
+        "stepOf": "Step {current} of {total}"
       }
     }
   }
