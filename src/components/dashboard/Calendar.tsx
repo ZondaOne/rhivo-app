@@ -970,6 +970,13 @@ function WeekView({
   const today = new Date();
   const todayStr = today.toDateString();
 
+  // Calculate current time indicator position
+  const currentHour = today.getHours();
+  const currentMinute = today.getMinutes();
+  const showCurrentTime = currentHour >= START_HOUR && currentHour < END_HOUR;
+  const todayDayIndex = weekDays.findIndex(day => day.toDateString() === todayStr);
+  const showCurrentTimeIndicator = showCurrentTime && todayDayIndex !== -1;
+
   const handlePreviousWeek = () => {
     const prevWeek = new Date(currentDate);
     prevWeek.setDate(prevWeek.getDate() - 7);
@@ -1093,7 +1100,7 @@ function WeekView({
       </div>
 
       {/* Time Grid */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto relative">
         {hours.map((hour, hourIdx) => (
           <div key={hour} className="grid grid-cols-[64px_repeat(7,1fr)]">
             {/* Time Label */}
@@ -1151,6 +1158,34 @@ function WeekView({
             })}
           </div>
         ))}
+        
+        {/* Vertical current time indicator for today's column */}
+        {showCurrentTimeIndicator && (
+          <div
+            className="absolute top-0 bottom-0 z-30 pointer-events-none"
+            style={{
+              left: `calc(64px + ${todayDayIndex} * (100% - 64px) / 7)`,
+              width: `calc((100% - 64px) / 7)`,
+            }}
+          >
+            {/* Center the indicator in the column */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+              {/* Dot at the top */}
+              <div className="w-2 h-2 rounded-full bg-gradient-to-br from-teal-500 to-green-500 flex-shrink-0 z-40" />
+              
+              {/* Line from top dot to current time dot */}
+              <div 
+                className="w-1 bg-teal-500 z-30"
+                style={{
+                  height: `${((currentHour - START_HOUR) * 120) + (currentMinute / 60 * 120)}px`
+                }}
+              />
+              
+              {/* Moving dot at current time position */}
+              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-teal-500 to-green-500 shadow-lg z-40 -mt-1" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1364,17 +1399,22 @@ function WeekDayCell({
           );
 
           const isDragging = draggedAppointment?.id === apt.id;
-
           const isCanceled = apt.status === 'cancelled';
+          
+          // Check if appointment is in the past (end time has passed)
+          const now = new Date();
+          const isPast = end < now && !isCanceled;
           
           return (
             <div
               key={apt.id}
-              draggable={!isCanceled}
+              draggable={!isCanceled && !isPast}
               className={`group px-1.5 py-1.5 rounded-lg overflow-hidden ${visualClasses} ${
                 isCanceled
                   ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
-                  : 'bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move'
+                  : isPast
+                  ? 'bg-gray-100/50 border border-gray-200 text-gray-500 opacity-75 cursor-default'
+                  : 'bg-teal-50 text-teal-900 cursor-move'
               } ${isDragging ? 'opacity-50' : ''}`}
               style={{
                 ...positionStyles,
@@ -1382,7 +1422,7 @@ function WeekDayCell({
                 pointerEvents: draggedAppointment ? 'none' : 'auto',
               }}
               onDragStart={(e) => {
-                if (isCanceled) {
+                if (isCanceled || isPast) {
                   e.preventDefault();
                   return;
                 }
@@ -1393,16 +1433,16 @@ function WeekDayCell({
             >
               <div className="flex items-start justify-between gap-1 h-full">
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold leading-tight truncate">
+                  <div className={`text-xs font-semibold leading-tight truncate ${isPast ? 'text-gray-500' : ''}`}>
                     {formatTime(new Date(apt.start_time), locale)}
                   </div>
                   {heightPx > 30 && apt.totalColumns <= 3 && (
-                    <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through' : 'text-gray-900'}`}>
+                    <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through text-gray-400' : isPast ? 'text-gray-500' : 'text-gray-900'}`}>
                       {apt.customer_name || 'Guest'}
                     </div>
                   )}
                   {heightPx > 50 && apt.totalColumns <= 2 && (
-                    <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through' : 'text-gray-600'}`}>
+                    <div className={`text-xs leading-tight truncate mt-0.5 ${isCanceled ? 'line-through text-gray-400' : isPast ? 'text-gray-500' : 'text-gray-600'}`}>
                       {apt.service_name || 'Service'}
                     </div>
                   )}
@@ -1412,7 +1452,7 @@ function WeekDayCell({
                     </div>
                   )}
                 </div>
-                {!isCanceled && (
+                {!isCanceled && !isPast && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1908,14 +1948,20 @@ function DayHourCell({
           const isDragging = draggedAppointment?.id === apt.id;
 
           const isCanceled = apt.status === 'cancelled';
-          
+
+          // Check if appointment is in the past (end time has passed)
+          const now = new Date();
+          const isPast = end < now && !isCanceled;
+
           return (
             <div
               key={apt.id}
-              draggable={!isCanceled}
+              draggable={!isCanceled && !isPast}
               className={`group px-2 py-2 rounded-lg overflow-hidden ${visualClasses} ${
                 isCanceled
                   ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
+                  : isPast
+                  ? 'bg-gray-100/50 border border-gray-200 text-gray-500 opacity-75 cursor-default'
                   : 'bg-teal-50 text-teal-900 hover:bg-teal-100 cursor-move'
               } ${
                 isHighlighted
@@ -1928,7 +1974,7 @@ function DayHourCell({
                 pointerEvents: draggedAppointment ? 'none' : 'auto',
               }}
               onDragStart={(e) => {
-                if (isCanceled) {
+                if (isCanceled || isPast) {
                   e.preventDefault();
                   return;
                 }
