@@ -1,12 +1,14 @@
 'use client';
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
+  showText?: boolean;
 }
 
 export function Logo({ size = 'lg', className = '' }: LogoProps) {
   const sizeMap = {
+    xs: 80,
     sm: 120,
     md: 160,
     lg: 220,

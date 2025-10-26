@@ -36,7 +36,7 @@ function InsightsContent() {
       <main className="ml-0 sm:ml-20 min-h-screen pb-20 sm:pb-0">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
-          <div className="px-4 sm:px-8 lg:px-12 py-4 sm:py-5 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-8">
+          <div className="px-4 sm:px-8 lg:px-12 py-2 sm:py-4 lg:py-5 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 lg:gap-8">
             <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1 w-full sm:w-auto">
               {/* Business Selector */}
               {businesses.length > 0 ? (
@@ -50,9 +50,9 @@ function InsightsContent() {
                 </div>
               ) : (
                 <div className="flex flex-col">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
                     <span className="text-xs sm:text-sm text-gray-500">
                       {isAuthenticated ? t('header.connected') : t('header.disconnected')}
                     </span>
@@ -106,8 +106,8 @@ function InsightsContent() {
         </header>
 
         {/* Insights Content */}
-        <div className="px-4 sm:px-8 lg:px-12 py-6 sm:py-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">{t('insights.title')}</h2>
+        <div className="px-4 sm:px-8 lg:px-12 py-4 sm:py-6 lg:py-8">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 lg:mb-8">{t('insights.title')}</h2>
 
           {/* Widgets Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">

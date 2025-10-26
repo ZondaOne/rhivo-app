@@ -33,8 +33,8 @@ export function DashboardHeader({
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200/60">
-      <div className="px-4 py-3 sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-12 lg:py-5 relative flex items-center justify-between gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-        <div className="flex items-center gap-3 sm:gap-4 md:gap-6 min-w-0 flex-1">
+      <div className="px-4 py-2 sm:px-8 sm:py-4 md:px-10 md:py-5 lg:px-12 lg:py-5 relative flex items-center justify-between gap-2 sm:gap-4 md:gap-6 lg:gap-8">
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0 flex-1">
           {/* Business Selector */}
           {businesses.length > 0 ? (
             <div className="max-w-full sm:max-w-[200px] md:max-w-[240px] lg:max-w-[280px] xl:max-w-[320px] min-w-0 sm:min-w-[180px] md:min-w-[200px] lg:min-w-[240px] relative z-10">
@@ -47,9 +47,9 @@ export function DashboardHeader({
             </div>
           ) : (
             <div className="flex flex-col relative z-10">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight truncate">{businessName}</h1>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-gray-400'}`} />
                 <span className="text-xs sm:text-sm text-gray-500">
                   {isAuthenticated ? t('header.connected') : t('header.disconnected')}
                 </span>
@@ -63,10 +63,10 @@ export function DashboardHeader({
           <Logo size="sm" />
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Logo - Visible only on mobile (max-sm), on the right */}
           <div className="max-sm:flex hidden items-center justify-center flex-shrink-0">
-            <Logo size="sm" showText={true} />
+            <Logo size="xs" />
           </div>
 
           {/* New Appointment Button - Hidden on mobile (max-sm), visible on sm and up */}

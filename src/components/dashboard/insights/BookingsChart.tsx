@@ -72,57 +72,57 @@ export function BookingsChart({ businessId, timeRange }: BookingsChartProps) {
   }
 
   return (
-    <div className="bg-white border border-gray-200/60 rounded-2xl p-8 shadow-sm transition-all hover:shadow-md">
+    <div className="bg-white border border-gray-200/60 rounded-2xl p-4 md:p-5 lg:p-8 shadow-sm transition-all hover:shadow-md">
       {/* Header */}
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{t('title')}</h3>
-        <p className="text-sm text-gray-500 mt-1.5">{t('subtitle')}</p>
+      <div className="mb-4 md:mb-5 lg:mb-8">
+        <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">{t('title')}</h3>
+        <p className="text-xs md:text-sm text-gray-500 mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-3 mb-8">
-        <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1.5">{t('stats.total')}</p>
-          <p className="text-3xl font-bold text-gray-900 tracking-tight">{stats.total}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-2.5 lg:gap-3 mb-4 md:mb-5 lg:mb-8">
+        <div className="bg-gray-50/80 rounded-lg md:rounded-xl p-3 md:p-3.5 lg:p-4 border border-gray-100">
+          <p className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wide mb-0.5 md:mb-1">{t('stats.total')}</p>
+          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">{stats.total}</p>
         </div>
-        <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-4 border border-green-200/50">
-          <p className="text-xs text-green-700 font-semibold uppercase tracking-wide mb-1.5">{t('stats.completed')}</p>
-          <p className="text-3xl font-bold text-green-600 tracking-tight">{stats.completed}</p>
+        <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-lg md:rounded-xl p-3 md:p-3.5 lg:p-4 border border-green-200/50">
+          <p className="text-[10px] sm:text-xs text-green-700 font-semibold uppercase tracking-wide mb-0.5 md:mb-1">{t('stats.completed')}</p>
+          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-green-600 tracking-tight">{stats.completed}</p>
         </div>
-        <div className="bg-gradient-to-br from-teal-50 to-teal-100/50 rounded-xl p-4 border border-teal-200/50">
-          <p className="text-xs text-teal-700 font-semibold uppercase tracking-wide mb-1.5">{t('stats.upcoming')}</p>
-          <p className="text-3xl font-bold text-teal-600 tracking-tight">{stats.upcoming}</p>
+        <div className="bg-gradient-to-br from-teal-50 to-teal-100/50 rounded-lg md:rounded-xl p-3 md:p-3.5 lg:p-4 border border-teal-200/50">
+          <p className="text-[10px] sm:text-xs text-teal-700 font-semibold uppercase tracking-wide mb-0.5 md:mb-1">{t('stats.upcoming')}</p>
+          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-teal-600 tracking-tight">{stats.upcoming}</p>
         </div>
-        <div className="bg-gray-100/80 rounded-xl p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-1.5">{t('stats.cancelled')}</p>
-          <p className="text-3xl font-bold text-gray-700 tracking-tight">{stats.cancelled}</p>
+        <div className="bg-gray-100/80 rounded-lg md:rounded-xl p-3 md:p-3.5 lg:p-4 border border-gray-200">
+          <p className="text-[10px] sm:text-xs text-gray-600 font-semibold uppercase tracking-wide mb-0.5 md:mb-1">{t('stats.cancelled')}</p>
+          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-700 tracking-tight">{stats.cancelled}</p>
         </div>
       </div>
 
       {/* Chart */}
       {loading ? (
-        <div className="h-80 flex items-center justify-center bg-gray-50/50 rounded-2xl border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-gray-500 font-medium">{t('loading')}</span>
+        <div className="h-48 md:h-56 lg:h-80 flex items-center justify-center bg-gray-50/50 rounded-xl md:rounded-2xl border border-gray-100">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs md:text-sm text-gray-500 font-medium">{t('loading')}</span>
           </div>
         </div>
       ) : data.length === 0 ? (
-        <div className="h-80 flex flex-col items-center justify-center bg-gray-50/50 rounded-2xl border border-gray-100">
-          <div className="w-20 h-20 bg-gray-200/50 rounded-2xl flex items-center justify-center mb-4">
-            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+        <div className="h-48 md:h-56 lg:h-80 flex flex-col items-center justify-center bg-gray-50/50 rounded-xl md:rounded-2xl border border-gray-100">
+          <div className="w-16 h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-gray-200/50 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-4">
+            <svg className="w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
             </svg>
           </div>
-          <p className="text-gray-700 text-sm font-semibold">{t('noData')}</p>
-          <p className="text-gray-400 text-xs mt-1.5">{t('noDataSubtext')}</p>
+          <p className="text-gray-700 text-xs md:text-sm font-semibold">{t('noData')}</p>
+          <p className="text-gray-400 text-[10px] md:text-xs mt-1">{t('noDataSubtext')}</p>
         </div>
       ) : (
-        <div className="w-full mt-4" style={{ height: '320px', minHeight: '320px' }}>
-          <ResponsiveContainer width="100%" height={320}>
+        <div className="w-full mt-2 md:mt-3 lg:mt-4 h-48 md:h-56 lg:h-80">
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+              margin={{ top: 10, right: 5, left: -10, bottom: 5 }}
             >
               <defs>
                 <linearGradient id="bookingsLineGradient" x1="0" y1="0" x2="0" y2="1">
@@ -145,21 +145,22 @@ export function BookingsChart({ businessId, timeRange }: BookingsChartProps) {
               <XAxis
                 dataKey="formattedDate"
                 stroke="transparent"
-                tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 500 }}
                 tickLine={false}
                 axisLine={{ stroke: '#f3f4f6', strokeWidth: 1 }}
-                height={50}
+                height={40}
                 angle={-45}
                 textAnchor="end"
+                interval="preserveStartEnd"
               />
 
               <YAxis
                 stroke="transparent"
-                tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 500 }}
                 tickLine={false}
                 axisLine={{ stroke: '#f3f4f6', strokeWidth: 1 }}
                 allowDecimals={false}
-                width={35}
+                width={30}
               />
 
 
