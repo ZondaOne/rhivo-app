@@ -1,6 +1,6 @@
 # Authentication Implementation Guide
 
-This document describes the complete authentication system implementation for Rivo.
+This document describes the complete authentication system implementation for Rhivo.
 
 ## Overview
 

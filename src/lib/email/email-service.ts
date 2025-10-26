@@ -54,7 +54,7 @@ export class EmailService {
 
         // Send email via Resend
         // Use Resend's onboarding domain for testing (or your verified domain)
-        const fromEmail = env.EMAIL_FROM || 'Rivo <onboarding@resend.dev>';
+        const fromEmail = env.EMAIL_FROM || 'Rhivo <onboarding@resend.dev>';
 
         const { data, error } = await resend.emails.send({
           from: fromEmail,

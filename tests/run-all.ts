@@ -71,7 +71,7 @@ async function runTestSuite(suite: { name: string; file: string }): Promise<Test
 async function runAllTests() {
   console.log('\n');
   console.log('╔════════════════════════════════════════════════════════════╗');
-  console.log('║          RIVO - COMPREHENSIVE TEST SUITE                   ║');
+  console.log('║          RHIVO - COMPREHENSIVE TEST SUITE                   ║');
   console.log('╚════════════════════════════════════════════════════════════╝');
   console.log('\n');
   console.log(`Starting test run at: ${new Date().toISOString()}`);

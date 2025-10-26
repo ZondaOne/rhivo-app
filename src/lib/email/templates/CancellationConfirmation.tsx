@@ -30,8 +30,8 @@ export const CancellationConfirmationEmail = ({
   serviceName = 'Swedish Massage (60 min)',
   appointmentDate = 'Monday, January 15, 2025',
   appointmentTime = '10:00 AM - 11:00 AM',
-  bookingId = 'RIVO-ABC-123',
-  rebookingLink = 'https://wellness-spa.rivo.app',
+  bookingId = 'RHIVO-ABC-123',
+  rebookingLink = 'https://wellness-spa.rhivo.app',
   businessPhone = '(555) 123-4567',
   businessEmail = 'hello@wellnessspa.com',
 }: CancellationConfirmationEmailProps) => {
@@ -132,10 +132,10 @@ export const CancellationConfirmationEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
-              Questa è un'email di conferma automatica da Rivo.
+              Questa è un'email di conferma automatica da Rhivo.
             </Text>
             <Text style={footerTextSecondary}>
-              This is an automated confirmation email from Rivo.
+              This is an automated confirmation email from Rhivo.
             </Text>
             <Text style={footerText}>
               Se non hai richiesto questa cancellazione, contatta {businessName} immediatamente.
@@ -153,7 +153,7 @@ export const CancellationConfirmationEmail = ({
 
 export default CancellationConfirmationEmail;
 
-// Styles following Rivo's functional minimalism design
+// Styles following Rhivo's functional minimalism design
 const main = {
   backgroundColor: '#f9fafb',
   fontFamily:

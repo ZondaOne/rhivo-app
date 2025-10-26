@@ -7,7 +7,7 @@
 
 ## Overview
 
-Rivo implements **completely separated authentication systems** for business owners and customers. This ensures that:
+Rhivo implements **completely separated authentication systems** for business owners and customers. This ensures that:
 
 1. **Owners can only access the dashboard** (`/dashboard`) - for managing their business
 2. **Customers can only access customer features** (`/customer/dashboard`, `/book/*`) - for managing their bookings

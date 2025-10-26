@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
       await emailService.sendEmail({
         to: user.email,
-        subject: 'Verify your Rivo account',
+        subject: 'Verify your Rhivo account',
         html: emailHtml,
         templateName: 'email_verification',
         appointmentId: undefined,

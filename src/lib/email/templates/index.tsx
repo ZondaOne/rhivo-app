@@ -141,8 +141,8 @@ export function getEmailSubject(
     case 'appointment_reminder':
       return `Promemoria: Il tuo appuntamento presso ${businessName} è domani`;
     case 'email_verification':
-      return 'Verifica la tua Email - Verify Your Email | Rivo';
+      return 'Verifica la tua Email - Verify Your Email | Rhivo';
     default:
-      return `Aggiornamento da ${businessName || 'Rivo'}`;
+      return `Aggiornamento da ${businessName || 'Rhivo'}`;
   }
 }

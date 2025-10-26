@@ -14,7 +14,7 @@ Built the foundation for the business discovery interface at `/book` (no subdoma
 - **Map View**: ✅ Interactive Leaflet map with OpenStreetMap tiles
 - **Search**: Real-time search filtering by business name, description, or location
 - **View Toggle**: Switch between list and map views
-- **Responsive Design**: Following the Rivo style guide (Functional Minimalism)
+- **Responsive Design**: Following the Rhivo style guide (Functional Minimalism)
 
 ### 1a. Map Integration (`/app/book/components/BusinessMap.tsx`)
 - **Technology**: Leaflet.js + React Leaflet (free, open-source, no API key required)
@@ -211,7 +211,7 @@ See `prompt.xml` Step 12 for complete requirements. Summary:
 ✅ Page loads quickly with clean UI
 ✅ Search works in real-time
 ✅ Seamless navigation to booking flow
-✅ Follows Rivo style guide
+✅ Follows Rhivo style guide
 ✅ Mobile-responsive design
 
 **Phase 1 Complete!** Ready for Step 12 data layer enhancements.

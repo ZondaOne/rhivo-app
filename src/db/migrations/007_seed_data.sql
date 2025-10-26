@@ -16,7 +16,7 @@ VALUES (
 INSERT INTO users (id, email, phone, role, business_id, password_hash)
 VALUES (
     '00000000-0000-0000-0000-000000000010',
-    'owner@demo.rivo.app',
+    'owner@demo.rhivo.app',
     '+14155551234',
     'owner',
     '00000000-0000-0000-0000-000000000001',
@@ -161,4 +161,4 @@ VALUES (
 
 -- Comments
 COMMENT ON TABLE businesses IS 'Seeded with demo business at subdomain "demo"';
-COMMENT ON TABLE users IS 'Seeded with demo owner (owner@demo.rivo.app / demo123) and sample customer';
+COMMENT ON TABLE users IS 'Seeded with demo owner (owner@demo.rhivo.app / demo123) and sample customer';

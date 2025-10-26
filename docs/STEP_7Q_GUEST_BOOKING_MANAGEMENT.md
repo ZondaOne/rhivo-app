@@ -14,7 +14,7 @@ This document describes the guest booking management system that allows customer
 ### Core Capabilities
 
 1. **Unique Booking ID Generation**
-   - Format: `RIVO-XXX-XXX-XXX` (e.g., `RIVO-A3K-9F2-7Q1`)
+   - Format: `RHIVO-XXX-XXX-XXX` (e.g., `RHIVO-A3K-9F2-7Q1`)
    - Human-readable, 9-character alphanumeric (uppercase)
    - Automatically generated for all appointments (guest and authenticated)
    - Stored in `appointments.booking_id` column
@@ -45,7 +45,7 @@ This document describes the guest booking management system that allows customer
 
 ```sql
 -- Booking identification
-booking_id TEXT NOT NULL UNIQUE          -- Human-readable booking ID (RIVO-XXX-XXX-XXX)
+booking_id TEXT NOT NULL UNIQUE          -- Human-readable booking ID (RHIVO-XXX-XXX-XXX)
 
 -- Guest information
 guest_email TEXT                          -- Guest email (required for guest bookings)
@@ -92,7 +92,7 @@ CREATE INDEX appointments_guest_token_hash_idx ON appointments(guest_token_hash)
 **Request Body:**
 ```json
 {
-  "bookingId": "RIVO-A3K-9F2-7Q1",
+  "bookingId": "RHIVO-A3K-9F2-7Q1",
   "email": "guest@example.com"
 }
 ```
@@ -102,7 +102,7 @@ CREATE INDEX appointments_guest_token_hash_idx ON appointments(guest_token_hash)
 {
   "success": true,
   "message": "Guest access link generated for debugging.",
-  "manageUrl": "https://rivo.app/book/manage/RIVO-A3K-9F2-7Q1?token=abc123..."
+  "manageUrl": "https://rhivo.app/book/manage/RHIVO-A3K-9F2-7Q1?token=abc123..."
 }
 ```
 
@@ -132,7 +132,7 @@ CREATE INDEX appointments_guest_token_hash_idx ON appointments(guest_token_hash)
   "success": true,
   "appointment": {
     "id": "uuid",
-    "bookingId": "RIVO-A3K-9F2-7Q1",
+    "bookingId": "RHIVO-A3K-9F2-7Q1",
     "serviceName": "Swedish Massage",
     "startTime": "2025-10-15T10:00:00Z",
     "endTime": "2025-10-15T11:00:00Z",
@@ -241,7 +241,7 @@ const nanoid = customAlphabet(alphabet, 9);
 
 export function generateBookingId(): string {
   const id = nanoid();
-  return `RIVO-${id.substring(0, 3)}-${id.substring(3, 6)}-${id.substring(6, 9)}`;
+  return `RHIVO-${id.substring(0, 3)}-${id.substring(3, 6)}-${id.substring(6, 9)}`;
 }
 ```
 
@@ -441,7 +441,7 @@ await db`
 ### Manual Testing
 
 - [ ] Generate booking with guest email (no customer_id)
-- [ ] Verify Booking ID format matches `RIVO-XXX-XXX-XXX`
+- [ ] Verify Booking ID format matches `RHIVO-XXX-XXX-XXX`
 - [ ] Request access link with valid Booking ID + email
 - [ ] Request access link with invalid Booking ID (should still succeed)
 - [ ] Request access link with wrong email (should still succeed)
@@ -505,7 +505,7 @@ Key metrics to track:
 
 ✅ **Complete:**
 - [x] Booking ID generated for all appointments
-- [x] Booking ID format is `RIVO-XXX-XXX-XXX`
+- [x] Booking ID format is `RHIVO-XXX-XXX-XXX`
 - [x] Guest can request access using Booking ID + email
 - [x] Tokens are hashed before storage (SHA-256)
 - [x] Tokens expire after 15 minutes

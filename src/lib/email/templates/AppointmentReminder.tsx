@@ -35,14 +35,14 @@ export const AppointmentReminderEmail = ({
   serviceName = 'Swedish Massage (60 min)',
   appointmentDate = 'Monday, January 15, 2025',
   appointmentTime = '10:00 AM - 11:00 AM',
-  bookingId = 'RIVO-ABC-123',
+  bookingId = 'RHIVO-ABC-123',
   businessAddress = '123 Main Street, New York, NY 10001',
   businessPhone = '(555) 123-4567',
   businessEmail = 'hello@wellnessspa.com',
   parkingInstructions,
   preparationInstructions,
-  cancellationLink = 'https://rivo.app/cancel',
-  rescheduleLink = 'https://rivo.app/reschedule',
+  cancellationLink = 'https://rhivo.app/cancel',
+  rescheduleLink = 'https://rhivo.app/reschedule',
   unsubscribeLink,
 }: AppointmentReminderEmailProps) => {
   return (
@@ -158,7 +158,7 @@ export const AppointmentReminderEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
-              This is an automated reminder email from Rivo.
+              This is an automated reminder email from Rhivo.
             </Text>
             <Text style={footerText}>
               We look forward to seeing you at {businessName}!
@@ -180,7 +180,7 @@ export const AppointmentReminderEmail = ({
 
 export default AppointmentReminderEmail;
 
-// Styles following Rivo's functional minimalism design
+// Styles following Rhivo's functional minimalism design
 const main = {
   backgroundColor: '#f9fafb',
   fontFamily:

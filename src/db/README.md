@@ -1,6 +1,6 @@
-# Rivo Database Schema
+# Rhivo Database Schema
 
-This directory contains the database schema, migrations, and utilities for the Rivo appointment platform.
+This directory contains the database schema, migrations, and utilities for the Rhivo appointment platform.
 
 ## Database Structure
 

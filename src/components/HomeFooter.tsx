@@ -61,7 +61,7 @@ export function HomeFooter() {
             {/* Right: Made by ZONDA & Copyright */}
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
               <p className="text-xs text-gray-500">
-                © {currentYear} Rivo
+                © {currentYear} Rhivo
               </p>
               <span className="hidden sm:inline text-gray-300">•</span>
               <a

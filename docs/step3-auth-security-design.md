@@ -17,7 +17,7 @@
 
 **Flow**:
 1. **Signup**:
-   - Owner navigates to `app.rivo.app/signup`
+   - Owner navigates to `app.rhivo.app/signup`
    - Provides: email, password, business name, business contact info (address, phone), timezone
    - System validates input and creates:
      - `user` record (role: `owner`, email verified = false)
@@ -26,7 +26,7 @@
    - User clicks verification link → email verified, account activated
 
 2. **Login**:
-   - Owner navigates to `app.rivo.app/login`
+   - Owner navigates to `app.rhivo.app/login`
    - Provides: email, password
    - System validates credentials
    - Issues JWT with claims:
@@ -63,7 +63,7 @@
 
 **Flow**:
 1. **Optional Signup**:
-   - Customer navigates to `<tenant>.rivo.app` and selects "Create Account" (optional)
+   - Customer navigates to `<tenant>.rhivo.app` and selects "Create Account" (optional)
    - Provides: email, password, phone (optional), name
    - System creates `user` record (role: `customer`)
    - Sends email verification link (24h TTL)
@@ -105,8 +105,8 @@
    - **Guest token**: secure random string (32 bytes, base64url encoded), stored hashed in `appointment.guest_token_hash`
 3. Confirmation email sent with:
    - Appointment details
-   - Cancellation link: `https://<tenant>.rivo.app/cancel/<appointment_id>?token=<guest_token>`
-   - Reschedule link: `https://<tenant>.rivo.app/reschedule/<appointment_id>?token=<guest_token>`
+   - Cancellation link: `https://<tenant>.rhivo.app/cancel/<appointment_id>?token=<guest_token>`
+   - Reschedule link: `https://<tenant>.rhivo.app/reschedule/<appointment_id>?token=<guest_token>`
 4. When guest clicks link:
    - System validates `appointment_id` + `guest_token` hash match
    - If valid, allow cancellation or reschedule (single-use or time-limited, e.g., 48h before appointment)
@@ -298,17 +298,17 @@ SET LOCAL jwt.claims.business_id = '<business_uuid>';
 
 Create separate Postgres roles with minimal privileges:
 
-**Role: `rivo_owner`**
+**Role: `rhivo_owner`**
 - Grants: SELECT, INSERT, UPDATE, DELETE on `appointments`, `services`, `categories`, `businesses`, `reservation_tokens`
 - No DROP, ALTER, or admin privileges
 - Enforced by RLS policies (business_id match)
 
-**Role: `rivo_customer`**
+**Role: `rhivo_customer`**
 - Grants: SELECT, INSERT on `appointments` (own appointments only via RLS)
 - SELECT on `services`, `categories`, `availability` (read-only for booking UI)
 - No UPDATE or DELETE (except via application-mediated cancel flow)
 
-**Role: `rivo_public`**
+**Role: `rhivo_public`**
 - Grants: SELECT on `services`, `categories`, `businesses` (public booking page data)
 - INSERT on `reservation_tokens` (temporary slot holds)
 - INSERT on `appointments` (guest bookings)
@@ -327,7 +327,7 @@ Create separate Postgres roles with minimal privileges:
 
 1. **Auth function issues short-lived DB token**:
    - After user login, auth function calls Neon API (if supported) or internal token service
-   - Request: "Issue DB token for role `rivo_owner`, scoped to `business_id=<uuid>`, TTL=1h"
+   - Request: "Issue DB token for role `rhivo_owner`, scoped to `business_id=<uuid>`, TTL=1h"
    - Response: Neon connection string with ephemeral credentials
 
 2. **Frontend stores token**:
@@ -368,7 +368,7 @@ Create separate Postgres roles with minimal privileges:
 - [ ] httpOnly, secure cookies for refresh tokens
 - [ ] JWT stored in memory (not localStorage)
 - [ ] CSP headers prevent XSS: `default-src 'self'; script-src 'self'`
-- [ ] CORS restricted to `*.rivo.app` domains
+- [ ] CORS restricted to `*.rhivo.app` domains
 
 ### 5.4 Audit & Monitoring
 - [ ] Audit log records all appointment state changes (actor, timestamp)
@@ -426,7 +426,7 @@ Create separate Postgres roles with minimal privileges:
 - [ ] Implement owner signup/login with email verification
 - [ ] Implement JWT issuance (serverless function)
 - [ ] Implement refresh token rotation
-- [ ] Create DB roles (`rivo_owner`, `rivo_customer`, `rivo_public`)
+- [ ] Create DB roles (`rhivo_owner`, `rhivo_customer`, `rhivo_public`)
 - [ ] Write RLS policies for `appointments`, `businesses`, `services`
 - [ ] Test RLS policies in isolation
 

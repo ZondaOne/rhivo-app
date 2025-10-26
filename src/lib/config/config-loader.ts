@@ -396,7 +396,7 @@ export function extractSubdomain(hostname: string): string | null {
     return null;
   }
 
-  // Extract subdomain from hostname (e.g., "salon.rivo.app" -> "salon")
+  // Extract subdomain from hostname (e.g., "salon.rhivo.app" -> "salon")
   const parts = hostname.split('.');
 
   // Need at least 3 parts for a subdomain (subdomain.domain.tld)

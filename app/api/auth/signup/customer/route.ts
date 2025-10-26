@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
 
       const emailResult = await emailService.sendEmail({
         to: validatedData.email,
-        subject: 'Verifica la tua Email - Verify Your Email | Rivo',
+        subject: 'Verifica la tua Email - Verify Your Email | Rhivo',
         html: emailHtml,
         templateName: 'email_verification',
         appointmentId: undefined,

@@ -65,10 +65,10 @@ ON notification_logs(template_name);
 ```env
 # Required
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-EMAIL_FROM=Rivo <noreply@rivo.app>
+EMAIL_FROM=Rivo <noreply@rhivo.app>
 
 # Optional
-NEXT_PUBLIC_APP_URL=https://rivo.app
+NEXT_PUBLIC_APP_URL=https://rhivo.app
 ```
 
 ---
@@ -439,7 +439,7 @@ Set up alerts for:
 ✅ Email delivery is logged and failures are retried automatically
 ✅ System handles both guest and authenticated customer cases
 ✅ Email failures do not block booking operations
-✅ All templates follow Rivo branding (teal/green, minimal design)
+✅ All templates follow Rhivo branding (teal/green, minimal design)
 
 ⏳ Reminder emails (requires cron job)
 ⏳ Calendar attachments (.ics files)

@@ -145,7 +145,7 @@ This document describes the unified appointment rescheduling system that allows 
   "message": "Appointment rescheduled successfully",
   "appointment": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "bookingId": "RIVO-A3K-9F2-7Q1",
+    "bookingId": "RHIVO-A3K-9F2-7Q1",
     "newSlotStart": "2025-10-16T10:00:00Z",
     "newSlotEnd": "2025-10-16T11:00:00Z"
   }
@@ -304,7 +304,7 @@ RETURNING id
 **Notification Message Format:**
 ```
 Title: Appointment Rescheduled
-Message: John Doe rescheduled booking RIVO-A3K-9F2-7Q1 from Oct 15 at 10:00 AM to Oct 16 at 2:00 PM
+Message: John Doe rescheduled booking RHIVO-A3K-9F2-7Q1 from Oct 15 at 10:00 AM to Oct 16 at 2:00 PM
 ```
 
 **Database Entry:**
@@ -315,7 +315,7 @@ Message: John Doe rescheduled booking RIVO-A3K-9F2-7Q1 from Oct 15 at 10:00 AM t
   "user_id": "owner-uuid",
   "type": "booking_rescheduled",
   "title": "Appointment Rescheduled",
-  "message": "John Doe rescheduled booking RIVO-A3K-9F2-7Q1...",
+  "message": "John Doe rescheduled booking RHIVO-A3K-9F2-7Q1...",
   "appointment_id": "uuid",
   "read": false,
   "created_at": "2025-10-09T12:00:00Z"
@@ -401,7 +401,7 @@ Customer reschedules appointment
   → API creates notification for all business owners
   → Owner dashboard (future) shows notification badge
   → Owner clicks notification center
-  → Sees: "John Doe rescheduled booking RIVO-A3K-9F2-7Q1 from..."
+  → Sees: "John Doe rescheduled booking RHIVO-A3K-9F2-7Q1 from..."
   → Owner clicks notification
   → Navigates to appointment details or calendar view
   → Notification marked as read

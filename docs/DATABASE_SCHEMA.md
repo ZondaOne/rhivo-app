@@ -1,6 +1,6 @@
-# Rivo Database Schema Documentation
+# Rhivo Database Schema Documentation
 
-This document provides a comprehensive reference for the Rivo database schema. All tables, columns, constraints, and relationships are documented here.
+This document provides a comprehensive reference for the Rhivo database schema. All tables, columns, constraints, and relationships are documented here.
 
 **Generated:** 2025-10-16
 **Database:** PostgreSQL 16.9 on NeonDB
@@ -34,7 +34,7 @@ This document provides a comprehensive reference for the Rivo database schema. A
 
 ## Overview
 
-The Rivo database is designed for a multi-tenant appointment booking platform. Key features:
+The Rhivo database is designed for a multi-tenant appointment booking platform. Key features:
 
 - **Multi-tenancy:** Each business is isolated via `business_id` foreign keys
 - **Soft deletes:** Most tables use `deleted_at` for soft deletion
@@ -92,7 +92,7 @@ Core table for business/tenant information.
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | `id` | UUID | NO | `uuid_generate_v4()` | Primary key |
-| `subdomain` | TEXT | NO | - | Unique subdomain (e.g., `acme.rivo.app`) |
+| `subdomain` | TEXT | NO | - | Unique subdomain (e.g., `acme.rhivo.app`) |
 | `name` | TEXT | NO | - | Business display name |
 | `timezone` | TEXT | NO | - | IANA timezone (e.g., `America/New_York`) |
 | `config_yaml_path` | TEXT | NO | - | Path to YAML configuration file |
@@ -310,7 +310,7 @@ Confirmed appointments/bookings.
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | `id` | UUID | NO | `uuid_generate_v4()` | Primary key |
-| `booking_id` | TEXT | NO | - | Human-readable booking ID (RIVO-XXX-XXX-XXX) |
+| `booking_id` | TEXT | NO | - | Human-readable booking ID (RHIVO-XXX-XXX-XXX) |
 | `business_id` | UUID | NO | - | Owning business |
 | `service_id` | UUID | NO | - | Booked service |
 | `customer_id` | UUID | YES | NULL | Customer user (if registered) |

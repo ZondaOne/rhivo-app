@@ -75,7 +75,7 @@ Fetch notifications for authenticated owner.
       "user_id": "uuid",
       "type": "booking_created",
       "title": "New Booking",
-      "message": "John Doe booked Swedish Massage for Oct 15 at 10:00 AM (RIVO-ABC-123)",
+      "message": "John Doe booked Swedish Massage for Oct 15 at 10:00 AM (RHIVO-ABC-123)",
       "appointment_id": "uuid",
       "read": false,
       "created_at": "2025-10-09T10:00:00Z",
@@ -189,7 +189,7 @@ Creates notification when customer makes a new booking.
 **Message Format:**
 ```
 Title: New Booking
-Message: John Doe booked Swedish Massage for Oct 15 at 10:00 AM (RIVO-ABC-123)
+Message: John Doe booked Swedish Massage for Oct 15 at 10:00 AM (RHIVO-ABC-123)
 ```
 
 ##### `notifyOwnerOfCancellation()`
@@ -198,7 +198,7 @@ Creates notification when customer cancels appointment.
 **Message Format:**
 ```
 Title: Appointment Canceled
-Message: John Doe canceled booking RIVO-ABC-123 scheduled for Oct 15 at 10:00 AM
+Message: John Doe canceled booking RHIVO-ABC-123 scheduled for Oct 15 at 10:00 AM
 ```
 
 ##### `notifyOwnerOfReschedule()`
@@ -207,7 +207,7 @@ Creates notification when customer reschedules appointment.
 **Message Format:**
 ```
 Title: Appointment Rescheduled
-Message: John Doe rescheduled booking RIVO-ABC-123 from Oct 15 at 10:00 AM to Oct 16 at 2:00 PM
+Message: John Doe rescheduled booking RHIVO-ABC-123 from Oct 15 at 10:00 AM to Oct 16 at 2:00 PM
 ```
 
 ### 5. Integration with Booking Events

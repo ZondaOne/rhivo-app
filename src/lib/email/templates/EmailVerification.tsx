@@ -20,13 +20,13 @@ interface EmailVerificationProps {
 
 export const EmailVerification = ({
   userName = 'John Doe',
-  verificationUrl = 'https://rivo.app/auth/verify-email?token=abc123',
+  verificationUrl = 'https://rhivo.app/auth/verify-email?token=abc123',
   expiryHours = 24,
 }: EmailVerificationProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Verifica il tuo account Rivo - Verify your Rivo account</Preview>
+      <Preview>Verifica il tuo account Rhivo - Verify your Rhivo account</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
@@ -34,22 +34,22 @@ export const EmailVerification = ({
             <Heading style={h1}>Verifica la tua Email</Heading>
             <Text style={h1Secondary}>Verify Your Email</Text>
             <Text style={subtitle}>
-              Ciao {userName}, benvenuto su Rivo!
+              Ciao {userName}, benvenuto su Rhivo!
             </Text>
             <Text style={subtitleSecondary}>
-              Hi {userName}, welcome to Rivo!
+              Hi {userName}, welcome to Rhivo!
             </Text>
           </Section>
 
           {/* Main Content */}
           <Section style={contentBox}>
             <Text style={paragraph}>
-              Grazie per esserti registrato su Rivo. Per completare la registrazione
+              Grazie per esserti registrato su Rhivo. Per completare la registrazione
               e accedere al tuo account, clicca sul pulsante qui sotto per verificare
               il tuo indirizzo email.
             </Text>
             <Text style={paragraphSecondary}>
-              Thanks for signing up for Rivo. To complete your registration and access
+              Thanks for signing up for Rhivo. To complete your registration and access
               your account, please click the button below to verify your email address.
             </Text>
           </Section>
@@ -95,10 +95,10 @@ export const EmailVerification = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
-              Questa è un'email automatica da Rivo.
+              Questa è un'email automatica da Rhivo.
             </Text>
             <Text style={footerTextSecondary}>
-              This is an automated email from Rivo.
+              This is an automated email from Rhivo.
             </Text>
             <Text style={footerText}>
               Se hai bisogno di aiuto, visita il nostro centro assistenza.
@@ -115,7 +115,7 @@ export const EmailVerification = ({
 
 export default EmailVerification;
 
-// Styles following Rivo's functional minimalism design
+// Styles following Rhivo's functional minimalism design
 const main = {
   backgroundColor: '#f9fafb',
   fontFamily:

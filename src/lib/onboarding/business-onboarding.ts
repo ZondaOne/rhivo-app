@@ -411,7 +411,7 @@ export async function sendWelcomeEmail(
   console.log(`
 📧 Welcome Email (would be sent to ${email}):
 
-Welcome to Rivo, ${businessName}!
+Welcome to Rhivo, ${businessName}!
 
 Your business has been successfully set up. Here are your details:
 
@@ -429,8 +429,8 @@ Your business has been successfully set up. Here are your details:
 📚 Resources:
    - Dashboard: Manage your appointments
    - Settings: Customize your business details
-   - Support: help@rivo.app
+   - Support: help@rhivo.app
 
-Thank you for choosing Rivo!
+Thank you for choosing Rhivo!
   `);
 }

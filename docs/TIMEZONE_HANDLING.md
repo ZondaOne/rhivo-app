@@ -1,8 +1,8 @@
-# Timezone Handling in Rivo Booking System
+# Timezone Handling in Rhivo Booking System
 
 ## Overview
 
-The Rivo booking system is designed to handle appointments correctly regardless of where the server, business, or customer are located. This document explains the timezone handling strategy and best practices.
+The Rhivo booking system is designed to handle appointments correctly regardless of where the server, business, or customer are located. This document explains the timezone handling strategy and best practices.
 
 ## Core Principles
 

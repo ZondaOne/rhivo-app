@@ -1520,7 +1520,7 @@ export default function OnboardBusinessPage() {
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-gray-600">{t('onboard.review.subdomain')}:</dt>
-              <dd className="font-medium text-gray-900 truncate">{businessId ? `${businessId}.rivo.app` : '—'}</dd>
+              <dd className="font-medium text-gray-900 truncate">{businessId ? `${businessId}.rhivo.app` : '—'}</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-gray-600">{t('onboard.review.timezone')}:</dt>

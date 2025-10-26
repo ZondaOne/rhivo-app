@@ -18,7 +18,7 @@ The customer booking system provides a public-facing booking interface where cus
 
 Each business gets a unique subdomain for their booking page:
 
-- **Production:** `{business-name}.rivo.app/book`
+- **Production:** `{business-name}.rhivo.app/book`
 - **Development:** `/book/{business-name}` or `/book/[subdomain]?business={business-name}`
 
 ### Configuration System

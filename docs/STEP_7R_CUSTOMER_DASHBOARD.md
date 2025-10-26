@@ -77,7 +77,7 @@ Authorization: Bearer eyJhbGc...
   "appointments": [
     {
       "id": "uuid",
-      "bookingId": "RIVO-A3K-9F2-7Q1",
+      "bookingId": "RHIVO-A3K-9F2-7Q1",
       "businessName": "Wellness Spa",
       "subdomain": "wellness-spa",
       "serviceName": "Swedish Massage",
@@ -127,7 +127,7 @@ Authorization: Bearer eyJhbGc...
   "success": true,
   "appointment": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "bookingId": "RIVO-A3K-9F2-7Q1",
+    "bookingId": "RHIVO-A3K-9F2-7Q1",
     "startTime": "2025-10-15T10:00:00Z",
     "endTime": "2025-10-15T11:00:00Z",
     "status": "confirmed",
@@ -329,7 +329,7 @@ The existing `appointments` table already supports customer appointments:
 |--------|------|---------|
 | `customer_id` | UUID | Foreign key to `users.id` (customer) |
 | `status` | appointment_status | 'confirmed', 'canceled', 'completed', 'no_show' |
-| `booking_id` | TEXT | Human-readable booking ID (RIVO-XXX-XXX-XXX) |
+| `booking_id` | TEXT | Human-readable booking ID (RHIVO-XXX-XXX-XXX) |
 | `updated_at` | TIMESTAMPTZ | Last update timestamp |
 
 ### Audit Logs Table (No Changes Required)

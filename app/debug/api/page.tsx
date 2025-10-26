@@ -104,14 +104,14 @@ export default function ApiDebugPage() {
 
   // Persist biz selection in sessionStorage
   useEffect(() => {
-    const saved = sessionStorage.getItem('rivo-debug-biz');
+    const saved = sessionStorage.getItem('rhivo-debug-biz');
     if (saved) {
       try { setBiz(JSON.parse(saved)); } catch {}
     }
   }, []);
   useEffect(() => {
-    if (biz) sessionStorage.setItem('rivo-debug-biz', JSON.stringify(biz));
-    else sessionStorage.removeItem('rivo-debug-biz');
+    if (biz) sessionStorage.setItem('rhivo-debug-biz', JSON.stringify(biz));
+    else sessionStorage.removeItem('rhivo-debug-biz');
   }, [biz]);
 
   // Fetch owner business
@@ -506,7 +506,7 @@ export default function ApiDebugPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">API Debugger & Test Suite</h1>
-              <p className="text-gray-600">Comprehensive security and functionality testing for the Rivo platform</p>
+              <p className="text-gray-600">Comprehensive security and functionality testing for the Rhivo platform</p>
             </div>
             <button
               onClick={() => setShowDocsModal(true)}

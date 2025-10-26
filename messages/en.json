@@ -43,7 +43,7 @@
     "useCases": {
       "label": "Two sides of the same story",
       "title": "Built for everyone",
-      "subtitle": "Whether you're booking or managing appointments, rivo makes it effortless.",
+      "subtitle": "Whether you're booking or managing appointments, rhivo makes it effortless.",
       "customer": {
         "title": "For Customers",
         "description": "Book appointments in seconds. See real-time availability, pick your time, and get instant confirmation—all from your phone.",
@@ -141,7 +141,7 @@
       "title": "Manage your booking",
       "subtitle": "Enter your Booking ID and email to access your appointment.",
       "bookingIdLabel": "Booking ID",
-      "bookingIdPlaceholder": "RIVO-XXX-XXX-XXX",
+      "bookingIdPlaceholder": "RHIVO-XXX-XXX-XXX",
       "emailLabel": "Email Address",
       "emailPlaceholder": "you@example.com",
       "submitButton": "Access my booking",
@@ -379,7 +379,7 @@
       "subdomain": "Subdomain",
       "subdomainHint": "(your booking page URL)",
       "subdomainPlaceholder": "bella-beauty",
-      "subdomainSuffix": ".rivo.app",
+      "subdomainSuffix": ".rhivo.app",
       "subdomainHelp": "Lowercase letters, numbers, and hyphens only",
       "description": "Description",
       "descriptionPlaceholder": "Brief description of your business...",
@@ -587,7 +587,7 @@
       "forgotPassword": "Forgot?",
       "signInButton": "Sign in",
       "signingIn": "Signing in...",
-      "newToRivo": "New to Rivo?",
+      "newToRivo": "New to Rhivo?",
       "registerBusiness": "Register your business",
       "customerLoginError": "This login is for business owners only. Customers should use the customer login.",
       "loginFailed": "Login failed"
@@ -1393,7 +1393,7 @@
     },
     "onboarding": {
       "welcome": {
-        "title": "Welcome to Rivo",
+        "title": "Welcome to Rhivo",
         "description": "Let's take a quick tour of your dashboard with real examples"
       },
       "calendar": {

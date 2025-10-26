@@ -80,7 +80,7 @@ export async function geocodeAddress(
       `https://nominatim.openstreetmap.org/search?${params.toString()}`,
       {
         headers: {
-          'User-Agent': 'Rivo Appointment Platform/1.0 (contact@rivo.app)',
+          'User-Agent': 'Rhivo Appointment Platform/1.0 (contact@rhivo.app)',
           'Accept': 'application/json'
         }
       }
@@ -164,7 +164,7 @@ export async function reverseGeocode(
       `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
       {
         headers: {
-          'User-Agent': 'Rivo Appointment Platform/1.0 (contact@rivo.app)',
+          'User-Agent': 'Rhivo Appointment Platform/1.0 (contact@rhivo.app)',
           'Accept': 'application/json'
         }
       }
@@ -241,7 +241,7 @@ export async function searchAddresses(
       `https://nominatim.openstreetmap.org/search?${params.toString()}`,
       {
         headers: {
-          'User-Agent': 'Rivo Appointment Platform/1.0 (contact@rivo.app)',
+          'User-Agent': 'Rhivo Appointment Platform/1.0 (contact@rhivo.app)',
           'Accept': 'application/json'
         }
       }

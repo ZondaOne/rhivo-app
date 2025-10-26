@@ -37,10 +37,10 @@ export const RescheduleConfirmationEmail = ({
   oldAppointmentTime = '10:00 AM - 11:00 AM',
   newAppointmentDate = 'Tuesday, January 16, 2025',
   newAppointmentTime = '2:00 PM - 3:00 PM',
-  bookingId = 'RIVO-ABC-123',
+  bookingId = 'RHIVO-ABC-123',
   price = '$50.00',
-  cancellationLink = 'https://rivo.app/cancel',
-  rescheduleLink = 'https://rivo.app/reschedule',
+  cancellationLink = 'https://rhivo.app/cancel',
+  rescheduleLink = 'https://rhivo.app/reschedule',
   businessAddress = '123 Main Street, New York, NY 10001',
   businessPhone = '(555) 123-4567',
   businessEmail = 'hello@wellnessspa.com',
@@ -161,10 +161,10 @@ export const RescheduleConfirmationEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
-              Questa è un'email di conferma automatica da Rivo.
+              Questa è un'email di conferma automatica da Rhivo.
             </Text>
             <Text style={footerTextSecondary}>
-              This is an automated confirmation email from Rivo.
+              This is an automated confirmation email from Rhivo.
             </Text>
             <Text style={footerText}>
               Conserva questa email per i tuoi archivi. Il tuo ID prenotazione è{' '}
@@ -184,7 +184,7 @@ export const RescheduleConfirmationEmail = ({
 
 export default RescheduleConfirmationEmail;
 
-// Styles following Rivo's functional minimalism design
+// Styles following Rhivo's functional minimalism design
 const main = {
   backgroundColor: '#f9fafb',
   fontFamily:

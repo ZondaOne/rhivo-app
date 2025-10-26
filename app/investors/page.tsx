@@ -52,7 +52,7 @@ export default function InvestorsPage() {
               <iframe
                 src="/pitch.html"
                 className="absolute inset-0 w-full h-full"
-                title="Rivo Investment Pitch"
+                title="Rhivo Investment Pitch"
                 allow="fullscreen"
                 sandbox="allow-scripts allow-same-origin allow-popups"
                 style={{ border: 'none' }}
@@ -86,7 +86,7 @@ export default function InvestorsPage() {
                   <span>Open in new tab</span>
                 </a>
                 <a
-                  href="mailto:hello@rivo.app?subject=Investment Inquiry"
+                  href="mailto:hello@rhivo.app?subject=Investment Inquiry"
                   className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:scale-[1.02] transition-all"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -104,7 +104,7 @@ export default function InvestorsPage() {
               Interested in learning more about this opportunity?
             </p>
             <a
-              href="mailto:hello@rivo.app?subject=Investment Inquiry"
+              href="mailto:hello@rhivo.app?subject=Investment Inquiry"
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-2xl font-semibold text-lg hover:shadow-lg hover:scale-[1.02] transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -124,7 +124,7 @@ export default function InvestorsPage() {
               <div className="scale-[0.6]">
                 <Logo size="sm" showText={false} />
               </div>
-              <span>© 2025 Rivo. Keep it simple.</span>
+              <span>© 2025 Rhivo. Keep it simple.</span>
             </div>
             <div className="flex items-center gap-8">
               <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>

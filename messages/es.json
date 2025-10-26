@@ -43,7 +43,7 @@
     "useCases": {
       "label": "Dos caras de la misma moneda",
       "title": "Hecho para todos",
-      "subtitle": "Ya sea que estés reservando o gestionando citas, rivo lo hace fácil.",
+      "subtitle": "Ya sea que estés reservando o gestionando citas, rhivo lo hace fácil.",
       "customer": {
         "title": "Para Clientes",
         "description": "Reserva citas en segundos. Ve la disponibilidad en tiempo real, elige tu hora y obtén confirmación instantánea—todo desde tu teléfono.",
@@ -141,7 +141,7 @@
       "title": "Gestiona tu reserva",
       "subtitle": "Ingresa tu ID de Reserva y correo electrónico para acceder a tu cita.",
       "bookingIdLabel": "ID de Reserva",
-      "bookingIdPlaceholder": "RIVO-XXX-XXX-XXX",
+      "bookingIdPlaceholder": "RHIVO-XXX-XXX-XXX",
       "emailLabel": "Correo Electrónico",
       "emailPlaceholder": "tucorreo@ejemplo.com",
       "submitButton": "Acceder a mi reserva",
@@ -380,7 +380,7 @@
       "subdomain": "Subdominio",
       "subdomainHint": "(URL de tu página de reservas)",
       "subdomainPlaceholder": "salon-bella",
-      "subdomainSuffix": ".rivo.app",
+      "subdomainSuffix": ".rhivo.app",
       "subdomainHelp": "Solo letras minúsculas, números y guiones",
       "description": "Descripción",
       "descriptionPlaceholder": "Breve descripción de tu negocio...",
@@ -588,7 +588,7 @@
       "forgotPassword": "¿Olvidaste?",
       "signInButton": "Iniciar sesión",
       "signingIn": "Iniciando sesión...",
-      "newToRivo": "¿Nuevo en Rivo?",
+      "newToRivo": "¿Nuevo en Rhivo?",
       "registerBusiness": "Registra tu negocio",
       "customerLoginError": "Este inicio de sesión es solo para propietarios de negocios. Los clientes deben usar el inicio de sesión de clientes.",
       "loginFailed": "Error al iniciar sesión"
@@ -1394,7 +1394,7 @@
     },
     "onboarding": {
       "welcome": {
-        "title": "Bienvenido a Rivo",
+        "title": "Bienvenido a Rhivo",
         "description": "Hagamos un recorrido rápido de tu panel con ejemplos reales"
       },
       "calendar": {

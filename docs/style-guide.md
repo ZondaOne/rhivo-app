@@ -1,4 +1,4 @@
-# Rivo Design System & Style Guide
+# Rhivo Design System & Style Guide
 
 ## Design Philosophy
 

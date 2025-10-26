@@ -319,7 +319,7 @@ const user = isEmail
 
 ```json
 {
-  "bookingId": "RIVO-A3K-9F2-7Q1",
+  "bookingId": "RHIVO-A3K-9F2-7Q1",
   "guestEmail": "customer@example.com"  // or guestPhone
 }
 ```
@@ -334,7 +334,7 @@ const user = isEmail
   "message": "Booking linked to your account",
   "appointment": {
     "id": "uuid",
-    "bookingId": "RIVO-A3K-9F2-7Q1",
+    "bookingId": "RHIVO-A3K-9F2-7Q1",
     "startTime": "2025-10-15T10:00:00Z",
     "serviceName": "Swedish Massage"
   }
@@ -372,7 +372,7 @@ const user = isEmail
   "appointments": [
     {
       "id": "uuid",
-      "bookingId": "RIVO-A3K-9F2-7Q1",
+      "bookingId": "RHIVO-A3K-9F2-7Q1",
       "businessName": "Wellness Spa",
       "serviceName": "Swedish Massage",
       "startTime": "2025-10-15T10:00:00Z",
@@ -442,7 +442,7 @@ const user = isEmail
 ```
 ┌──────────────────────────────────────────┐
 │ ✓ Booking Confirmed!                     │
-│ Booking ID: RIVO-A3K-9F2-7Q1            │
+│ Booking ID: RHIVO-A3K-9F2-7Q1            │
 ├──────────────────────────────────────────┤
 │                                          │
 │ 💡 Track all your bookings              │
@@ -491,7 +491,7 @@ const user = isEmail
 │ │ Wellness Spa                       │ │
 │ │ Swedish Massage • 60 min           │ │
 │ │ Oct 15, 2025 at 10:00 AM          │ │
-│ │ Booking ID: RIVO-A3K-9F2-7Q1      │ │
+│ │ Booking ID: RHIVO-A3K-9F2-7Q1      │ │
 │ │ [Cancel] [Reschedule] [Details →] │ │
 │ └────────────────────────────────────┘ │
 │                                        │
@@ -499,7 +499,7 @@ const user = isEmail
 │ │ Bella Salon                        │ │
 │ │ Haircut • 45 min                   │ │
 │ │ Oct 18, 2025 at 2:00 PM           │ │
-│ │ Booking ID: RIVO-B7N-1K4-8M2      │ │
+│ │ Booking ID: RHIVO-B7N-1K4-8M2      │ │
 │ │ [Cancel] [Reschedule] [Details →] │ │
 │ └────────────────────────────────────┘ │
 └────────────────────────────────────────┘

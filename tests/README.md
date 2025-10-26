@@ -1,6 +1,6 @@
-# Rivo Test Suite
+# Rhivo Test Suite
 
-Comprehensive test suite for the Rivo appointment platform.
+Comprehensive test suite for the Rhivo appointment platform.
 
 ## Test Suites
 

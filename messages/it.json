@@ -43,7 +43,7 @@
     "useCases": {
       "label": "Due facce della stessa medaglia",
       "title": "Fatto per tutti",
-      "subtitle": "Che tu stia prenotando o gestendo appuntamenti, rivo lo rende semplice.",
+      "subtitle": "Che tu stia prenotando o gestendo appuntamenti, rhivo lo rende semplice.",
       "customer": {
         "title": "Per i Clienti",
         "description": "Prenota appuntamenti in pochi secondi. Vedi la disponibilità in tempo reale, scegli il tuo orario e ricevi conferma istantanea—tutto dal tuo telefono.",
@@ -141,7 +141,7 @@
       "title": "Gestisci la tua prenotazione",
       "subtitle": "Inserisci il tuo ID Prenotazione e l'email per accedere al tuo appuntamento.",
       "bookingIdLabel": "ID Prenotazione",
-      "bookingIdPlaceholder": "RIVO-XXX-XXX-XXX",
+      "bookingIdPlaceholder": "RHIVO-XXX-XXX-XXX",
       "emailLabel": "Indirizzo Email",
       "emailPlaceholder": "tua@email.com",
       "submitButton": "Accedi alla mia prenotazione",
@@ -380,7 +380,7 @@
       "subdomain": "Sottodominio",
       "subdomainHint": "(URL della tua pagina di prenotazione)",
       "subdomainPlaceholder": "salone-bella",
-      "subdomainSuffix": ".rivo.app",
+      "subdomainSuffix": ".rhivo.app",
       "subdomainHelp": "Solo lettere minuscole, numeri e trattini",
       "description": "Descrizione",
       "descriptionPlaceholder": "Breve descrizione della tua attività...",
@@ -588,7 +588,7 @@
       "forgotPassword": "Dimenticata?",
       "signInButton": "Accedi",
       "signingIn": "Accesso in corso...",
-      "newToRivo": "Nuovo su Rivo?",
+      "newToRivo": "Nuovo su Rhivo?",
       "registerBusiness": "Registra la tua attività",
       "customerLoginError": "Questo accesso è solo per i proprietari di attività. I clienti devono utilizzare l'accesso clienti.",
       "loginFailed": "Accesso fallito"
@@ -1398,7 +1398,7 @@
     },
     "onboarding": {
       "welcome": {
-        "title": "Benvenuto su Rivo",
+        "title": "Benvenuto su Rhivo",
         "description": "Facciamo un rapido tour della tua dashboard con esempi reali"
       },
       "calendar": {

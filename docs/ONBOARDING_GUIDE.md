@@ -1,6 +1,6 @@
 # Business Onboarding Guide
 
-Complete guide for onboarding new businesses to the Rivo platform.
+Complete guide for onboarding new businesses to the Rhivo platform.
 
 ---
 

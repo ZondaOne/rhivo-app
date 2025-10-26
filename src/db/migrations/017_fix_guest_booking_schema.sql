@@ -36,6 +36,6 @@ END $$;
 -- 4. Update documentation comment
 COMMENT ON COLUMN appointments.guest_token_hash IS 'Hashed guest access token for temporary booking management (bcrypt hash)';
 COMMENT ON COLUMN appointments.guest_token_expires_at IS 'Expiration timestamp for guest access token (15 minutes from generation)';
-COMMENT ON COLUMN appointments.booking_id IS 'Human-readable booking ID (RIVO-XXX-XXX-XXX format)';
+COMMENT ON COLUMN appointments.booking_id IS 'Human-readable booking ID (RHIVO-XXX-XXX-XXX format)';
 COMMENT ON COLUMN appointments.guest_name IS 'Guest full name for display purposes';
 COMMENT ON COLUMN appointments.cancellation_token IS 'DEPRECATED: Legacy cancellation token, use guest_token_hash instead';

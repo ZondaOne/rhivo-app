@@ -87,7 +87,7 @@ export function BusinessSelector({
             )}
           </div>
           <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
-            <p className="text-xs sm:text-sm text-gray-500 truncate">{business.subdomain}.rivo.app</p>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">{business.subdomain}.rhivo.app</p>
           </div>
         </div>
       </div>
@@ -134,7 +134,7 @@ export function BusinessSelector({
           </div>
           <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
             <p className="text-xs sm:text-sm text-gray-500 truncate">
-              {selectedBusiness ? `${selectedBusiness.subdomain}.rivo.app` : 'Choose a business'}
+              {selectedBusiness ? `${selectedBusiness.subdomain}.rhivo.app` : 'Choose a business'}
             </p>
           </div>
         </div>
@@ -198,7 +198,7 @@ export function BusinessSelector({
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] sm:text-xs text-gray-500 truncate mt-0.5">{business.subdomain}.rivo.app</p>
+                    <p className="text-[10px] sm:text-xs text-gray-500 truncate mt-0.5">{business.subdomain}.rhivo.app</p>
                   </div>
                   {business.id === selectedBusinessId && (
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

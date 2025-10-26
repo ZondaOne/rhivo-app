@@ -1,5 +1,5 @@
 /**
- * Rivo Tenant Configuration Schema
+ * Rhivo Tenant Configuration Schema
  *
  * This file defines the canonical schema for per-tenant YAML configuration.
  * Every tenant configuration MUST validate against this schema before being enabled.

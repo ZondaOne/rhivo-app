@@ -1,6 +1,6 @@
 # Test Scenarios for Data Consistency (Step 7z)
 
-This document outlines the test scenarios for ensuring data consistency and preventing race conditions in the Rivo booking platform.
+This document outlines the test scenarios for ensuring data consistency and preventing race conditions in the Rhivo booking platform.
 
 ## Implementation Status
 

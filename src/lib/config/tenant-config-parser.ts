@@ -293,7 +293,7 @@ export function generateJSONSchema(): Record<string, any> {
   // For now, we return a placeholder
   return {
     $schema: 'http://json-schema.org/draft-07/schema#',
-    title: 'Rivo Tenant Configuration Schema',
+    title: 'Rhivo Tenant Configuration Schema',
     version: '1.0.0',
     description: 'Schema for per-tenant booking configuration',
     type: 'object',
