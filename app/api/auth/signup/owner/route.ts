@@ -11,6 +11,7 @@ import { createEmailService } from '@/lib/email/email-service';
 import { renderEmailVerification } from '@/lib/email/templates';
 import { getDbClient } from '@/db/client';
 import { env } from '@/lib/env';
+import { validateSubdomainFormat, checkSubdomainAvailability } from '@/lib/validation/subdomain';
 
 const sql = getDbClient();
 
@@ -69,6 +70,9 @@ export async function POST(request: NextRequest) {
     const verificationTokenHash = hashToken(verificationToken);
     const verificationExpiry = getEmailVerificationExpiry();
 
+    // Generate unique subdomain with collision handling
+    const subdomain = await generateUniqueSubdomain(validatedData.businessName);
+
     // Create business and owner user
     // Create business first
     const [business] = await sql`
@@ -80,9 +84,9 @@ export async function POST(request: NextRequest) {
         status
       ) VALUES (
         ${validatedData.businessName},
-        ${generateSubdomain(validatedData.businessName)},
+        ${subdomain},
         ${validatedData.timezone},
-        ${`/configs/${generateSubdomain(validatedData.businessName)}.yaml`},
+        ${`/configs/${subdomain}.yaml`},
         'active'
       )
       RETURNING id, subdomain
@@ -166,12 +170,43 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Generate subdomain from business name
+ * Generate unique subdomain from business name with collision handling
+ * If base subdomain is taken, appends random suffix (e.g., "blues-barber-a3x9")
  */
-function generateSubdomain(businessName: string): string {
-  return businessName
+async function generateUniqueSubdomain(businessName: string): Promise<string> {
+  // Generate base subdomain from business name
+  const baseSubdomain = businessName
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .substring(0, 63);
+
+  // Check format validity
+  const formatCheck = validateSubdomainFormat(baseSubdomain);
+  if (!formatCheck.valid) {
+    // If base format is invalid, throw error - business name is too problematic
+    throw new Error(`Cannot generate valid subdomain from business name: ${formatCheck.error}`);
+  }
+
+  // Check if base subdomain is available
+  const availabilityCheck = await checkSubdomainAvailability(baseSubdomain);
+  if (availabilityCheck.available) {
+    return baseSubdomain;
+  }
+
+  // Base is taken - try with random suffix (max 10 attempts)
+  for (let attempt = 0; attempt < 10; attempt++) {
+    // Generate 4-character random suffix (alphanumeric)
+    const suffix = Math.random().toString(36).substring(2, 6);
+    const candidateSubdomain = `${baseSubdomain}-${suffix}`.substring(0, 63);
+
+    const candidateCheck = await checkSubdomainAvailability(candidateSubdomain);
+    if (candidateCheck.available) {
+      return candidateSubdomain;
+    }
+  }
+
+  // If still no luck after 10 attempts, use timestamp-based suffix
+  const timestamp = Date.now().toString(36);
+  return `${baseSubdomain}-${timestamp}`.substring(0, 63);
 }

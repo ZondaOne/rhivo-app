@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 3: Generate YAML config
+    // Step 3: Generate YAML config (in-memory only, don't write to disk yet)
     console.log('📝 Generating YAML configuration...');
     const yamlResult = generateYAML(formData);
     console.log('YAML generation result:', yamlResult.success ? 'success' : 'failed');
@@ -64,26 +64,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    console.log('✅ YAML config generated successfully');
+    console.log('✅ YAML config generated successfully (not saved yet)');
 
-    // Save YAML to file
+    // NOTE: YAML file will be saved AFTER successful database creation to prevent orphaned files
+
     const yamlPath = `config/tenants/${formData.businessId}.yaml`;
-    try {
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      const fullPath = path.resolve(process.cwd(), yamlPath);
-
-      // Ensure directory exists
-      const dir = path.dirname(fullPath);
-      await fs.mkdir(dir, { recursive: true });
-
-      // Write YAML file
-      await fs.writeFile(fullPath, yamlResult.yaml, 'utf-8');
-      console.log('✅ YAML file saved:', yamlPath);
-    } catch (err) {
-      console.error('Failed to save YAML file:', err);
-      // Continue anyway - not critical
-    }
 
     // Step 4: Check for existing owner
     console.log('🔍 Checking for existing owner with email:', formData.email);
@@ -392,6 +377,25 @@ export async function POST(request: NextRequest) {
           console.error('❌ Failed to send verification email:', emailError);
           // Don't fail the whole request if email fails - user can resend later
         }
+      }
+
+      // NOW save YAML file after successful database operations
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const fullPath = path.resolve(process.cwd(), yamlPath);
+
+        // Ensure directory exists
+        const dir = path.dirname(fullPath);
+        await fs.mkdir(dir, { recursive: true });
+
+        // Write YAML file
+        await fs.writeFile(fullPath, yamlResult.yaml, 'utf-8');
+        console.log('✅ YAML file saved:', yamlPath);
+      } catch (err) {
+        console.error('❌ Failed to save YAML file:', err);
+        // Don't fail the request - YAML can be regenerated from database
+        // This prevents orphaned YAML files when signup fails
       }
 
       // Return success (NO verification URL in response for security)

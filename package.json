@@ -11,6 +11,7 @@
     "migrate:up": "tsx src/db/migrate.ts up",
     "migrate:status": "tsx src/db/migrate.ts status",
     "migrate:rollback": "tsx src/db/migrate.ts rollback",
+    "cleanup-yaml": "tsx scripts/cleanup-yaml.ts",
     "test": "tsx tests/run-all.ts",
     "test:db": "tsx tests/01-database.test.ts",
     "test:auth": "tsx tests/02-auth.test.ts",
@@ -21,6 +22,7 @@
     "test:triggers": "tsx tests/07-database-triggers.test.ts",
     "test:cleanup": "tsx tests/08-cleanup-resilience.test.ts",
     "test:load": "tsx tests/load-test.ts",
+    "test:subdomain": "tsx tests/subdomain-collision.test.ts",
     "test:concurrency": "tsx tests/06-advisory-locks.test.ts && tsx tests/07-database-triggers.test.ts && tsx tests/08-cleanup-resilience.test.ts && tsx tests/load-test.ts"
   },
   "dependencies": {
