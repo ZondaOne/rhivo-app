@@ -42,6 +42,7 @@ export async function loadConfigByBusinessId(businessId: string): Promise<Config
         name,
         timezone,
         config_yaml_path,
+        config_yaml,
         config_version,
         status
       FROM businesses
@@ -60,7 +61,24 @@ export async function loadConfigByBusinessId(businessId: string): Promise<Config
 
     const business = businessResult[0];
 
-    // Try to load YAML from file path
+    // Priority 1: Try to load YAML from database (config_yaml column)
+    if (business.config_yaml) {
+      const dbYamlConfig = parseTenantConfigYAML(business.config_yaml);
+      if (dbYamlConfig.success && dbYamlConfig.config) {
+        // Cache it with both businessId and subdomain keys
+        configCache.set(cacheKey, {
+          config: dbYamlConfig.config,
+          timestamp: Date.now(),
+        });
+        configCache.set(business.subdomain, {
+          config: dbYamlConfig.config,
+          timestamp: Date.now(),
+        });
+        return { success: true, config: dbYamlConfig.config, subdomain: business.subdomain };
+      }
+    }
+
+    // Priority 2: Try to load YAML from file path (backward compatibility)
     if (business.config_yaml_path) {
       const yamlConfig = await loadFromFile(business.config_yaml_path);
       if (yamlConfig.success && yamlConfig.config) {
@@ -125,6 +143,7 @@ export async function loadConfigBySubdomain(subdomain: string): Promise<ConfigLo
         name,
         timezone,
         config_yaml_path,
+        config_yaml,
         config_version,
         status
       FROM businesses
@@ -143,7 +162,20 @@ export async function loadConfigBySubdomain(subdomain: string): Promise<ConfigLo
 
     const business = businessResult[0];
 
-    // Try to load YAML from file path
+    // Priority 1: Try to load YAML from database (config_yaml column)
+    if (business.config_yaml) {
+      const dbYamlConfig = parseTenantConfigYAML(business.config_yaml);
+      if (dbYamlConfig.success && dbYamlConfig.config) {
+        // Cache it
+        configCache.set(subdomain, {
+          config: dbYamlConfig.config,
+          timestamp: Date.now(),
+        });
+        return { success: true, config: dbYamlConfig.config, subdomain };
+      }
+    }
+
+    // Priority 2: Try to load YAML from file path (backward compatibility)
     if (business.config_yaml_path) {
       const yamlConfig = await loadFromFile(business.config_yaml_path);
       if (yamlConfig.success && yamlConfig.config) {
@@ -294,15 +326,13 @@ async function buildConfigFromDatabase(businessId: string): Promise<ParseResult>
       availability: availability.length > 0
         ? availability.map(a => ({
             day: dayNames[a.day_of_week] as any,
-            open: a.start_time,
-            close: a.end_time,
             enabled: a.is_available,
+            slots: [{ open: a.start_time, close: a.end_time }],
           }))
         : dayNames.map(day => ({
             day: day as any,
-            open: '09:00',
-            close: '17:00',
             enabled: day !== 'sunday',
+            slots: [{ open: '09:00', close: '17:00' }],
           })),
       availabilityExceptions: [],
       categories: categories.map(c => ({

@@ -66,16 +66,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get business config path
+    // Get business config from database
     const [business] = await db`
-      SELECT config_yaml_path, subdomain
+      SELECT config_yaml, subdomain
       FROM businesses
       WHERE id = ${user.business_id}
         AND deleted_at IS NULL
         AND status = 'active'
     `;
 
-    if (!business || !business.config_yaml_path) {
+    if (!business || !business.config_yaml) {
       return NextResponse.json(
         { error: 'Business configuration not found' },
         { status: 404 }
@@ -126,13 +126,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Read YAML config
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const fullPath = path.resolve(process.cwd(), business.config_yaml_path);
-
-    const yamlContent = await fs.readFile(fullPath, 'utf-8');
-    const config = yaml.load(yamlContent) as any;
+    // Read YAML config from database
+    const config = yaml.load(business.config_yaml) as any;
 
     // Return availability exceptions
     const exceptions = config.availabilityExceptions || [];
@@ -235,29 +230,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get business config path
+    // Get business config from database
     const [business] = await db`
-      SELECT config_yaml_path, subdomain
+      SELECT config_yaml, subdomain
       FROM businesses
       WHERE id = ${user.business_id}
         AND deleted_at IS NULL
         AND status = 'active'
     `;
 
-    if (!business || !business.config_yaml_path) {
+    if (!business || !business.config_yaml) {
       return NextResponse.json(
         { error: 'Business configuration not found' },
         { status: 404 }
       );
     }
 
-    // Read YAML config
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const fullPath = path.resolve(process.cwd(), business.config_yaml_path);
-
-    const yamlContent = await fs.readFile(fullPath, 'utf-8');
-    const config = yaml.load(yamlContent) as any;
+    // Read YAML config from database
+    const config = yaml.load(business.config_yaml) as any;
 
     // Initialize availabilityExceptions if not exists
     if (!config.availabilityExceptions) {
@@ -296,20 +286,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Invalid configuration after update',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );
     }
 
-    // Write updated config back to YAML
+    // Write updated config back to database
     const updatedYaml = yaml.dump(config, {
       indent: 2,
       lineWidth: -1, // Don't wrap lines
       noRefs: true,
     });
 
-    await fs.writeFile(fullPath, updatedYaml, 'utf-8');
+    await db`
+      UPDATE businesses
+      SET config_yaml = ${updatedYaml},
+          updated_at = NOW()
+      WHERE id = ${user.business_id}
+    `;
 
     // Clear config cache to force reload
     clearConfigCache(business.subdomain);
@@ -392,29 +387,24 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Get business config path
+    // Get business config from database
     const [business] = await db`
-      SELECT config_yaml_path, subdomain
+      SELECT config_yaml, subdomain
       FROM businesses
       WHERE id = ${user.business_id}
         AND deleted_at IS NULL
         AND status = 'active'
     `;
 
-    if (!business || !business.config_yaml_path) {
+    if (!business || !business.config_yaml) {
       return NextResponse.json(
         { error: 'Business configuration not found' },
         { status: 404 }
       );
     }
 
-    // Read YAML config
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const fullPath = path.resolve(process.cwd(), business.config_yaml_path);
-
-    const yamlContent = await fs.readFile(fullPath, 'utf-8');
-    const config = yaml.load(yamlContent) as any;
+    // Read YAML config from database
+    const config = yaml.load(business.config_yaml) as any;
 
     // Check if exception exists
     const initialLength = config.availabilityExceptions?.length || 0;
@@ -445,20 +435,25 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Invalid configuration after update',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );
     }
 
-    // Write updated config back to YAML
+    // Write updated config back to database
     const updatedYaml = yaml.dump(config, {
       indent: 2,
       lineWidth: -1,
       noRefs: true,
     });
 
-    await fs.writeFile(fullPath, updatedYaml, 'utf-8');
+    await db`
+      UPDATE businesses
+      SET config_yaml = ${updatedYaml},
+          updated_at = NOW()
+      WHERE id = ${user.business_id}
+    `;
 
     // Clear config cache to force reload
     clearConfigCache(business.subdomain);

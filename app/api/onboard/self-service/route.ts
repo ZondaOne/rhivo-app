@@ -171,13 +171,14 @@ export async function POST(request: NextRequest) {
     const verificationExpiry = !isExistingOwner ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
 
     try {
-      // Create business
+      // Create business with YAML config stored in database
       const [business] = await db`
         INSERT INTO businesses (
           subdomain,
           name,
           timezone,
           config_yaml_path,
+          config_yaml,
           config_version,
           status
         ) VALUES (
@@ -185,6 +186,7 @@ export async function POST(request: NextRequest) {
           ${formData.businessName},
           ${formData.timezone},
           ${yamlPath},
+          ${yamlResult.yaml},
           1,
           'active'
         )
@@ -379,7 +381,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // NOW save YAML file after successful database operations
+      // OPTIONALLY save YAML file for local development (not required for production)
+      // Production uses database-stored config (config_yaml column)
       try {
         const fs = await import('fs/promises');
         const path = await import('path');
@@ -389,13 +392,12 @@ export async function POST(request: NextRequest) {
         const dir = path.dirname(fullPath);
         await fs.mkdir(dir, { recursive: true });
 
-        // Write YAML file
+        // Write YAML file (best effort, not critical)
         await fs.writeFile(fullPath, yamlResult.yaml, 'utf-8');
-        console.log('✅ YAML file saved:', yamlPath);
+        console.log('✅ YAML file saved to filesystem (local copy):', yamlPath);
       } catch (err) {
-        console.error('❌ Failed to save YAML file:', err);
-        // Don't fail the request - YAML can be regenerated from database
-        // This prevents orphaned YAML files when signup fails
+        console.warn('⚠️ Could not save YAML to filesystem (not critical, using database):', err);
+        // Don't fail - config is stored in database
       }
 
       // Return success (NO verification URL in response for security)
