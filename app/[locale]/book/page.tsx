@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { useRouter } from '@/i18n/routing';
-import { Logo } from '@/components/Logo';
+import { LogoIcon } from '@/components/LogoIcon';
 
 // Dynamically import map component (client-side only, no SSR)
 // Create a loading component that we'll use for the dynamic import
@@ -182,8 +182,8 @@ export default function DiscoveryPage() {
         <div className="px-4 sm:px-6 lg:px-12 py-4 lg:py-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3 lg:gap-4">
-              <Link href="/" className="flex items-center scale-75 lg:scale-90">
-                <Logo size="sm" showText={false} />
+              <Link href="/" className="flex items-center">
+                <LogoIcon size={48} />
               </Link>
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">{t('header.title')}</h1>
