@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { apiRequest } from '@/lib/auth/api-client';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
+import { categorizeError, shouldShowToast, shouldShowInline, getToastVariant } from '@/lib/errors/error-handler';
 import { formatTime, formatDate } from '@/lib/calendar-utils';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/ToastContainer';
@@ -191,7 +192,20 @@ export function CreateAppointmentModal({
         return;
       }
       console.error('Failed to load slots:', error);
-      showToast(t('error.loadSlotsFailed'), 'error');
+
+      // UX-002: Categorize error and show appropriate notification
+      const errorDetails = categorizeError(error);
+      if (shouldShowToast(errorDetails.type)) {
+        showToast(
+          t('error.loadSlotsFailed'),
+          getToastVariant(errorDetails.type),
+          5000,
+          {
+            retryable: errorDetails.retryable,
+            onRetry: errorDetails.retryable ? () => loadAvailableSlots() : undefined,
+          }
+        );
+      }
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -225,7 +239,7 @@ export function CreateAppointmentModal({
     setValidationErrors({});
     setLoading(true);
 
-    try {
+    const attemptCreate = async () => {
       await apiRequest('/api/appointments/manual', {
         method: 'POST',
         body: JSON.stringify({
@@ -239,22 +253,53 @@ export function CreateAppointmentModal({
           status: 'confirmed',
         }),
       });
+    };
 
+    try {
+      await attemptCreate();
       showToast(t('success.message'), 'success');
       onSuccess();
       onClose();
       resetForm();
     } catch (error: any) {
       console.error('Failed to create appointment:', error);
-      
-      // Check if error has validation errors from the API
-      if (error?.details?.errors || error?.errors) {
-        const errors = error.details?.errors || error.errors;
-        setValidationErrors(errors);
-        // Don't show toast for validation errors, just show inline errors
-      } else {
-        // For other errors, show toast
-        showToast(mapErrorToUserMessage(error), 'error');
+
+      // UX-002: Categorize error and handle appropriately
+      const errorDetails = categorizeError(error);
+
+      if (shouldShowInline(errorDetails.type) && errorDetails.errors) {
+        // Validation errors: show inline under each field, NO toast
+        setValidationErrors(errorDetails.errors);
+        // Don't show toast for validation - the inline errors are enough
+      } else if (shouldShowToast(errorDetails.type)) {
+        // Transient errors (network/server): show toast with retry button
+        showToast(
+          errorDetails.message || mapErrorToUserMessage(error),
+          getToastVariant(errorDetails.type),
+          6000,
+          {
+            retryable: errorDetails.retryable,
+            onRetry: errorDetails.retryable ? async () => {
+              setLoading(true);
+              try {
+                await attemptCreate();
+                showToast(t('success.message'), 'success');
+                onSuccess();
+                onClose();
+                resetForm();
+              } catch (retryError) {
+                console.error('Retry failed:', retryError);
+                const retryErrorDetails = categorizeError(retryError);
+                showToast(
+                  retryErrorDetails.message || mapErrorToUserMessage(retryError),
+                  'error'
+                );
+              } finally {
+                setLoading(false);
+              }
+            } : undefined,
+          }
+        );
       }
     } finally {
       setLoading(false);
@@ -451,10 +496,8 @@ export function CreateAppointmentModal({
     <>
       {/* Mobile: Full-screen overlay, Tablet: 90% width, Desktop: Centered modal with max-width */}
       <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-        {/* Toast Container - Outside modal, above modal z-index */}
-        <div className="fixed top-4 right-4 z-[60]">
-          <ToastContainer toasts={toasts} onRemove={removeToast} />
-        </div>
+        {/* Toast Container - UX-002: Modal-aware with proper z-index */}
+        <ToastContainer toasts={toasts} onRemove={removeToast} inModal={true} />
         <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:w-[90%] max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col animate-slide-up sm:animate-none">
           {/* Header */}
           <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b border-gray-100 bg-white">
@@ -856,7 +899,7 @@ export function CreateAppointmentModal({
                   </div>
                 </div>
 
-                {/* Validation Error Banner */}
+                {/* Validation Error Banner - UX-002 */}
                 {Object.keys(validationErrors).length > 0 && (
                   <div className="bg-red-50 border border-red-200 rounded-xl p-3 sm:p-4">
                     <div className="flex items-start gap-2 sm:gap-3">
@@ -864,7 +907,7 @@ export function CreateAppointmentModal({
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       </svg>
                       <div className="flex-1">
-                        <div className="text-xs sm:text-sm font-semibold text-red-900">Please correct the following errors:</div>
+                        <div className="text-xs sm:text-sm font-semibold text-red-900">{t('validation.errorBanner')}</div>
                         <ul className="mt-1 text-xs text-red-700 list-disc list-inside">
                           {Object.entries(validationErrors).map(([field, errors]) => (
                             errors && errors.length > 0 && (

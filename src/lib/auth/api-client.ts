@@ -43,7 +43,8 @@ export async function apiRequest<T = any>(
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
 
-    // Create an error object that preserves status, code, and message
+    // Create an error object that preserves status, code, message, and validation errors
+    // UX-002: Preserve validation errors for inline display
     const error: any = new Error(
       errorBody.message ||
       errorBody.error ||
@@ -52,6 +53,7 @@ export async function apiRequest<T = any>(
     error.status = response.status;
     error.code = errorBody.code;
     error.details = errorBody.details;
+    error.errors = errorBody.errors; // Validation errors from API
 
     throw error;
   }

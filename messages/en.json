@@ -980,7 +980,9 @@
         "updateFailed": "Failed to update appointment",
         "businessRequired": "No business selected",
         "notAuthenticated": "You must be signed in to view appointments",
-        "notFound": "Appointment not found"
+        "notFound": "Appointment not found",
+        "pastTime": "Cannot reschedule to a past time",
+        "closedDay": "Cannot reschedule to a closed day"
       },
       "actions": {
         "dragToReschedule": "Drag to reschedule",
@@ -1098,6 +1100,7 @@
         "close": "Close"
       },
       "validation": {
+        "errorBanner": "Please correct the following errors:",
         "nameRequired": "Customer name is required",
         "emailRequired": "Email address is required",
         "emailInvalid": "Please enter a valid email",

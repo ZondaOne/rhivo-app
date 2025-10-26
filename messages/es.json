@@ -981,7 +981,9 @@
         "updateFailed": "Error al actualizar cita",
         "businessRequired": "No hay negocio seleccionado",
         "notAuthenticated": "Debes iniciar sesión para ver las citas",
-        "notFound": "Cita no encontrada"
+        "notFound": "Cita no encontrada",
+        "pastTime": "No se puede reagendar a una hora pasada",
+        "closedDay": "No se puede reagendar en un día cerrado"
       },
       "actions": {
         "dragToReschedule": "Arrastra para reagendar",
@@ -1099,6 +1101,7 @@
         "close": "Cerrar"
       },
       "validation": {
+        "errorBanner": "Por favor corrige los siguientes errores:",
         "nameRequired": "El nombre del cliente es requerido",
         "emailRequired": "El correo electrónico es requerido",
         "emailInvalid": "Por favor ingresa un correo válido",

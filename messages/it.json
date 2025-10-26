@@ -981,7 +981,9 @@
         "updateFailed": "Errore nell'aggiornamento dell'appuntamento",
         "businessRequired": "Nessuna attività selezionata",
         "notAuthenticated": "Devi effettuare l'accesso per visualizzare gli appuntamenti",
-        "notFound": "Appuntamento non trovato"
+        "notFound": "Appuntamento non trovato",
+        "pastTime": "Non è possibile riprogrammare a un orario passato",
+        "closedDay": "Non è possibile riprogrammare in un giorno di chiusura"
       },
       "actions": {
         "dragToReschedule": "Trascina per riprogrammare",
@@ -1099,6 +1101,7 @@
         "close": "Chiudi"
       },
       "validation": {
+        "errorBanner": "Correggi i seguenti errori:",
         "nameRequired": "Il nome del cliente è richiesto",
         "emailRequired": "L'email è richiesta",
         "emailInvalid": "Inserisci un'email valida",

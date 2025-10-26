@@ -14,6 +14,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { ViewTransition, useViewTransitionDirection } from './ViewTransition';
 import { MonthSkeleton, DaySkeleton, ListSkeleton } from './skeletons';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
+import { categorizeError, shouldShowToast, getToastVariant } from '@/lib/errors/error-handler';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 
@@ -304,6 +305,20 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
       return;
     }
 
+    // UX-002: Validate drop target before showing modal
+    // 1. Check if dropping to the past
+    const now = new Date();
+    if (snappedTime < now) {
+      showToast(t('errors.pastTime') || 'Cannot reschedule to a past time', 'warning');
+      return;
+    }
+
+    // 2. Check if dropping on a closed day (Italian holidays or closing days)
+    if (isItalianHoliday(snappedTime) || isClosingDay(snappedTime)) {
+      showToast(t('errors.closedDay') || 'Cannot reschedule to a closed day', 'warning');
+      return;
+    }
+
     // Show simple drag-drop confirmation modal
     setDragDropReschedule({
       appointment,
@@ -372,7 +387,20 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
       setDragDropReschedule(null);
     } catch (error) {
       console.error('Failed to reschedule:', error);
-      showToast(mapErrorToUserMessage(error), 'error');
+
+      // UX-002: Categorize error and handle appropriately
+      const errorDetails = categorizeError(error);
+      if (shouldShowToast(errorDetails.type)) {
+        showToast(
+          errorDetails.message || mapErrorToUserMessage(error),
+          getToastVariant(errorDetails.type),
+          6000,
+          {
+            retryable: errorDetails.retryable,
+            onRetry: errorDetails.retryable ? () => confirmDragDropReschedule() : undefined,
+          }
+        );
+      }
 
       // Revert optimistic update on error - invalidate cache
       setAppointmentCache(null);
@@ -484,9 +512,12 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
     );
   }
 
+  // UX-002: Detect if any modal is open to adjust toast z-index
+  const isModalOpen = !!(dragDropReschedule || editingAppointment);
+
   return (
     <>
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <ToastContainer toasts={toasts} onRemove={removeToast} inModal={isModalOpen} />
 
       {/* Drag-drop reschedule confirmation modal */}
       {dragDropReschedule && (

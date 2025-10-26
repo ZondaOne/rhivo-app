@@ -1,6 +1,8 @@
 /**
  * Toast notification container component
  * Renders toast notifications in a fixed position
+ *
+ * UX-002: Supports modal-aware z-index positioning
  */
 
 import { Toast } from '@/hooks/useToast';
@@ -8,15 +10,20 @@ import { Toast } from '@/hooks/useToast';
 interface ToastContainerProps {
   toasts: Toast[];
   onRemove?: (id: string) => void;
+  /** Set to true when used inside a modal to ensure proper z-index layering */
+  inModal?: boolean;
 }
 
-export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
+export function ToastContainer({ toasts, onRemove, inModal = false }: ToastContainerProps) {
+  // z-[9999] ensures toasts appear above everything, including modals (z-50)
+  const zIndexClass = inModal ? 'z-[9999]' : 'z-50';
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 space-y-2 max-w-md">
+    <div className={`fixed top-4 right-4 ${zIndexClass} space-y-2 max-w-md pointer-events-none`}>
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`px-4 py-3 rounded-lg shadow-lg border text-sm font-medium animate-slide-in flex items-start gap-3 ${
+          className={`px-4 py-3 rounded-lg shadow-lg border text-sm font-medium animate-slide-in flex items-start gap-3 pointer-events-auto ${
             toast.type === 'success'
               ? 'bg-green-50 border-green-200 text-green-800'
               : toast.type === 'error'
@@ -55,18 +62,38 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
             {toast.message}
           </div>
 
-          {/* Close button */}
-          {onRemove && (
-            <button
-              onClick={() => onRemove(toast.id)}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Close"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {/* Retry button for retryable errors - UX-002 */}
+            {toast.retryable && toast.onRetry && (
+              <button
+                onClick={() => toast.onRetry?.()}
+                className={`text-xs font-semibold px-2 py-1 rounded transition-all ${
+                  toast.type === 'error'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : toast.type === 'warning'
+                    ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+                aria-label="Retry"
+              >
+                Retry
+              </button>
+            )}
+
+            {/* Close button */}
+            {onRemove && (
+              <button
+                onClick={() => onRemove(toast.id)}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       ))}
     </div>

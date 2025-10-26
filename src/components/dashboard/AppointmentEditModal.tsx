@@ -6,6 +6,7 @@ import { Appointment } from '@/db/types';
 import { formatTime, snapToGrain, GRAIN_MINUTES } from '@/lib/calendar-utils';
 import { apiRequest } from '@/lib/auth/api-client';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
+import { categorizeError, shouldShowToast, getToastVariant } from '@/lib/errors/error-handler';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -90,7 +91,20 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
       setServices(data);
     } catch (error) {
       console.error('Failed to load services:', error);
-      showToast(t('errors.loadServices'), 'error');
+
+      // UX-002: Categorize and handle error appropriately
+      const errorDetails = categorizeError(error);
+      if (shouldShowToast(errorDetails.type)) {
+        showToast(
+          errorDetails.message || t('errors.loadServices'),
+          getToastVariant(errorDetails.type),
+          5000,
+          {
+            retryable: errorDetails.retryable,
+            onRetry: errorDetails.retryable ? () => loadServices() : undefined,
+          }
+        );
+      }
     }
   }
 
@@ -111,7 +125,20 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
       setSelectedSlot(null);
     } catch (error) {
       console.error('Failed to load slots:', error);
-      showToast(t('errors.loadSlots'), 'error');
+
+      // UX-002: Categorize and handle error appropriately
+      const errorDetails = categorizeError(error);
+      if (shouldShowToast(errorDetails.type)) {
+        showToast(
+          errorDetails.message || t('errors.loadSlots'),
+          getToastVariant(errorDetails.type),
+          5000,
+          {
+            retryable: errorDetails.retryable,
+            onRetry: errorDetails.retryable ? () => loadAvailableSlots() : undefined,
+          }
+        );
+      }
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -302,7 +329,20 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
       onSave(response.appointment);
     } catch (error) {
       console.error('Failed to update appointment:', error);
-      showToast(t('errors.updateFailed'), 'error');
+
+      // UX-002: Categorize error and handle appropriately
+      const errorDetails = categorizeError(error);
+      if (shouldShowToast(errorDetails.type)) {
+        showToast(
+          errorDetails.message || t('errors.updateFailed'),
+          getToastVariant(errorDetails.type),
+          6000,
+          {
+            retryable: errorDetails.retryable,
+            onRetry: errorDetails.retryable ? () => confirmSave() : undefined,
+          }
+        );
+      }
     } finally {
       setLoading(false);
       setPendingSaveData(null);
@@ -359,7 +399,8 @@ export function AppointmentEditModal({ appointment, onClose, onSave }: Appointme
 
   return (
     <>
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      {/* UX-002: Modal-aware toast container */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} inModal={true} />
 
       <ConfirmDialog
         isOpen={showCancelConfirm}

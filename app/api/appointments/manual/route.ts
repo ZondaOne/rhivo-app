@@ -8,17 +8,17 @@ import { loadConfigBySubdomain } from '@/lib/config/config-loader';
 import { validateBookingTime, snapToGrain } from '@/lib/booking/validation';
 
 const createManualAppointmentSchema = z.object({
-  service_id: z.string().uuid({ message: 'Invalid service_id' }),
-  start_time: z.string().datetime({ message: 'start_time must be ISO datetime' }),
+  service_id: z.string().uuid({ message: 'Invalid service ID' }),
+  start_time: z.string().datetime({ message: 'Start time must be a valid datetime' }),
   duration: z.number().int().positive().max(480).optional(),
   status: z
     .enum(['confirmed', 'completed', 'cancelled', 'canceled', 'no_show'])
     .optional()
     .default('confirmed'),
-  customer_email: z.string().email({ message: 'customer_email must be valid' }),
-  customer_name: z.string().min(1, { message: 'customer_name is required' }).max(120),
-  customer_phone: z.string().min(3).max(40).optional().or(z.literal('')),
-  notes: z.string().max(500).optional().or(z.literal('')),
+  customer_email: z.string().email({ message: 'Please enter a valid email address' }),
+  customer_name: z.string().min(1, { message: 'Customer name is required' }).max(120, { message: 'Customer name is too long (max 120 characters)' }),
+  customer_phone: z.string().min(3, { message: 'Phone number is too short' }).max(40, { message: 'Phone number is too long' }).optional().or(z.literal('')),
+  notes: z.string().max(500, { message: 'Notes are too long (max 500 characters)' }).optional().or(z.literal('')),
   idempotency_key: z.string().min(8).max(128).optional(),
 });
 
