@@ -34,7 +34,7 @@ export function LanguageSwitcher() {
       {/* Trigger Button - Following style guide */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl transition-all border border-gray-200/60"
+        className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 min-h-[44px] text-sm font-semibold text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-xl transition-all border border-gray-200/60 touch-manipulation"
         aria-label="Select language"
       >
         <svg
@@ -50,9 +50,9 @@ export function LanguageSwitcher() {
             d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
           />
         </svg>
-        <span className="uppercase">{locale}</span>
+        <span className="uppercase text-xs sm:text-sm">{locale}</span>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -64,15 +64,15 @@ export function LanguageSwitcher() {
 
       {/* Dropdown Menu - Following style guide with opacity transitions */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 top-full mt-2 w-40 sm:w-48 bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 py-1 sm:py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {locales.map((loc) => (
             <button
               key={loc}
               onClick={() => handleLocaleChange(loc)}
-              className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between ${
+              className={`touch-manipulation w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm transition-all flex items-center justify-between min-h-[44px] ${
                 locale === loc
                   ? 'bg-gray-50 text-gray-900 font-semibold'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}
             >
               <span>{localeNames[loc]}</span>
