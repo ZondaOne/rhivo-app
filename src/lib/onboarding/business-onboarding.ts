@@ -2,13 +2,14 @@
  * Business Onboarding Pipeline
  *
  * Automated setup that creates:
- * 1. Business from YAML config
+ * 1. Business from YAML config (stored as JSONB in DB for performance)
  * 2. Owner account with temporary password
  * 3. Categories and services from YAML
  * 4. Availability schedule from YAML
  * 5. Booking page configuration
  *
- * Ensures complete consistency between YAML, DB, and booking system
+ * Config is stored as JSONB (config_json) for native JSON querying performance.
+ * YAML file path is kept for backward compatibility.
  */
 
 import { getDbClient } from '@/db/client';
@@ -112,7 +113,7 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
 
     // Step 6: Create database records (without transaction since Neon doesn't support it)
     try {
-      // Create business
+      // Create business with JSONB config (much faster than YAML!)
       console.log('🏢 Creating business...');
       const [business] = await db`
         INSERT INTO businesses (
@@ -120,6 +121,7 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
           name,
           timezone,
           config_yaml_path,
+          config_json,
           config_version,
           status
         ) VALUES (
@@ -127,6 +129,7 @@ export async function onboardBusiness(input: OnboardingInput): Promise<Onboardin
           ${config.business.name},
           ${config.business.timezone},
           ${input.yamlFilePath},
+          ${JSON.stringify(config)}::jsonb,
           1,
           'active'
         )

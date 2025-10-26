@@ -9,9 +9,11 @@ import { parseTenantConfigYAML, type ParseResult } from './tenant-config-parser'
 import { type TenantConfig } from './tenant-schema';
 import { getDbClient } from '@/db/client';
 
-// In-memory cache for configs (5 minute TTL)
+// In-memory cache for configs (3 hour TTL)
+// For small businesses with infrequent config changes, caching for 3 hours
+// significantly reduces database queries. Restart server to force cache clear.
 const configCache = new Map<string, { config: TenantConfig; timestamp: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 hours
 
 export interface ConfigLoadResult {
   success: boolean;
@@ -43,6 +45,7 @@ export async function loadConfigByBusinessId(businessId: string): Promise<Config
         timezone,
         config_yaml_path,
         config_yaml,
+        config_json,
         config_version,
         status
       FROM businesses
@@ -61,7 +64,22 @@ export async function loadConfigByBusinessId(businessId: string): Promise<Config
 
     const business = businessResult[0];
 
-    // Priority 1: Try to load YAML from database (config_yaml column)
+    // Priority 1: Try to load JSON from database (config_json column - fastest!)
+    if (business.config_json) {
+      const config = business.config_json as TenantConfig;
+      // Cache it with both businessId and subdomain keys
+      configCache.set(cacheKey, {
+        config,
+        timestamp: Date.now(),
+      });
+      configCache.set(business.subdomain, {
+        config,
+        timestamp: Date.now(),
+      });
+      return { success: true, config, subdomain: business.subdomain };
+    }
+
+    // Priority 2: Try to load YAML from database (config_yaml column)
     if (business.config_yaml) {
       const dbYamlConfig = parseTenantConfigYAML(business.config_yaml);
       if (dbYamlConfig.success && dbYamlConfig.config) {
@@ -78,7 +96,7 @@ export async function loadConfigByBusinessId(businessId: string): Promise<Config
       }
     }
 
-    // Priority 2: Try to load YAML from file path (backward compatibility)
+    // Priority 3: Try to load YAML from file path (backward compatibility)
     if (business.config_yaml_path) {
       const yamlConfig = await loadFromFile(business.config_yaml_path);
       if (yamlConfig.success && yamlConfig.config) {
@@ -144,6 +162,7 @@ export async function loadConfigBySubdomain(subdomain: string): Promise<ConfigLo
         timezone,
         config_yaml_path,
         config_yaml,
+        config_json,
         config_version,
         status
       FROM businesses
@@ -162,7 +181,18 @@ export async function loadConfigBySubdomain(subdomain: string): Promise<ConfigLo
 
     const business = businessResult[0];
 
-    // Priority 1: Try to load YAML from database (config_yaml column)
+    // Priority 1: Try to load JSON from database (config_json column - fastest!)
+    if (business.config_json) {
+      const config = business.config_json as TenantConfig;
+      // Cache it
+      configCache.set(subdomain, {
+        config,
+        timestamp: Date.now(),
+      });
+      return { success: true, config, subdomain };
+    }
+
+    // Priority 2: Try to load YAML from database (config_yaml column)
     if (business.config_yaml) {
       const dbYamlConfig = parseTenantConfigYAML(business.config_yaml);
       if (dbYamlConfig.success && dbYamlConfig.config) {
@@ -175,7 +205,7 @@ export async function loadConfigBySubdomain(subdomain: string): Promise<ConfigLo
       }
     }
 
-    // Priority 2: Try to load YAML from file path (backward compatibility)
+    // Priority 3: Try to load YAML from file path (backward compatibility)
     if (business.config_yaml_path) {
       const yamlConfig = await loadFromFile(business.config_yaml_path);
       if (yamlConfig.success && yamlConfig.config) {

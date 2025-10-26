@@ -171,7 +171,8 @@ export async function POST(request: NextRequest) {
     const verificationExpiry = !isExistingOwner ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
 
     try {
-      // Create business with YAML config stored in database
+      // Create business with JSON config (JSONB - much faster than YAML!)
+      // Also store YAML for backward compatibility
       const [business] = await db`
         INSERT INTO businesses (
           subdomain,
@@ -179,6 +180,7 @@ export async function POST(request: NextRequest) {
           timezone,
           config_yaml_path,
           config_yaml,
+          config_json,
           config_version,
           status
         ) VALUES (
@@ -187,6 +189,7 @@ export async function POST(request: NextRequest) {
           ${formData.timezone},
           ${yamlPath},
           ${yamlResult.yaml},
+          ${JSON.stringify(yamlResult.config)}::jsonb,
           1,
           'active'
         )
