@@ -25,9 +25,16 @@ export function Logo({ size = 'lg', className = '' }: LogoProps) {
       style={{ display: 'block' }}
       preserveAspectRatio="xMidYMid meet"
     >
+      <defs>
+        <linearGradient id="logo-gradient" x1="100" y1="0" x2="420" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" style={{ stopColor: '#bfe0c9', stopOpacity: 1 }} />
+          <stop offset="50%" style={{ stopColor: '#8ac5b5', stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: '#55aba0', stopOpacity: 1 }} />
+        </linearGradient>
+      </defs>
       <style>
         {
-          "\n\t\t.s0 { fill: #9bd0be } \n\t\t.s1 { fill: #9bd1bf } \n\t\t.s2 { fill: #9cd1bf } \n\t\t.s3 { fill: #9bd0bf } \n\t"
+          "\n\t\t.s0 { fill: url(#logo-gradient) } \n\t\t.s1 { fill: url(#logo-gradient) } \n\t\t.s2 { fill: url(#logo-gradient) } \n\t\t.s3 { fill: url(#logo-gradient) } \n\t"
         }
       </style>
       <path

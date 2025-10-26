@@ -10,11 +10,50 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand Colors - Updated to match logo */
+  --brand-light: #bfe0c9;
+  --brand-medium: #8ac5b5;
+  --brand-dark: #55aba0;
+
+  /* Semantic Colors */
+  --color-primary: var(--brand-medium);
+  --color-primary-hover: var(--brand-dark);
+  --color-primary-light: var(--brand-light);
+
+  /* RGB for transparency */
+  --brand-light-rgb: 191, 224, 201;
+  --brand-medium-rgb: 138, 197, 181;
+  --brand-dark-rgb: 85, 171, 160;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  /* Teal color scale - matching logo colors #bfe0c9 to #55aba0 */
+  --color-teal-50: #f2fbf6;
+  --color-teal-100: #e5f7ed;
+  --color-teal-200: #d2eee0;
+  --color-teal-300: #bfe0c9;  /* Brand Light */
+  --color-teal-400: #a7d1b7;
+  --color-teal-500: #8ac5b5;  /* Brand Medium (Primary) */
+  --color-teal-600: #55aba0;  /* Brand Dark */
+  --color-teal-700: #438c84;
+  --color-teal-800: #366d68;
+  --color-teal-900: #2a544f;
+  --color-teal-950: #1a3532;
+
+  /* Green scale - lighter tones from logo for gradients */
+  --color-green-50: #f7fcf9;
+  --color-green-100: #edf9f4;
+  --color-green-200: #ddf4e9;
+  --color-green-300: #c8ecda;
+  --color-green-400: #b4e3cc;
+  --color-green-500: #a0d9bd;  /* Lighter - between logo light and medium */
+  --color-green-600: #8ac5b5;  /* Logo medium color */
+  --color-green-700: #6fb5a5;
+  --color-green-800: #55aba0;  /* Logo dark color */
+  --color-green-900: #438c84;
+  --color-green-950: #366d68;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -92,7 +131,7 @@ input[type="range"].slider-thumb::-webkit-slider-thumb {
   appearance: none;
   width: 20px;
   height: 20px;
-  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
   cursor: pointer;
   border-radius: 50%;
   border: 2px solid white;
@@ -108,7 +147,7 @@ input[type="range"].slider-thumb::-webkit-slider-thumb:hover {
 input[type="range"].slider-thumb::-moz-range-thumb {
   width: 20px;
   height: 20px;
-  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand-medium));
   cursor: pointer;
   border-radius: 50%;
   border: 2px solid white;
@@ -126,11 +165,11 @@ input[type="range"].slider-thumb:focus {
 }
 
 input[type="range"].slider-thumb:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--brand-medium-rgb), 0.1);
 }
 
 input[type="range"].slider-thumb:focus::-moz-range-thumb {
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--brand-medium-rgb), 0.1);
 }
 
 /* Toast notification animation */
@@ -152,15 +191,15 @@ input[type="range"].slider-thumb:focus::-moz-range-thumb {
 /* Appointment highlight pulse animation */
 @keyframes highlight-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7);
+    box-shadow: 0 0 0 0 rgba(var(--brand-medium-rgb), 0.7);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(20, 184, 166, 0);
+    box-shadow: 0 0 0 8px rgba(var(--brand-medium-rgb), 0);
     transform: scale(1.02);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
+    box-shadow: 0 0 0 0 rgba(var(--brand-medium-rgb), 0);
     transform: scale(1);
   }
 }
@@ -233,8 +272,8 @@ select {
   }
   
   select option:checked {
-    background: linear-gradient(#0d9488, #0d9488);
-    background-color: #0d9488 !important;
+    background: linear-gradient(var(--brand-dark), var(--brand-dark));
+    background-color: var(--brand-dark) !important;
     color: white !important;
   }
 }
@@ -288,7 +327,7 @@ select {
 
 /* Focus visible for keyboard navigation */
 :focus-visible {
-  outline: 2px solid #14b8a6;
+  outline: 2px solid var(--brand-medium);
   outline-offset: 2px;
 }
 
