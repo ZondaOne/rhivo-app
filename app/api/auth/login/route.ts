@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
 import { verifyPassword } from '@/lib/auth/password';
 import {
   generateAccessToken,
@@ -9,8 +8,9 @@ import {
 } from '@/lib/auth/tokens';
 import { checkRateLimit, resetRateLimit } from '@/lib/auth/rate-limit';
 import { z } from 'zod';
+import { getDbClient } from '@/db/client';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = getDbClient();
 
 const loginSchema = z.object({
   email: z.string().email(),

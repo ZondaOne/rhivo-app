@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
 import { withAuth } from '@/middleware/auth';
+import { getDbClient } from '@/db/client';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = getDbClient();
 
 /**
  * Get current authenticated user profile

@@ -43,7 +43,7 @@ export function Logo({ size = 'lg', className = '', showText = true }: LogoProps
 
       {showText ? (
         <h1 className={`rivo-logo ${className}`}>
-          rivo
+          yvo
         </h1>
       ) : (
         <div

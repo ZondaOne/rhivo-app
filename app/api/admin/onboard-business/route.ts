@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { onboardBusiness, sendWelcomeEmail } from '@/lib/onboarding/business-onboarding';
 import { z } from 'zod';
-import { withAuth } from '@/lib/auth/middleware';
+import { withAuth } from '@/middleware/auth';
 
 const onboardSchema = z.object({
   yamlFilePath: z.string().min(1, 'YAML file path is required'),

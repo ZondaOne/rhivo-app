@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import {
   generateEmailVerificationToken,
@@ -10,8 +9,10 @@ import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { z } from 'zod';
 import { createEmailService } from '@/lib/email/email-service';
 import { renderEmailVerification } from '@/lib/email/templates';
+import { getDbClient } from '@/db/client';
+import { env } from '@/lib/env';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = getDbClient();
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     // Send verification email
     const emailService = createEmailService(sql);
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${verificationToken}`;
 
     const emailHtml = await renderEmailVerification({
       userName: user.name,

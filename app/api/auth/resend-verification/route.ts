@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { createEmailService } from '@/lib/email/email-service';
 import { renderEmailVerification } from '@/lib/email/templates';
 import { hashToken } from '@/lib/auth/tokens';
 import { z } from 'zod';
+import { getDbClient } from '@/db/client';
+import { env } from '@/lib/env';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = getDbClient();
 
 const resendSchema = z.object({
   email: z.string().email(),
@@ -71,8 +72,7 @@ export async function POST(request: NextRequest) {
     // Send verification email
     try {
       const emailService = createEmailService(sql);
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+      const verificationUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${verificationToken}`;
 
       const emailHtml = await renderEmailVerification({
         userName: user.name || 'User',

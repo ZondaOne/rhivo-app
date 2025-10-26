@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 import crypto from 'crypto';
+import { env } from '@/lib/env';
 
 // JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const JWT_SECRET = env.JWT_SECRET;
 const JWT_EXPIRES_IN = '1h';
 const REFRESH_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
 

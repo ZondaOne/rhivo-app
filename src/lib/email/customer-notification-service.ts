@@ -12,6 +12,7 @@ import {
   type RescheduleConfirmationData,
   type AppointmentReminderData,
 } from './templates';
+import { env } from '@/lib/env';
 
 export interface AppointmentData {
   id: string;
@@ -80,7 +81,7 @@ export class CustomerNotificationService {
       }
 
       // Generate cancellation and reschedule links with bookingId and email params
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rivo.app';
+      const baseUrl = env.NEXT_PUBLIC_APP_URL;
       const bookingIdParam = appointmentData.bookingId || appointmentData.id;
 
       const cancellationLink = appointmentData.cancellationToken
@@ -152,7 +153,7 @@ export class CustomerNotificationService {
 
       if (!recipientEmail) return;
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rivo.app';
+      const baseUrl = env.NEXT_PUBLIC_APP_URL;
       const rebookingLink = `${baseUrl}/book/${details.businessSubdomain}`;
 
       const emailData: CancellationConfirmationData = {
@@ -202,7 +203,7 @@ export class CustomerNotificationService {
 
       if (!recipientEmail) return;
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rivo.app';
+      const baseUrl = env.NEXT_PUBLIC_APP_URL;
       const bookingIdParam = appointmentData.bookingId || appointmentData.id;
 
       const cancellationLink = appointmentData.cancellationToken
@@ -259,7 +260,7 @@ export class CustomerNotificationService {
       const recipientEmail = details.customerEmail;
       if (!recipientEmail) return;
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rivo.app';
+      const baseUrl = env.NEXT_PUBLIC_APP_URL;
       const cancellationLink = `${baseUrl}/book/manage/${appointmentId}`;
       const rescheduleLink = `${baseUrl}/book/manage/${appointmentId}/reschedule`;
 

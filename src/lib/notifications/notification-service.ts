@@ -7,6 +7,7 @@ import {
   renderCancellationConfirmation,
   renderRescheduleConfirmation
 } from '@/lib/email/templates';
+import { env } from '@/lib/env';
 
 export type NotificationChannel = 'email' | 'sms' | 'webhook';
 export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'retrying';
@@ -291,7 +292,7 @@ export class NotificationService {
         bookingId: appointment.booking_id,
         businessPhone: contact?.phone,
         businessEmail: contact?.email,
-        rebookingLink: `${process.env.NEXT_PUBLIC_APP_URL}/book/${appointment.business_subdomain}`,
+        rebookingLink: `${env.NEXT_PUBLIC_APP_URL}/book/${appointment.business_subdomain}`,
       });
 
       await emailService.sendEmail({

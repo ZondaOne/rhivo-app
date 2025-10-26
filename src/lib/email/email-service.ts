@@ -1,9 +1,10 @@
 import { Resend } from 'resend';
 import { DbClient } from '@/db/client';
 import { v4 as uuidv4 } from 'uuid';
+import { env } from '@/lib/env';
 
 // Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(env.RESEND_API_KEY);
 
 export type EmailTemplate =
   | 'appointment_confirmed'
@@ -49,11 +50,11 @@ export class EmailService {
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        console.log('📨 Calling Resend API:', { to, subject, from: process.env.EMAIL_FROM });
+        console.log('📨 Calling Resend API:', { to, subject, from: env.EMAIL_FROM });
 
         // Send email via Resend
         // Use Resend's onboarding domain for testing (or your verified domain)
-        const fromEmail = process.env.EMAIL_FROM || 'Rivo <onboarding@resend.dev>';
+        const fromEmail = env.EMAIL_FROM || 'Rivo <onboarding@resend.dev>';
 
         const { data, error } = await resend.emails.send({
           from: fromEmail,

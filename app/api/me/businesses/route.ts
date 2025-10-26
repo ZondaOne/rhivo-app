@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
 import { withAuth } from '@/middleware/auth';
 import { loadConfigBySubdomain } from '@/lib/config/config-loader';
+import { getDbClient } from '@/db/client';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = getDbClient();
 
 /**
  * Get all businesses owned by the authenticated user

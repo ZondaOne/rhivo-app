@@ -1,14 +1,9 @@
 import { neon } from '@neondatabase/serverless';
+import { env } from '@/lib/env';
 
 // Create a connection using the DATABASE_URL from environment
 export function getDbClient() {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
-
-  return neon(databaseUrl);
+  return neon(env.DATABASE_URL);
 }
 
 // Lazy-loaded default client for convenience
