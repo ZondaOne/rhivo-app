@@ -203,6 +203,7 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
         enableWaitlist: false,
         enableReviews: false,
         enableMultipleStaff: false,
+        hideFromDiscovery: false,
       },
 
       metadata: {

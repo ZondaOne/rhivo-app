@@ -264,6 +264,7 @@ features:
   enableWaitlist: true
   enableReviews: true
   enableMultipleStaff: true
+  hideFromDiscovery: true
 
 metadata:
   parkingAvailable: false

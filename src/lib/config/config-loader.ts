@@ -357,6 +357,7 @@ async function buildConfigFromDatabase(businessId: string): Promise<ParseResult>
         enableWaitlist: false,
         enableReviews: false,
         enableMultipleStaff: false,
+        hideFromDiscovery: false,
       },
     };
 

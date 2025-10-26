@@ -43,3 +43,9 @@ dashboard-responsive-plan.xml
 pre-deploy-prompt.xml
 prompt.xml
 prompt.xml
+
+# local admin/debug tools (development only, not for production)
+/app/[locale]/admin/
+/app/[locale]/debug/
+/app/api/admin/
+/app/api/debug/

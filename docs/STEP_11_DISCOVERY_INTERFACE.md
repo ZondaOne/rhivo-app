@@ -47,6 +47,7 @@ Built the foundation for the business discovery interface at `/book` (no subdoma
 ✅ Auto-zoom to fit all markers
 ✅ Empty state handling
 ✅ Loading states
+✅ Business visibility control via `hideFromDiscovery` feature flag
 
 ## Data Sources
 
@@ -103,6 +104,40 @@ const italyCityCoordinates = {
 
 This will be replaced with actual database lat/long in Step 12.
 
+## Business Visibility Control
+
+### `hideFromDiscovery` Feature Flag
+
+Businesses can be hidden from the public discovery page while remaining accessible via direct URL.
+
+**Implementation:**
+- Added to YAML schema: `features.hideFromDiscovery` (boolean, default: `false`)
+- Discovery API filters out businesses where `config.features.hideFromDiscovery === true`
+- Business remains fully functional at `/book/[subdomain]` even when hidden
+- Automatically included in new business onboarding (defaults to `false`)
+
+**Use Cases:**
+- Private/invite-only businesses
+- Businesses in testing/setup phase
+- Temporary removal from discovery without deactivation
+- Exclusive services that require direct referrals
+
+**YAML Example:**
+```yaml
+features:
+  enableOnlinePayments: true
+  enableWaitlist: false
+  enableReviews: true
+  enableMultipleStaff: false
+  hideFromDiscovery: false  # Set to true to hide from discovery
+```
+
+**Modified Files:**
+- `src/lib/config/tenant-schema.ts` - Added feature flag to schema
+- `app/api/businesses/discover/route.ts` - Filters hidden businesses
+- `src/lib/onboarding/yaml-generator.ts` - Includes flag in new business configs
+- `config/tenants/*.yaml` - Updated example configs
+
 ## What's NOT Implemented (Step 12)
 
 The following features require database schema changes (Step 12):
@@ -116,7 +151,7 @@ The following features require database schema changes (Step 12):
 ❌ Filter by category, service type, price range
 ❌ Filter by availability (today, this week, date range)
 ❌ Pagination/infinite scroll
-❌ Business visibility toggle
+✅ Business visibility toggle (implemented via `hideFromDiscovery` YAML feature flag)
 ❌ Geocoding API for automatic address → lat/long conversion
 
 ## Technical Decisions

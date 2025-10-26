@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     `;
 
     // Load config for each business to get additional data
-    const businessSummaries = await Promise.all(
+    const businessSummariesWithNulls = await Promise.all(
       businesses.map(async (business) => {
         try {
           const result = await loadConfigBySubdomain(business.subdomain);
@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
           }
 
           const config = result.config;
+
+          // Skip businesses that have hideFromDiscovery enabled
+          if (config.features?.hideFromDiscovery) {
+            return null;
+          }
 
           // Extract category summaries
           const categories = config.categories.map(cat => ({
@@ -92,6 +97,9 @@ export async function GET(request: NextRequest) {
         }
       })
     );
+
+    // Filter out null values (hidden businesses)
+    const businessSummaries = businessSummariesWithNulls.filter((b): b is NonNullable<typeof b> => b !== null);
 
     return NextResponse.json({
       success: true,

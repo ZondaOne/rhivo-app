@@ -467,7 +467,14 @@ export const TenantConfigSchema = z.object({
     enableWaitlist: z.boolean().default(false),
     enableReviews: z.boolean().default(false),
     enableMultipleStaff: z.boolean().default(false),
-  }).default({}),
+    hideFromDiscovery: z.boolean().default(false), // Hide business from public discovery page
+  }).default({
+    enableOnlinePayments: false,
+    enableWaitlist: false,
+    enableReviews: false,
+    enableMultipleStaff: false,
+    hideFromDiscovery: false,
+  }),
 
   // Metadata
   metadata: z.record(z.string(), z.any()).optional(),
