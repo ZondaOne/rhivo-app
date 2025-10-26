@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { CalendarView } from '@/lib/calendar-utils';
+import { MonthSkeleton, DaySkeleton, ListSkeleton } from '@/components/dashboard/skeletons';
 
 interface CalendarSectionProps {
   view: CalendarView;
@@ -164,19 +165,14 @@ export function CalendarSection({
 
       {/* Calendar View */}
       <div className="relative">
-        {/* Switching Business Overlay */}
-        {isSwitchingBusiness && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl animate-in fade-in duration-200">
-            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-xl shadow-lg border border-gray-200 animate-in zoom-in-95 fade-in duration-300">
-              <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium text-gray-700">
-                {t('loading.loadingBusiness', { businessName: selectedBusinessName || '' })}
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div className={`transition-opacity duration-200 ${isSwitchingBusiness ? 'opacity-50' : 'opacity-100'}`}>
+        {isSwitchingBusiness ? (
+          <>
+            {view === 'month' && <MonthSkeleton />}
+            {view === 'week' && <DaySkeleton />}
+            {view === 'day' && <DaySkeleton />}
+            {view === 'list' && <ListSkeleton />}
+          </>
+        ) : (
           <Calendar
             key={refreshKey}
             view={view}
@@ -185,7 +181,7 @@ export function CalendarSection({
             onDateChange={onDateChange}
             businessId={businessId}
           />
-        </div>
+        )}
       </div>
     </div>
   );

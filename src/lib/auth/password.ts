@@ -13,6 +13,20 @@ export async function hashPassword(password: string): Promise<string> {
  * Verify password against hash
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  // Ensure both arguments are strings
+  if (typeof password !== 'string' || typeof hash !== 'string') {
+    console.error('verifyPassword: Invalid argument types', {
+      passwordType: typeof password,
+      hashType: typeof hash,
+      hash: hash
+    });
+    return false;
+  }
+
+  if (!password || !hash) {
+    return false;
+  }
+
   return bcrypt.compare(password, hash);
 }
 

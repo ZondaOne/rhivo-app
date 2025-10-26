@@ -177,6 +177,7 @@
     },
     "reschedule": {
       "title": "Riprogramma Appuntamento",
+      "subtitle": "Seleziona una nuova data e ora",
       "closeButton": "Chiudi",
       "currentAppointment": "Appuntamento Attuale",
       "importantTitle": "Importante",

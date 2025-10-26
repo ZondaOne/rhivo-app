@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { TenantConfig, Category, Service } from '@/lib/config/tenant-schema';
 import { v4 as uuidv4 } from 'uuid';
 import { applyBrandColors, removeBrandColors } from '@/lib/theme/brand-colors';
+import { ServiceSelectionSkeleton, CalendarSkeleton, TimeSlotsSkeleton } from '@/components/booking/skeletons';
 import './brand-theme.css';
 
 interface TimeSlot {
@@ -782,25 +783,29 @@ export default function BookingPage() {
 
                   {/* Date Selection */}
                   <div className="mb-5 sm:mb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">{t('datetime.selectDate')}</h3>
-                      <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs overflow-x-auto pb-1 sm:pb-0">
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-green-100 border border-green-300"></div>
-                          <span className="text-gray-600">{t('datetime.available')}</span>
+                    {loadingDateCapacity ? (
+                      <CalendarSkeleton />
+                    ) : (
+                      <>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-900">{t('datetime.selectDate')}</h3>
+                          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs overflow-x-auto pb-1 sm:pb-0">
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-green-100 border border-green-300"></div>
+                              <span className="text-gray-600">{t('datetime.available')}</span>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-yellow-100 border border-yellow-300"></div>
+                              <span className="text-gray-600">{t('datetime.limited')}</span>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-orange-100 border border-orange-300"></div>
+                              <span className="text-gray-600">{t('datetime.busy')}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-yellow-100 border border-yellow-300"></div>
-                          <span className="text-gray-600">{t('datetime.limited')}</span>
-                        </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-orange-100 border border-orange-300"></div>
-                          <span className="text-gray-600">{t('datetime.busy')}</span>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Mobile: Horizontal scroll calendar */}
-                    <div className="block sm:hidden">
+                        {/* Mobile: Horizontal scroll calendar */}
+                        <div className="block sm:hidden">
                       <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide mobile-date-scroll">
                         {availableDates.map((date, idx) => {
                           const dayOfWeek = getDayOfWeek(date);
@@ -973,17 +978,15 @@ export default function BookingPage() {
                         );
                       })}
                     </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Time Slots */}
                   {selectedDate && (
                     <div>
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4">{t('datetime.selectTime')}</h3>
                       {loadingSlots ? (
-                        <div className="flex flex-col items-center justify-center py-10 sm:py-12">
-                          <div className="animate-spin rounded-full h-10 w-10 border-4 brand-spinner mb-3"></div>
-                          <p className="text-sm text-gray-500">{t('datetime.loadingSlots')}</p>
-                        </div>
+                        <TimeSlotsSkeleton />
                       ) : availableSlots.length === 0 ? (
                         <div className="text-center py-10 sm:py-12">
                           <svg className="w-14 h-14 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
