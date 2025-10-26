@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getDbClient } from '@/db/client';
+import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 import { z } from 'zod';
 
 const querySchema = z.object({
@@ -55,8 +56,9 @@ export async function GET(request: NextRequest) {
     // For multi-business owners, we need to verify they own the requested business
     const targetBusinessId = validated.businessId || payload.business_id;
 
-    // TODO: Add verification that user owns the target business using user_owns_business(user_id, business_id)
-    // For now, we'll use the businessId if provided
+    // CRITICAL: Verify user owns this business before querying data
+    const unauthorizedResponse = await requireBusinessOwnership(sql, payload.sub, targetBusinessId);
+    if (unauthorizedResponse) return unauthorizedResponse;
 
     const dbStatus = validated.status ? STATUS_UI_TO_DB[validated.status] ?? 'confirmed' : null;
 

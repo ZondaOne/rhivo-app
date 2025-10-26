@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { neon } from '@neondatabase/serverless';
-
-const sql = neon(process.env.DATABASE_URL!);
+import { getDbClient } from '@/db/client';
+import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +20,12 @@ export async function GET(request: NextRequest) {
     const appointmentId = searchParams.get('appointmentId');
     const businessId = searchParams.get('businessId') || payload.business_id;
     const limit = parseInt(searchParams.get('limit') || '50');
+
+    const sql = getDbClient();
+
+    // CRITICAL: Verify user owns this business before querying data
+    const unauthorizedResponse = await requireBusinessOwnership(sql, payload.sub, businessId);
+    if (unauthorizedResponse) return unauthorizedResponse;
 
     // Query audit logs with business_id
     let result;

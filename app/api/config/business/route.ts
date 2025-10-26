@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadConfigByBusinessId } from '@/lib/config/config-loader';
 import { verifyAccessToken } from '@/lib/auth/tokens';
+import { getDbClient } from '@/db/client';
+import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 
 /**
  * GET /api/config/business?businessId=xxx
@@ -46,6 +48,20 @@ export async function GET(request: NextRequest) {
           error: 'businessId parameter is required',
         },
         { status: 400 }
+      );
+    }
+
+    const sql = getDbClient();
+
+    // CRITICAL: Verify user owns this business before loading config
+    const unauthorizedResponse = await requireBusinessOwnership(sql, decoded.sub, businessId);
+    if (unauthorizedResponse) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'You do not have permission to access this business',
+        },
+        { status: 403 }
       );
     }
 

@@ -24,7 +24,7 @@ interface NotificationCenterProps {
 }
 
 export function NotificationCenter({ onNotificationClick }: NotificationCenterProps) {
-  const t = useTranslations('dashboard.notificationCenter');
+  const t = useTranslations('dashboard.settings.notificationCenter');
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);

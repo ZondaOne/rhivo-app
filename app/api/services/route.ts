@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getDbClient } from '@/db/client';
+import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 
 export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '').trim();
@@ -26,9 +27,11 @@ export async function GET(request: NextRequest) {
   try {
     // Support businessId query parameter for multi-business owners
     const businessId = request.nextUrl.searchParams.get('businessId') || payload.business_id;
-    
-    // TODO: Add verification that user owns the target business using user_owns_business(user_id, business_id)
-    
+
+    // CRITICAL: Verify user owns this business before querying data
+    const unauthorizedResponse = await requireBusinessOwnership(sql, payload.sub, businessId);
+    if (unauthorizedResponse) return unauthorizedResponse;
+
     const services = await sql`
       SELECT
         s.id,

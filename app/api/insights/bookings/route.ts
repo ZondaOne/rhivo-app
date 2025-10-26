@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
+import { verifyToken } from '@/lib/auth';
+import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 
 export async function GET(request: NextRequest) {
   try {
+    // Verify authentication
+    const token = request.headers.get('authorization')?.replace('Bearer ', '').trim();
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let payload: ReturnType<typeof verifyToken>;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (payload.role !== 'owner' || !payload.business_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const businessId = searchParams.get('businessId');
     const timeRange = searchParams.get('timeRange') || '30d';
@@ -14,14 +33,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const sql = getDbClient();
+
+    // CRITICAL: Verify user owns this business before querying data
+    const unauthorizedResponse = await requireBusinessOwnership(sql, payload.sub, businessId);
+    if (unauthorizedResponse) return unauthorizedResponse;
+
     // Calculate date range
     const now = new Date();
     const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
     const days = daysMap[timeRange as keyof typeof daysMap] || 30;
     const startDate = new Date(now);
     startDate.setDate(startDate.getDate() - days);
-
-    const sql = getDbClient();
 
     // Fetch appointments for the time range
     const appointments = await sql`
