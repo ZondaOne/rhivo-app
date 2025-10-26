@@ -278,11 +278,11 @@ export default function DiscoveryPage() {
                     </select>
                 </div>
               </div>
-              {/* Filter Button */}
-              <div className="relative w-full sm:w-auto">
+              {/* Filter Button - Mobile Only */}
+              <div className="relative w-full sm:hidden">
                 <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`w-full sm:w-auto relative px-4 lg:px-6 py-3 rounded-xl font-semibold text-base transition-all flex items-center justify-center gap-2 ${
+                    className={`w-full relative px-4 lg:px-6 py-3 rounded-xl font-semibold text-base transition-all flex items-center justify-center gap-2 ${
                     showFilters || activeFiltersCount > 0
                         ? 'bg-teal-600 text-white shadow-lg'
                         : 'bg-white text-gray-700 border border-gray-200 hover:border-teal-600'
@@ -298,152 +298,142 @@ export default function DiscoveryPage() {
                     </span>
                     )}
                 </button>
-                
-                {/* Backdrop for mobile */}
+
+                {/* Desktop Dropdown - positioned absolutely relative to button */}
                 {showFilters && (
-                  <div
-                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 sm:hidden"
-                    onClick={() => setShowFilters(false)}
-                    aria-hidden="true"
-                  />
-                )}
-                
-                {/* Filter Panel Dropdown */}
-                <div
-                  className={`fixed sm:absolute bottom-0 sm:bottom-auto inset-x-0 sm:inset-x-auto sm:top-full sm:right-0 sm:left-auto w-full sm:w-80 rounded-t-3xl sm:rounded-2xl sm:mt-2 origin-bottom sm:origin-top-right transition-all duration-300 ease-out z-50 ${
-                    showFilters ? 'translate-y-0 opacity-100' : 'translate-y-full sm:translate-y-0 opacity-0 sm:scale-95 pointer-events-none'
-                  }`}
-                >
-                  <div className="bg-white rounded-t-3xl sm:rounded-2xl border-t sm:border border-gray-200/60 p-6 pb-8 sm:pb-6 sm:shadow-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto safe-area-bottom">
-                    {/* Mobile drawer handle */}
-                    <div className="sm:hidden flex justify-center mb-4 -mt-2">
-                      <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-5">
-                      <h3 className="text-xl font-bold text-gray-900 tracking-tight">{t('filters.title')}</h3>
-                      <div className="flex items-center gap-2">
-                        {activeFiltersCount > 0 && (
-                          <button
-                            onClick={clearAllFilters}
-                            className="px-4 py-1.5 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
-                          >
-                            {t('filters.clearAll')}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setShowFilters(false)}
-                          className="sm:hidden p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                          aria-label="Close filters"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-x-8 gap-y-6 sm:grid-cols-1 lg:grid-cols-1">
-                      {/* Price Range Filter */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-900 mb-3">
-                          {t('filters.priceRange')}
-                        </label>
-                        <div className="space-y-4 pt-2">
-                          <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
-                            <span>${minPrice}</span>
-                            <span className="text-gray-500">-</span>
-                            <span>${maxPrice === 500 ? '500+' : maxPrice}</span>
-                          </div>
-                          <div className="space-y-2">
-                            <input
-                              type="range"
-                              min="0"
-                              max="500"
-                              step="10"
-                              value={minPrice}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value);
-                                if (value <= maxPrice) setMinPrice(value);
-                              }}
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                            />
-                            <input
-                              type="range"
-                              min="0"
-                              max="500"
-                              step="10"
-                              value={maxPrice}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value);
-                                if (value >= minPrice) setMaxPrice(value);
-                              }}
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                            />
+                  <>
+                    {/* Desktop backdrop - subtle overlay */}
+                    <div 
+                      className="hidden sm:block fixed inset-0 z-[998]"
+                      onClick={() => setShowFilters(false)}
+                    />
+                    <div className="hidden sm:block absolute top-full right-0 mt-2 w-96 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/60 p-6 max-h-[500px] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-5">
+                          <h3 className="text-lg font-bold text-gray-900 tracking-tight">{t('filters.title')}</h3>
+                          <div className="flex items-center gap-2">
+                            {activeFiltersCount > 0 && (
+                              <button
+                                onClick={clearAllFilters}
+                                className="px-3 py-1 text-xs font-semibold text-teal-600 hover:bg-teal-50 rounded-lg transition-all"
+                              >
+                                {t('filters.clearAll')}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setShowFilters(false)}
+                              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                              aria-label="Close filters"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Active Filters Summary */}
-                    {activeFiltersCount > 0 && (
-                      <div className="mt-6 pt-4 border-t border-gray-200/60">
-                        <div className="flex flex-wrap gap-2">
-                          {selectedCategories.map(cat => (
-                            <span
-                              key={cat}
-                              className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-800 text-sm font-semibold rounded-full"
-                            >
-                              {cat}
-                              <button
-                                onClick={() => toggleCategory(cat)}
-                                className="text-teal-600 hover:text-teal-800 hover:bg-teal-100 rounded-full p-0.5 transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </span>
-                          ))}
-                          {selectedCities.map(city => (
-                            <span
-                              key={city}
-                              className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full"
-                            >
-                              {city}
-                              <button
-                                onClick={() => toggleCity(city)}
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </span>
-                          ))}
-                          {(minPrice > 0 || maxPrice < 500) && (
-                            <span
-                              className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-800 text-sm font-semibold rounded-full"
-                            >
-                              ${minPrice} - ${maxPrice === 500 ? '500+' : maxPrice}
-                              <button
-                                onClick={() => {
-                                  setMinPrice(0);
-                                  setMaxPrice(500);
+                        {/* Price Range Filter */}
+                        <div className="mb-5">
+                          <label className="block text-sm font-semibold text-gray-900 mb-3">
+                            {t('filters.priceRange')}
+                          </label>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
+                              <span className="text-teal-600">${minPrice}</span>
+                              <span className="text-gray-400">—</span>
+                              <span className="text-teal-600">${maxPrice === 500 ? '500+' : maxPrice}</span>
+                            </div>
+                            <div className="space-y-2">
+                              <input
+                                type="range"
+                                min="0"
+                                max="500"
+                                step="10"
+                                value={minPrice}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  if (value <= maxPrice) setMinPrice(value);
                                 }}
-                                className="text-purple-600 hover:text-purple-800 hover:bg-purple-200 rounded-full p-0.5 transition-colors"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </span>
-                          )}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                              />
+                              <input
+                                type="range"
+                                min="0"
+                                max="500"
+                                step="10"
+                                value={maxPrice}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  if (value >= minPrice) setMaxPrice(value);
+                                }}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                              />
+                            </div>
+                          </div>
                         </div>
+
+                        {/* Active Filters Summary */}
+                        {activeFiltersCount > 0 && (
+                          <div className="pt-4 border-t border-gray-200/60">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Active Filters</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedCategories.map(cat => (
+                                <span
+                                  key={cat}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-50 text-teal-800 text-xs font-semibold rounded-lg"
+                                >
+                                  {cat}
+                                  <button
+                                    onClick={() => toggleCategory(cat)}
+                                    className="text-teal-600 hover:text-teal-800 hover:bg-teal-100 rounded p-0.5 transition-colors"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </span>
+                              ))}
+                              {selectedCities.map(city => (
+                                <span
+                                  key={city}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-800 text-xs font-semibold rounded-lg"
+                                >
+                                  {city}
+                                  <button
+                                    onClick={() => toggleCity(city)}
+                                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded p-0.5 transition-colors"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </span>
+                              ))}
+                              {(minPrice > 0 || maxPrice < 500) && (
+                                <span
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-800 text-xs font-semibold rounded-lg"
+                                >
+                                  ${minPrice} - ${maxPrice === 500 ? '500+' : maxPrice}
+                                  <button
+                                    onClick={() => {
+                                      setMinPrice(0);
+                                      setMaxPrice(500);
+                                    }}
+                                    className="text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded p-0.5 transition-colors"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="mt-4 flex items-center justify-center gap-2 sm:gap-3">
@@ -599,6 +589,151 @@ export default function DiscoveryPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Filter Panel - Bottom sheet only on mobile */}
+      {showFilters && (
+        <>
+          {/* Backdrop - mobile only */}
+          <div
+            className="sm:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
+            onClick={() => setShowFilters(false)}
+            aria-hidden="true"
+          />
+          
+          {/* Filter Panel - mobile only */}
+          <div className="sm:hidden fixed inset-x-0 bottom-0 w-full z-[1000]">
+            <div className="bg-white rounded-t-3xl shadow-2xl p-6 pb-8 max-h-[85vh] overflow-y-auto">
+              {/* Mobile drawer handle */}
+              <div className="flex justify-center mb-4 -mt-2">
+                <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+              </div>
+              
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">{t('filters.title')}</h3>
+                <div className="flex items-center gap-2">
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="px-4 py-1.5 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+                    >
+                      {t('filters.clearAll')}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    aria-label="Close filters"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-x-8 gap-y-6 sm:grid-cols-1 lg:grid-cols-1">
+                {/* Price Range Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                    {t('filters.priceRange')}
+                  </label>
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
+                      <span>${minPrice}</span>
+                      <span className="text-gray-500">-</span>
+                      <span>${maxPrice === 500 ? '500+' : maxPrice}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min="0"
+                        max="500"
+                        step="10"
+                        value={minPrice}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (value <= maxPrice) setMinPrice(value);
+                        }}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                      />
+                      <input
+                        type="range"
+                        min="0"
+                        max="500"
+                        step="10"
+                        value={maxPrice}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (value >= minPrice) setMaxPrice(value);
+                        }}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Filters Summary */}
+              {activeFiltersCount > 0 && (
+                <div className="mt-6 pt-4 border-t border-gray-200/60">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCategories.map(cat => (
+                      <span
+                        key={cat}
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-teal-800 text-sm font-semibold rounded-full"
+                      >
+                        {cat}
+                        <button
+                          onClick={() => toggleCategory(cat)}
+                          className="text-teal-600 hover:text-teal-800 hover:bg-teal-100 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                    {selectedCities.map(city => (
+                      <span
+                        key={city}
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full"
+                      >
+                        {city}
+                        <button
+                          onClick={() => toggleCity(city)}
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                    {(minPrice > 0 || maxPrice < 500) && (
+                      <span
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-800 text-sm font-semibold rounded-full"
+                      >
+                        ${minPrice} - ${maxPrice === 500 ? '500+' : maxPrice}
+                        <button
+                          onClick={() => {
+                            setMinPrice(0);
+                            setMaxPrice(500);
+                          }}
+                          className="text-purple-600 hover:text-purple-800 hover:bg-purple-200 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

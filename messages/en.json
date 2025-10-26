@@ -1009,6 +1009,12 @@
         "noAppointments": "No appointments",
         "noAppointmentsFound": "No appointments found for this period",
         "appointments": "{count, plural, =0 {No appointments} =1 {1 appointment} other {# appointments}}"
+      },
+      "mobileMonthViewUnavailable": {
+        "title": "Month view unavailable",
+        "description": "Month view is not available on mobile. Use a tablet or PC for the full experience, or try day or list view.",
+        "dayViewButton": "Day View",
+        "listViewButton": "List View"
       }
     },
     "createAppointment": {

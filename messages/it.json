@@ -1011,6 +1011,12 @@
         "noAppointments": "Nessun appuntamento",
         "noAppointmentsFound": "Nessun appuntamento trovato per questo periodo",
         "appointments": "{count, plural, =0 {Nessun appuntamento} =1 {1 appuntamento} other {# appuntamenti}}"
+      },
+      "mobileMonthViewUnavailable": {
+        "title": "Visualizzazione mese non disponibile",
+        "description": "La visualizzazione mese non è disponibile su dispositivi mobili. Usa un tablet o PC per l'esperienza completa, oppure prova la vista giorno o lista.",
+        "dayViewButton": "Vista Giorno",
+        "listViewButton": "Vista Lista"
       }
     },
     "createAppointment": {

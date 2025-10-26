@@ -1010,6 +1010,12 @@
         "noAppointments": "Sin citas",
         "noAppointmentsFound": "No se encontraron citas para este período",
         "appointments": "{count, plural, =0 {Sin citas} =1 {1 cita} other {# citas}}"
+      },
+      "mobileMonthViewUnavailable": {
+        "title": "Vista de mes no disponible",
+        "description": "La vista de mes no está disponible en dispositivos móviles. Usa una tablet o PC para la experiencia completa, o intenta la vista de día o lista.",
+        "dayViewButton": "Vista de Día",
+        "listViewButton": "Vista de Lista"
       }
     },
     "createAppointment": {

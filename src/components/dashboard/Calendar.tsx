@@ -572,23 +572,23 @@ export function Calendar({ view, currentDate, onViewChange, onDateChange, busine
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <h3 className="text-base font-semibold text-gray-900 mb-2">
-                Month view unavailable
+                {t('mobileMonthViewUnavailable.title')}
               </h3>
               <p className="text-xs text-gray-500 mb-4">
-                Try day or list view for better mobile experience
+                {t('mobileMonthViewUnavailable.description')}
               </p>
               <div className="flex gap-2 justify-center">
                 <button
                   onClick={() => onViewChange?.('day')}
                   className="px-4 py-2 bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all"
                 >
-                  Day View
+                  {t('mobileMonthViewUnavailable.dayViewButton')}
                 </button>
                 <button
                   onClick={() => onViewChange?.('list')}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all"
                 >
-                  List View
+                  {t('mobileMonthViewUnavailable.listViewButton')}
                 </button>
               </div>
             </div>
@@ -2173,6 +2173,7 @@ function ListAppointmentCard({
   onEdit: (id: string) => void;
   locale: string;
 }) {
+  const ts = useTranslations('dashboard.appointmentCard.status');
   const [isDragging, setIsDragging] = useState(false);
   const startTime = new Date(appointment.start_time);
   const endTime = new Date(appointment.end_time);
@@ -2189,6 +2190,7 @@ function ListAppointmentCard({
   };
 
   const statusColor = statusColors[appointment.status as keyof typeof statusColors] || statusColors.confirmed;
+  const statusLabel = ts(appointment.status as any);
 
   return (
     <div
@@ -2233,7 +2235,7 @@ function ListAppointmentCard({
 
             {/* Status Badge */}
             <div className={`px-3 py-1 rounded-lg border text-xs font-semibold uppercase tracking-wider ${statusColor}`}>
-              {appointment.status}
+              {statusLabel}
             </div>
           </div>
 
