@@ -98,8 +98,10 @@ export async function GET(request: NextRequest) {
     const businessTimezone = config.business.timezone;
 
     const start = parseInTimezone(startDate, businessTimezone);
-    const endDate = rawEndDate || new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const end = getEndOfDay(new Date(endDate), businessTimezone);
+    // If no endDate provided, default to the same day (not 7 days later)
+    // to avoid generating slots spanning multiple days
+    const endDate = rawEndDate || startDate;
+    const end = getEndOfDay(parseInTimezone(endDate, businessTimezone), businessTimezone);
 
     // Get business from database
     const db = getDbClient();
