@@ -90,13 +90,11 @@ export function generateTimeSlots(options: SlotGeneratorOptions): TimeSlot[] {
   const offTimeIntervals = generateOffTimeIntervals(config, startDate, endDate, businessTimezone);
 
   // Iterate through each day in the range
+  // IMPORTANT: Don't use setHours() here as it operates in server's local timezone
+  // The startDate and endDate are already in the correct timezone
   let currentDate = new Date(startDate);
-  currentDate.setHours(0, 0, 0, 0);
 
-  const endDateOnly = new Date(endDate);
-  endDateOnly.setHours(23, 59, 59, 999);
-
-  while (currentDate <= endDateOnly) {
+  while (currentDate <= endDate) {
     const daySlots = generateSlotsForDay(
       currentDate,
       config,
@@ -109,8 +107,8 @@ export function generateTimeSlots(options: SlotGeneratorOptions): TimeSlot[] {
     );
     slots.push(...daySlots);
 
-    // Move to next day
-    currentDate.setDate(currentDate.getDate() + 1);
+    // Move to next day (add 24 hours to avoid timezone issues)
+    currentDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
   }
 
   return slots;
