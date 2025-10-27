@@ -30,7 +30,9 @@ export const metadata: Metadata = {
       siteName: "Rhivo",
       images: [
         {
-          url: '/logo.png',
+          url: '/og-image.png', // Should be 1200x630px for best results
+          width: 1200,
+          height: 630,
           alt: 'Rhivo - Book appointments instantly',
         },
       ],
@@ -39,6 +41,7 @@ export const metadata: Metadata = {
       card: "summary_large_image",
       title: "Rhivo - Book appointments instantly",
       description: "See what's available. Pick a time. You're done.",
+      images: ['/og-image.png'],
     },
     icons: {
       icon: '/favicon.ico',
