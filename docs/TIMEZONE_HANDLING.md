@@ -200,6 +200,37 @@ new Date('2025-01-15T00:00:00')
 parseInTimezone('2025-01-15', config.business.timezone)
 ```
 
+### Issue: Slots generated for wrong day (one day earlier)
+
+**Symptom:** When requesting slots for October 29, the API returns slots for October 28.
+
+**Cause:** Using `setHours()` to set business hours instead of timezone-aware `parseTime()`. The `setHours()` method operates in the server's local timezone (UTC), not the business timezone (e.g., Europe/Rome).
+
+**Example of the problem:**
+```typescript
+// User clicks October 29 in Italy (Europe/Rome, UTC+1)
+// Server correctly parses: "2025-10-29" -> 2025-10-28T23:00:00Z (midnight Oct 29 Italy time)
+
+// BAD - Uses setHours() which operates in server's timezone (UTC)
+const slotOpen = new Date(date);  // date is 2025-10-28T23:00:00Z
+slotOpen.setHours(9, 0, 0, 0);    // Sets to 09:00 UTC, NOT 09:00 Italy time
+// Result: 2025-10-29T09:00:00Z (which is still Oct 28 in UTC, but Oct 29 10:00 in Italy)
+// This causes slots to appear for the wrong day
+```
+
+**Fix:**
+```typescript
+// GOOD - Uses parseTime() which interprets time in business timezone
+const slotOpen = parseTime(availSlot.open, date, timezone);
+// With availSlot.open = "09:00", this creates 09:00 Italy time
+// Result: 2025-10-29T08:00:00Z (9 AM Oct 29 Italy time)
+```
+
+**Applied in:**
+- `src/lib/booking/slot-generator.ts:185-186`
+- Always use `parseTime()` when converting business hour strings to Date objects
+- Similarly, use `getDayNameInTimezone()` instead of `date.getDay()` to get the correct day of week
+
 ### Issue: Off-by-one-hour errors
 
 **Cause:** DST transition or incorrect timezone offset
@@ -300,6 +331,15 @@ Ensure all API calls pass ISO 8601 strings with timezone info:
 5. **Test with multiple timezones** - Don't assume server and business match
 6. **Handle DST transitions** - Use IANA timezone database
 7. **Document timezone assumptions** - Comment in code where timezone matters
+8. **⚠️ NEVER use Date methods that operate in local timezone:**
+   - ❌ `date.setHours()` - operates in server's timezone
+   - ❌ `date.getDay()` - returns day in server's timezone
+   - ❌ `date.getMonth()`, `date.getDate()` - use server's timezone
+   - ✅ Use timezone-aware utilities: `parseTime()`, `getDayNameInTimezone()`, etc.
+9. **When working with business hours:**
+   - ✅ Use `parseTime(timeString, date, timezone)` to convert "09:00" to a Date object
+   - ✅ Use `getDayNameInTimezone(date, timezone)` to get the correct day of week
+   - ✅ Use `formatDateYYYYMMDDInTimezone(date, timezone)` to format dates for matching
 
 ## Resources
 
@@ -315,5 +355,9 @@ The key to correct timezone handling is:
 2. **Communicate with full timezone info** (API)
 3. **Display in business timezone** (UI)
 4. **Never assume timezones match** (server vs business vs customer)
+5. **⚠️ CRITICAL: Never use Date methods like `setHours()` or `getDay()`** - they operate in the server's timezone, not the business timezone. Always use timezone-aware utilities.
+
+### Common Pitfall: The `setHours()` Trap
+The most common timezone bug is using `date.setHours(9, 0)` to set business hours. This interprets "9:00" as 9 AM in the **server's** timezone (often UTC), not the business's timezone. For an Italian business, this causes slots to appear one day earlier. **Always use `parseTime()` instead.**
 
 When in doubt, always specify the timezone explicitly and test with businesses in different timezones than your development environment.

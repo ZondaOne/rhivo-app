@@ -25,13 +25,9 @@
  * @returns Date object representing the time in the specified timezone
  */
 export function parseInTimezone(dateString: string, timezone: string): Date {
-  console.log('[parseInTimezone] Input:', { dateString, timezone });
-
   // If already has timezone info (ISO format with Z or offset), use it directly
   if (dateString.includes('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) {
-    const result = new Date(dateString);
-    console.log('[parseInTimezone] Already has TZ info, returning:', result.toISOString());
-    return result;
+    return new Date(dateString);
   }
 
   // For date-only strings (YYYY-MM-DD), interpret as midnight in business timezone
@@ -47,24 +43,9 @@ export function parseInTimezone(dateString: string, timezone: string): Date {
   const minute = parts[4] ? parseInt(parts[4]) : 0;
   const second = parts[5] ? parseInt(parts[5]) : 0;
 
-  console.log('[parseInTimezone] Parsed components:', { year, month, day, hour, minute, second });
-
-  // Create a date string in the target timezone
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-
   // Build a local date in the target timezone
   // We need to find the UTC timestamp that corresponds to this local time
   const targetDate = new Date(Date.UTC(year, month, day, hour, minute, second));
-  console.log('[parseInTimezone] Target UTC date:', targetDate.toISOString());
 
   // Get the offset for this date in the target timezone
   const offsetStr = new Intl.DateTimeFormat('en-US', {
@@ -73,8 +54,6 @@ export function parseInTimezone(dateString: string, timezone: string): Date {
   })
     .formatToParts(targetDate)
     .find(part => part.type === 'timeZoneName')?.value;
-
-  console.log('[parseInTimezone] Offset string:', offsetStr);
 
   // Parse offset (e.g., "GMT+01:00" -> 60 minutes)
   let offsetMinutes = 0;
@@ -86,27 +65,9 @@ export function parseInTimezone(dateString: string, timezone: string): Date {
     }
   }
 
-  console.log('[parseInTimezone] Offset minutes:', offsetMinutes);
-
   // Adjust the UTC date by the offset to get the correct UTC timestamp
   const utcTimestamp = targetDate.getTime() - offsetMinutes * 60 * 1000;
-  const result = new Date(utcTimestamp);
-
-  console.log('[parseInTimezone] Final result:', result.toISOString());
-  console.log('[parseInTimezone] Verification - this time in', timezone, ':',
-    new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    }).format(result)
-  );
-
-  return result;
+  return new Date(utcTimestamp);
 }
 
 /**

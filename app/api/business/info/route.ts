@@ -56,6 +56,12 @@ export async function GET(request: NextRequest) {
       name: business.name,
       timezone: business.timezone,
       status: business.status,
+    }, {
+      headers: {
+        // Business info rarely changes - cache for 10 minutes
+        // Public endpoint, safe for CDN caching
+        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1800',
+      },
     });
   } catch (error) {
     console.error('Error fetching business info:', error);

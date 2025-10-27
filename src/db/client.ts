@@ -1,9 +1,18 @@
-import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
 import { env } from '@/lib/env';
+
+// Enable fetch connection cache for better serverless performance
+// This allows connection reuse across serverless function invocations
+neonConfig.fetchConnectionCache = true;
 
 // Create a connection using the DATABASE_URL from environment
 export function getDbClient() {
-  return neon(env.DATABASE_URL);
+  return neon(env.DATABASE_URL, {
+    fetchOptions: {
+      // Reuse HTTP connections across invocations for better performance
+      cache: 'force-cache',
+    },
+  });
 }
 
 // Lazy-loaded default client for convenience

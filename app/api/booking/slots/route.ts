@@ -175,6 +175,12 @@ export async function GET(request: NextRequest) {
         start: start.toISOString(),
         end: end.toISOString(),
       },
+    }, {
+      headers: {
+        // Cache for 30 seconds on CDN, serve stale for up to 5 minutes while revalidating
+        // This dramatically reduces database load for frequently accessed slots
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300',
+      },
     });
   } catch (error) {
     console.error('Error generating slots:', error);

@@ -49,7 +49,13 @@ export async function GET(request: NextRequest) {
       ORDER BY c.sort_order, s.sort_order, s.name
     `;
 
-    return NextResponse.json(services);
+    return NextResponse.json(services, {
+      headers: {
+        // Services don't change frequently - cache for 5 minutes
+        // Authenticated endpoint, so use private cache with revalidation
+        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('List services error:', error);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

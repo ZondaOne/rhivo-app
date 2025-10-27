@@ -115,7 +115,13 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(appointments);
+    return NextResponse.json(appointments, {
+      headers: {
+        // Appointments change frequently - cache for 1 minute only
+        // Use private cache since this is authenticated data
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+      },
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
