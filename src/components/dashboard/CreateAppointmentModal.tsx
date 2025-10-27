@@ -177,6 +177,11 @@ export function CreateAppointmentModal({
     try {
       // Format date for API using timezone-safe utility
       const dateStr = formatDateForAPI(selectedDate);
+      console.log('[CreateAppointment] Loading slots for:', {
+        selectedDate,
+        dateStr,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
 
       const response = await apiRequest<{ slots: TimeSlot[] }>(
         `/api/appointments/available-slots?serviceId=${selectedService.id}&date=${dateStr}`

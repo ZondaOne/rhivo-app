@@ -129,6 +129,15 @@ export async function GET(request: NextRequest) {
     const start = parseInTimezone(date, businessTimezone);
     const end = getEndOfDay(start, businessTimezone);
 
+    console.log('[available-slots API] Date parsing:', {
+      requestedDate: date,
+      businessTimezone,
+      startUTC: start.toISOString(),
+      endUTC: end.toISOString(),
+      startLocal: start.toString(),
+      endLocal: end.toString()
+    });
+
     // Get existing appointments in date range
     const appointments = await sql`
       SELECT slot_start, slot_end
