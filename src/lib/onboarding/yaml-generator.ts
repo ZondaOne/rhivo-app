@@ -32,6 +32,8 @@ export interface OnboardingFormData {
   // Branding
   primaryColor: string;
   secondaryColor?: string;
+  profileImageUrl?: string;
+  coverImageUrl?: string;
 
   // Services (will be empty initially for self-service)
   categories?: Array<{ id: string; name: string; description?: string; sortOrder: number; services: unknown[] }>;
@@ -110,9 +112,9 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
       branding: {
         primaryColor: formData.primaryColor,
         secondaryColor: formData.secondaryColor || formData.primaryColor,
-        logoUrl: 'https://placehold.co/200x200', // Placeholder, will be updated later
-        coverImageUrl: 'https://placehold.co/1200x400',
-        profileImageUrl: 'https://placehold.co/400x400',
+        logoUrl: formData.profileImageUrl || 'https://placehold.co/200x200',
+        coverImageUrl: formData.coverImageUrl || 'https://placehold.co/1200x400',
+        profileImageUrl: formData.profileImageUrl || 'https://placehold.co/400x400',
         faviconUrl: 'https://placehold.co/32x32',
       },
 
@@ -203,7 +205,7 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
         enableWaitlist: false,
         enableReviews: false,
         enableMultipleStaff: false,
-        hideFromDiscovery: false,
+        hideFromDiscovery: true, // Hide new businesses from discovery by default
       },
 
       metadata: {

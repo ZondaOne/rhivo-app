@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+
+// Dynamically import Leaflet and CSS only on client-side
+let L: typeof import('leaflet') | null = null;
 
 // Dynamically import map components to avoid SSR issues
 const MapContainer = dynamic(
@@ -19,8 +20,10 @@ const Marker = dynamic(
   { ssr: false }
 );
 
-// Simple marker icon
+// Simple marker icon (only runs on client)
 const createSimpleIcon = () => {
+  if (!L) return null;
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -67,14 +70,28 @@ export default function LocationMapPreview({
   const [markerIcon, setMarkerIcon] = useState<L.DivIcon | null>(null);
 
   useEffect(() => {
-    // Create marker icon after mount (client-side only)
-    setMarkerIcon(createSimpleIcon());
-    setMounted(true);
+    // Dynamically import Leaflet on client-side only
+    const loadLeaflet = async () => {
+      if (typeof window !== 'undefined') {
+        // Import Leaflet
+        const leaflet = await import('leaflet');
+        L = leaflet.default || leaflet;
 
-    // Trigger animation after mount
-    requestAnimationFrame(() => {
-      setIsVisible(true);
-    });
+        // Import Leaflet CSS
+        await import('leaflet/dist/leaflet.css');
+
+        // Create marker icon after leaflet is loaded
+        setMarkerIcon(createSimpleIcon());
+        setMounted(true);
+
+        // Trigger animation after mount
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      }
+    };
+
+    loadLeaflet();
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();

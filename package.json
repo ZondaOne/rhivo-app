@@ -43,6 +43,7 @@
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
+    "lucide-react": "^0.548.0",
     "nanoid": "^5.1.6",
     "next": "15.5.4",
     "next-intl": "^4.3.12",

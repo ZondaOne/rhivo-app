@@ -417,7 +417,16 @@
       "primaryColor": "Primary color",
       "secondaryColor": "Secondary color",
       "preview": "Preview",
-      "previewButton": "Book Appointment"
+      "previewButton": "Book Appointment",
+      "profileImage": "Profile Picture",
+      "profileImageDescription": "Square image for your business profile",
+      "bannerImage": "Cover Image",
+      "bannerImageDescription": "Wide banner for your booking page",
+      "uploadButton": "Choose Image",
+      "uploading": "Uploading...",
+      "removeImage": "Remove",
+      "imageSizeHint": "PNG or JPG, max 5MB",
+      "optional": "Optional"
     },
     "services": {
       "title": "Services",

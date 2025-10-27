@@ -9,6 +9,7 @@ import type { GeocodingResult } from '@/lib/geocoding/nominatim';
 import { Logo } from '@/components/Logo';
 import ServiceBuilder, { type Category } from '@/components/onboarding/ServiceBuilder';
 import { EmailVerificationModal } from '@/components/auth/EmailVerificationModal';
+import ImageUpload from '@/components/onboarding/ImageUpload';
 
 type OnboardingStep = 'auth' | 'business' | 'contact' | 'branding' | 'services' | 'availability' | 'rules' | 'details' | 'review';
 
@@ -143,6 +144,8 @@ export default function OnboardBusinessPage() {
   // Branding
   const [primaryColor, setPrimaryColor] = useState('#10b981');
   const [secondaryColor, setSecondaryColor] = useState('#14b8a6');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
+  const [coverImageUrl, setCoverImageUrl] = useState('');
 
   // Dropdown states
   const [timezoneOpen, setTimezoneOpen] = useState(false);
@@ -945,6 +948,26 @@ export default function OnboardBusinessPage() {
       </div>
 
       <div className="space-y-3 sm:space-y-4">
+        {/* Image uploads */}
+        <div className="space-y-3">
+          <ImageUpload
+            label={t('onboard.branding.profileImage')}
+            description={t('onboard.branding.profileImageDescription')}
+            value={profileImageUrl}
+            onChange={setProfileImageUrl}
+            aspectRatio="profile"
+          />
+
+          <ImageUpload
+            label={t('onboard.branding.bannerImage')}
+            description={t('onboard.branding.bannerImageDescription')}
+            value={coverImageUrl}
+            onChange={setCoverImageUrl}
+            aspectRatio="banner"
+          />
+        </div>
+
+        {/* Color pickers */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">{t('onboard.branding.primaryColor')}</label>
@@ -1658,6 +1681,8 @@ export default function OnboardBusinessPage() {
         // Branding
         primaryColor,
         secondaryColor,
+        profileImageUrl,
+        coverImageUrl,
 
         // Services (with prices in cents)
         categories: categoriesWithCents,

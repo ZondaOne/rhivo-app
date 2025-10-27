@@ -419,7 +419,16 @@
       "primaryColor": "Colore primario",
       "secondaryColor": "Colore secondario",
       "preview": "Anteprima",
-      "previewButton": "Prenota Appuntamento"
+      "previewButton": "Prenota Appuntamento",
+      "profileImage": "Immagine Profilo",
+      "profileImageDescription": "Immagine quadrata per il profilo aziendale",
+      "bannerImage": "Immagine Copertina",
+      "bannerImageDescription": "Banner ampio per la pagina di prenotazione",
+      "uploadButton": "Scegli Immagine",
+      "uploading": "Caricamento...",
+      "removeImage": "Rimuovi",
+      "imageSizeHint": "PNG o JPG, max 5MB",
+      "optional": "Facoltativo"
     },
     "services": {
       "title": "Servizi",

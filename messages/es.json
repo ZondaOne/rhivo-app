@@ -418,7 +418,16 @@
       "primaryColor": "Color primario",
       "secondaryColor": "Color secundario",
       "preview": "Vista previa",
-      "previewButton": "Reservar Cita"
+      "previewButton": "Reservar Cita",
+      "profileImage": "Imagen de Perfil",
+      "profileImageDescription": "Imagen cuadrada para el perfil del negocio",
+      "bannerImage": "Imagen de Portada",
+      "bannerImageDescription": "Banner ancho para la página de reservas",
+      "uploadButton": "Elegir Imagen",
+      "uploading": "Subiendo...",
+      "removeImage": "Eliminar",
+      "imageSizeHint": "PNG o JPG, máx 5MB",
+      "optional": "Opcional"
     },
     "services": {
       "title": "Servicios",
