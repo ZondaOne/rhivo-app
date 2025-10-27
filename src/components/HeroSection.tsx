@@ -95,7 +95,7 @@ export function HeroSection() {
       </div>
 
       {/* Scroll indicator - premium animation */}
-      <button
+      {/* <button
         onClick={() => {
           document.querySelector('#how-it-works')?.scrollIntoView({
             behavior: 'smooth',
@@ -111,7 +111,7 @@ export function HeroSection() {
         <div className="w-6 h-10 sm:w-8 sm:h-12 border-2 border-gray-300 rounded-full flex items-start justify-center p-2 group-hover:border-gray-400 transition-colors">
           <div className="w-1 h-1.5 sm:w-1.5 sm:h-2 bg-gray-400 rounded-full animate-bounce group-hover:bg-gray-600 transition-colors" />
         </div>
-      </button>
+      </button> */}
     </section>
   );
 }

@@ -438,3 +438,67 @@ export function getAppointmentDuration(appointment: Appointment): number {
   const end = new Date(appointment.end_time);
   return Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
 }
+
+/**
+ * Format a Date object as YYYY-MM-DD string in local timezone
+ * This ensures consistent formatting regardless of server timezone
+ *
+ * IMPORTANT: This function uses getFullYear(), getMonth(), and getDate()
+ * which operate in the browser's LOCAL timezone. This means if you pass
+ * a Date object that was created from a UTC string, it will be formatted
+ * in the user's local timezone, not UTC.
+ *
+ * @param date - The date to format
+ * @returns String in YYYY-MM-DD format (e.g., "2025-10-28")
+ */
+export function formatDateForAPI(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Create a date at noon (12:00 PM) in local timezone from year/month/day
+ * Using noon instead of midnight avoids DST transition issues
+ *
+ * @param year - Full year (e.g., 2025)
+ * @param month - Month (0-11, where 0=January)
+ * @param day - Day of month (1-31)
+ * @returns Date object set to noon local time
+ */
+export function createLocalDate(year: number, month: number, day: number): Date {
+  return new Date(year, month, day, 12, 0, 0, 0);
+}
+
+/**
+ * Get week start (Monday) for a given date, using noon to avoid DST issues
+ *
+ * @param date - The date to get week start for
+ * @returns Date object representing Monday of that week at noon
+ */
+export function getWeekStartSafe(date: Date): Date {
+  const d = createLocalDate(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return createLocalDate(d.getFullYear(), d.getMonth(), diff);
+}
+
+/**
+ * Get array of dates for a week starting from weekStart
+ *
+ * @param weekStart - The Monday of the week
+ * @returns Array of 7 Date objects (Mon-Sun) at noon
+ */
+export function getWeekDatesSafe(weekStart: Date): Date[] {
+  const dates: Date[] = [];
+  const baseYear = weekStart.getFullYear();
+  const baseMonth = weekStart.getMonth();
+  const baseDay = weekStart.getDate();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(baseYear, baseMonth, baseDay + i, 12, 0, 0, 0);
+    dates.push(d);
+  }
+  return dates;
+}

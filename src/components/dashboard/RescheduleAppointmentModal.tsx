@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Appointment } from '@/db/types';
-import { formatTime, formatDate, snapToGrain } from '@/lib/calendar-utils';
+import { formatTime, formatDate, snapToGrain, formatDateForAPI, getWeekStartSafe, getWeekDatesSafe } from '@/lib/calendar-utils';
 import { apiRequest } from '@/lib/auth/api-client';
 import { mapErrorToUserMessage } from '@/lib/errors/error-mapper';
 import { categorizeError, shouldShowToast, getToastVariant } from '@/lib/errors/error-handler';
@@ -51,7 +51,7 @@ export function RescheduleAppointmentModal({
   const [selectedDate, setSelectedDate] = useState<Date>(currentStart);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getWeekStart(currentStart));
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getWeekStartSafe(currentStart));
   const [dateAvailability, setDateAvailability] = useState<Map<string, boolean>>(new Map());
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -112,11 +112,8 @@ export function RescheduleAppointmentModal({
 
     setLoadingSlots(true);
     try {
-      // Format date in local timezone to avoid timezone conversion bugs
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
+      // Format date for API using timezone-safe utility
+      const dateStr = formatDateForAPI(selectedDate);
 
       const response = await apiRequest<{ slots: TimeSlot[] }>(
         `/api/appointments/available-slots?serviceId=${selectedServiceId}&date=${dateStr}`
@@ -247,40 +244,27 @@ export function RescheduleAppointmentModal({
     }
   }
 
-  function getWeekStart(date: Date): Date {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    const weekStart = new Date(d.setDate(diff));
-    weekStart.setHours(0, 0, 0, 0);
-    return weekStart;
-  }
-
-  function getWeekDates(weekStart: Date): Date[] {
-    const dates: Date[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
-  }
+  // Note: using imported safe functions from calendar-utils
 
   function goToPreviousWeek() {
-    const newWeekStart = new Date(currentWeekStart);
-    newWeekStart.setDate(currentWeekStart.getDate() - 7);
+    const year = currentWeekStart.getFullYear();
+    const month = currentWeekStart.getMonth();
+    const day = currentWeekStart.getDate() - 7;
+    const newWeekStart = new Date(year, month, day, 12, 0, 0, 0);
     setCurrentWeekStart(newWeekStart);
   }
 
   function goToNextWeek() {
-    const newWeekStart = new Date(currentWeekStart);
-    newWeekStart.setDate(currentWeekStart.getDate() + 7);
+    const year = currentWeekStart.getFullYear();
+    const month = currentWeekStart.getMonth();
+    const day = currentWeekStart.getDate() + 7;
+    const newWeekStart = new Date(year, month, day, 12, 0, 0, 0);
     setCurrentWeekStart(newWeekStart);
   }
 
   function goToCurrentWeek() {
     const today = new Date();
-    setCurrentWeekStart(getWeekStart(today));
+    setCurrentWeekStart(getWeekStartSafe(today));
     setSelectedDate(today);
   }
 
@@ -288,17 +272,14 @@ export function RescheduleAppointmentModal({
     if (!selectedServiceId) return;
 
     setLoadingAvailability(true);
-    const weekDates = getWeekDates(currentWeekStart);
+    const weekDates = getWeekDatesSafe(currentWeekStart);
     const availabilityMap = new Map<string, boolean>();
 
     try {
       // Fetch availability for all dates in the week in parallel
       const availabilityPromises = weekDates.map(async (date) => {
         try {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          const dateStr = `${year}-${month}-${day}`;
+          const dateStr = formatDateForAPI(date);
 
           const response = await apiRequest<{ slots: TimeSlot[] }>(
             `/api/appointments/available-slots?serviceId=${selectedServiceId}&date=${dateStr}`
@@ -352,10 +333,7 @@ export function RescheduleAppointmentModal({
   }
 
   function formatDateKey(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatDateForAPI(date);
   }
 
   function getMonthLabel(dates: Date[]): string {
@@ -510,7 +488,7 @@ export function RescheduleAppointmentModal({
                   </button>
 
                   <div className="text-sm sm:text-base font-semibold text-gray-700 text-center">
-                    {getMonthLabel(getWeekDates(currentWeekStart))}
+                    {getMonthLabel(getWeekDatesSafe(currentWeekStart))}
                   </div>
 
                   <button
@@ -545,7 +523,7 @@ export function RescheduleAppointmentModal({
                   )}
 
                   <div className={`grid grid-cols-7 gap-1 sm:gap-2 transition-opacity ${loadingAvailability ? 'opacity-40' : 'opacity-100'}`}>
-                    {getWeekDates(currentWeekStart).map((date) => {
+                    {getWeekDatesSafe(currentWeekStart).map((date) => {
                       const isSelected = isSameDay(date, selectedDate);
                       const isCurrentDay = isToday(date);
                       const dateKey = formatDateKey(date);
