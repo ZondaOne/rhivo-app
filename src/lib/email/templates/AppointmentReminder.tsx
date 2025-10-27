@@ -218,8 +218,8 @@ const subtitle = {
 
 const reminderBadge = {
   textAlign: 'center' as const,
-  backgroundColor: '#fef3c7', // amber-100
-  border: '2px solid #f59e0b', // amber-500
+  backgroundColor: '#f9fafb', // gray-50
+  border: '2px solid #14b8a6', // teal-500 for emphasis
   borderRadius: '12px',
   padding: '16px',
   marginBottom: '32px',
@@ -228,7 +228,7 @@ const reminderBadge = {
 const reminderText = {
   fontSize: '18px',
   fontWeight: '700',
-  color: '#b45309', // amber-700
+  color: '#14b8a6', // teal-500 for brand emphasis
   margin: '0',
 };
 
@@ -312,7 +312,7 @@ const buttonSecondary = {
   padding: '12px 32px',
   backgroundColor: '#14b8a6', // teal-500
   color: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '16px', // rounded-2xl for emphasis
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '14px',
@@ -323,9 +323,9 @@ const buttonCancel = {
   display: 'inline-block',
   padding: '12px 32px',
   backgroundColor: '#ffffff',
-  color: '#6b7280',
-  border: '1px solid #e5e7eb',
-  borderRadius: '12px',
+  color: '#6b7280', // gray-500
+  border: '1px solid #e5e7eb', // gray-200
+  borderRadius: '16px', // rounded-2xl for emphasis
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '14px',

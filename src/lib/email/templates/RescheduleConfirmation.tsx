@@ -252,7 +252,7 @@ const h2Old = {
 const h2New = {
   fontSize: '20px',
   fontWeight: '600',
-  color: '#10b981', // green-500
+  color: '#14b8a6', // teal-500 for brand consistency
   margin: '0 0 16px 0',
 };
 
@@ -272,8 +272,8 @@ const oldDetailsBox = {
 };
 
 const newDetailsBox = {
-  backgroundColor: '#ecfdf5', // green-50
-  border: '2px solid #10b981', // green-500
+  backgroundColor: '#f9fafb', // gray-50
+  border: '2px solid #14b8a6', // teal-500 for brand emphasis
   borderRadius: '12px',
   padding: '24px',
   marginBottom: '24px',
@@ -315,7 +315,7 @@ const detailValueOld = {
 
 const detailValueNew = {
   fontSize: '16px',
-  color: '#10b981', // green-500
+  color: '#14b8a6', // teal-500 for brand consistency
   margin: '0',
   fontWeight: '700',
 };
@@ -349,7 +349,7 @@ const buttonSecondary = {
   padding: '12px 32px',
   backgroundColor: '#14b8a6', // teal-500
   color: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '16px', // rounded-2xl for emphasis
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '14px',
@@ -360,9 +360,9 @@ const buttonCancel = {
   display: 'inline-block',
   padding: '12px 32px',
   backgroundColor: '#ffffff',
-  color: '#6b7280',
-  border: '1px solid #e5e7eb',
-  borderRadius: '12px',
+  color: '#6b7280', // gray-500
+  border: '1px solid #e5e7eb', // gray-200
+  borderRadius: '16px', // rounded-2xl for emphasis
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '14px',

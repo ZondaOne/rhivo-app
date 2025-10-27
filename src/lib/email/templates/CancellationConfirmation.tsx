@@ -308,9 +308,9 @@ const ctaTextSecondary = {
 const buttonPrimary = {
   display: 'inline-block',
   padding: '12px 32px',
-  background: 'linear-gradient(to right, #14b8a6, #10b981)', // teal to green
+  background: 'linear-gradient(to right, #14b8a6, #10b981)', // teal to green gradient for primary CTA
   color: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '16px', // rounded-2xl for emphasis
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '14px',

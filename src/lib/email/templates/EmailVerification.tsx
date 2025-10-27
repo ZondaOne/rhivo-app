@@ -79,7 +79,7 @@ export const EmailVerification = ({
           {/* Security Notice */}
           <Hr style={hr} />
           <Section style={securitySection}>
-            <Text style={securityTitle}>🔒 Informazioni sulla Sicurezza / Security Information</Text>
+            <Text style={securityTitle}>Informazioni sulla Sicurezza / Security Information</Text>
             <Text style={securityText}>
               • Questo link scadrà tra {expiryHours} ore / This link expires in {expiryHours} hours
             </Text>
@@ -196,11 +196,10 @@ const button = {
   padding: '14px 40px',
   backgroundColor: '#14b8a6', // teal-500
   color: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '16px', // rounded-2xl for emphasis
   textDecoration: 'none',
   fontWeight: '600',
   fontSize: '16px',
-  boxShadow: '0 1px 3px rgba(20, 184, 166, 0.3)',
 };
 
 const linkSection = {
@@ -232,22 +231,23 @@ const link = {
 };
 
 const securitySection = {
-  backgroundColor: '#fef3c7', // amber-100
+  backgroundColor: '#f9fafb', // gray-50
   borderRadius: '12px',
-  padding: '20px',
+  padding: '24px',
   marginTop: '24px',
+  border: '1px solid #e5e7eb', // gray-200
 };
 
 const securityTitle = {
   fontSize: '14px',
   fontWeight: '600',
-  color: '#92400e', // amber-900
+  color: '#111827', // gray-900
   margin: '0 0 12px 0',
 };
 
 const securityText = {
   fontSize: '13px',
-  color: '#78350f', // amber-950
+  color: '#6b7280', // gray-500
   margin: '4px 0',
   lineHeight: '1.5',
 };
