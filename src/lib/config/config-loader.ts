@@ -6,7 +6,7 @@
  */
 
 import { parseTenantConfigYAML, type ParseResult } from './tenant-config-parser';
-import { type TenantConfig } from './tenant-schema';
+import { type TenantConfig, TenantConfigSchema } from './tenant-schema';
 import { getDbClient } from '@/db/client';
 
 // In-memory cache for configs (3 hour TTL)
@@ -66,17 +66,26 @@ export async function loadConfigByBusinessId(businessId: string): Promise<Config
 
     // Priority 1: Try to load JSON from database (config_json column - fastest!)
     if (business.config_json) {
-      const config = business.config_json as TenantConfig;
-      // Cache it with both businessId and subdomain keys
-      configCache.set(cacheKey, {
-        config,
-        timestamp: Date.now(),
-      });
-      configCache.set(business.subdomain, {
-        config,
-        timestamp: Date.now(),
-      });
-      return { success: true, config, subdomain: business.subdomain };
+      // Apply schema transformations to ensure legacy formats are converted
+      // (e.g., availability {open, close} -> {slots: [{open, close}]})
+      const parseResult = TenantConfigSchema.safeParse(business.config_json);
+      if (!parseResult.success) {
+        console.error('[Config Loader] Failed to parse config_json for business:', businessId);
+        console.error('Validation errors:', parseResult.error.format());
+        // Fall through to try other loading methods
+      } else {
+        const config = parseResult.data;
+        // Cache it with both businessId and subdomain keys
+        configCache.set(cacheKey, {
+          config,
+          timestamp: Date.now(),
+        });
+        configCache.set(business.subdomain, {
+          config,
+          timestamp: Date.now(),
+        });
+        return { success: true, config, subdomain: business.subdomain };
+      }
     }
 
     // Priority 2: Try to load YAML from database (config_yaml column)
@@ -183,13 +192,22 @@ export async function loadConfigBySubdomain(subdomain: string): Promise<ConfigLo
 
     // Priority 1: Try to load JSON from database (config_json column - fastest!)
     if (business.config_json) {
-      const config = business.config_json as TenantConfig;
-      // Cache it
-      configCache.set(subdomain, {
-        config,
-        timestamp: Date.now(),
-      });
-      return { success: true, config, subdomain };
+      // Apply schema transformations to ensure legacy formats are converted
+      // (e.g., availability {open, close} -> {slots: [{open, close}]})
+      const parseResult = TenantConfigSchema.safeParse(business.config_json);
+      if (!parseResult.success) {
+        console.error('[Config Loader] Failed to parse config_json for subdomain:', subdomain);
+        console.error('Validation errors:', parseResult.error.format());
+        // Fall through to try other loading methods
+      } else {
+        const config = parseResult.data;
+        // Cache it
+        configCache.set(subdomain, {
+          config,
+          timestamp: Date.now(),
+        });
+        return { success: true, config, subdomain };
+      }
     }
 
     // Priority 2: Try to load YAML from database (config_yaml column)
