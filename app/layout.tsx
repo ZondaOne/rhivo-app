@@ -22,33 +22,31 @@ export const metadata: Metadata = {
   creator: "Rhivo",
   publisher: "Rhivo",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
-  openGraph: {
-    title: "Rhivo - Book appointments instantly",
-    description: "See what's available. Pick a time. You're done. Book appointments in seconds with Rhivo.",
-    type: "website",
-    locale: "en_US",
-    siteName: "Rhivo",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Rhivo - Book appointments instantly",
-    description: "See what's available. Pick a time. You're done.",
-  },
-  icons: {
-    icon: [
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    other: [
-      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
-    ],
-  },
-  manifest: '/site.webmanifest',
+    openGraph: {
+      title: "Rhivo - Book appointments instantly",
+      description: "See what's available. Pick a time. You're done. Book appointments in seconds with Rhivo.",
+      type: "website",
+      locale: "en_US",
+      siteName: "Rhivo",
+      images: [
+        {
+          url: '/logo.png',
+          alt: 'Rhivo - Book appointments instantly',
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Rhivo - Book appointments instantly",
+      description: "See what's available. Pick a time. You're done.",
+    },
+    icons: {
+      icon: '/favicon.ico',
+    },
+    other: {
+      "android-chrome-512x512": "/android-chrome-512x512.png",
+    },
+    manifest: '/site.webmanifest',
 };
 
 export default function RootLayout({
