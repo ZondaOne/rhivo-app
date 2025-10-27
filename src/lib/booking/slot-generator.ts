@@ -29,7 +29,7 @@ import {
   getIntersectingOffTimes,
   OffTimeInterval,
 } from './off-time-system';
-import { getStartOfDay, getEndOfDay } from '@/lib/utils/timezone';
+import { getStartOfDay, getEndOfDay, parseTime, getDayNameInTimezone } from '@/lib/utils/timezone';
 
 export interface TimeSlot {
   start: string; // ISO datetime string
@@ -133,7 +133,8 @@ function generateSlotsForDay(
   const slots: TimeSlot[] = [];
 
   // Check if this day is available
-  const dayOfWeek = getDayOfWeek(date);
+  // CRITICAL: Use timezone-aware day name to ensure correct day in business timezone
+  const dayOfWeek = getDayNameInTimezone(date, timezone);
   const availability = config.availability.find(a => a.day === dayOfWeek);
 
   if (!availability || !availability.enabled) {
@@ -141,7 +142,8 @@ function generateSlotsForDay(
   }
 
   // Check for exceptions (holidays, special hours)
-  const dateString = formatDateYYYYMMDD(date);
+  // CRITICAL: Format date in business timezone to match exception dates
+  const dateString = formatDateYYYYMMDDInTimezone(date, timezone);
   const exception = config.availabilityExceptions.find(e => e.date === dateString);
 
   if (exception?.closed) {
@@ -179,14 +181,11 @@ function generateSlotsForDay(
 
   // Iterate through each availability slot (supports breaks and split shifts)
   for (const availSlot of availabilitySlots) {
-    const [openHour, openMin] = availSlot.open.split(':').map(Number);
-    const [closeHour, closeMin] = availSlot.close.split(':').map(Number);
-
-    const slotOpen = new Date(date);
-    slotOpen.setHours(openHour, openMin, 0, 0);
-
-    const slotClose = new Date(date);
-    slotClose.setHours(closeHour, closeMin, 0, 0);
+    // CRITICAL: Use timezone-aware parseTime instead of setHours()
+    // setHours() operates in server's local timezone, not business timezone
+    // This ensures 09:00 means 9 AM in the business's timezone, not the server's
+    const slotOpen = parseTime(availSlot.open, date, timezone);
+    const slotClose = parseTime(availSlot.close, date, timezone);
 
     // Generate slots at timeSlotDuration intervals (DISPLAY interval) within this availability slot
     let slotStart = new Date(slotOpen);
@@ -336,7 +335,8 @@ function getDayOfWeek(date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursda
 }
 
 /**
- * Format date as YYYY-MM-DD
+ * Format date as YYYY-MM-DD (server's local timezone)
+ * DEPRECATED: Use formatDateYYYYMMDDInTimezone instead for correct timezone handling
  */
 function formatDateYYYYMMDD(date: Date): string {
   const year = date.getFullYear();
@@ -346,13 +346,30 @@ function formatDateYYYYMMDD(date: Date): string {
 }
 
 /**
+ * Format date as YYYY-MM-DD in a specific timezone
+ * This ensures the date string matches the business's calendar, not the server's
+ */
+function formatDateYYYYMMDDInTimezone(date: Date, timezone: string): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(date); // Returns YYYY-MM-DD format
+}
+
+/**
  * Group slots by date for easier rendering
+ * Note: Extracts date directly from ISO string to avoid timezone conversion issues
  */
 export function groupSlotsByDate(slots: TimeSlot[]): Map<string, TimeSlot[]> {
   const grouped = new Map<string, TimeSlot[]>();
 
   for (const slot of slots) {
-    const date = formatDateYYYYMMDD(new Date(slot.start));
+    // Extract date from ISO string (e.g., "2025-10-29T09:00:00.000Z" -> "2025-10-29")
+    // This avoids timezone conversion issues when using Date methods
+    const date = slot.start.split('T')[0];
     if (!grouped.has(date)) {
       grouped.set(date, []);
     }

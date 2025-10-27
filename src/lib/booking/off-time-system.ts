@@ -16,7 +16,7 @@
  */
 
 import { TenantConfig, DailyAvailability, AvailabilityException } from '@/lib/config/tenant-schema';
-import { parseTime, getStartOfDay, getEndOfDay } from '@/lib/utils/timezone';
+import { parseTime, getStartOfDay, getEndOfDay, getDayNameInTimezone } from '@/lib/utils/timezone';
 
 /**
  * Represents a time interval when the business is unavailable
@@ -84,8 +84,10 @@ function generateOffTimeIntervalsForDay(
   timezone: string
 ): OffTimeInterval[] {
   const offTimes: OffTimeInterval[] = [];
-  const dayOfWeek = getDayOfWeek(date);
-  const dateString = formatDateYYYYMMDD(date);
+  // CRITICAL: Use timezone-aware day name, not server's local timezone
+  const dayOfWeek = getDayNameInTimezone(date, timezone);
+  // CRITICAL: Format date in business timezone, not server's timezone
+  const dateString = formatDateYYYYMMDDInTimezone(date, timezone);
 
   // Check for exceptions first (they override regular availability)
   const exception = config.availabilityExceptions.find(e => e.date === dateString);
@@ -260,13 +262,28 @@ function getDayOfWeek(date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursda
 }
 
 /**
- * Format date as YYYY-MM-DD
+ * Format date as YYYY-MM-DD (server's local timezone)
+ * DEPRECATED: Use formatDateYYYYMMDDInTimezone instead for correct timezone handling
  */
 function formatDateYYYYMMDD(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Format date as YYYY-MM-DD in a specific timezone
+ * This ensures the date string matches the business's calendar, not the server's
+ */
+function formatDateYYYYMMDDInTimezone(date: Date, timezone: string): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(date); // Returns YYYY-MM-DD format
 }
 
 /**
