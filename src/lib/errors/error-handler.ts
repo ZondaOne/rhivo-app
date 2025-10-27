@@ -26,25 +26,27 @@ export interface ErrorDetails {
 /**
  * Categorizes an error based on its properties
  */
-export function categorizeError(error: any): ErrorDetails {
+export function categorizeError(error: unknown): ErrorDetails {
+  const err = error as Record<string, unknown>;
+
   // Validation errors from API
-  if (error?.details?.errors || error?.errors) {
+  if (err?.details?.errors || err?.errors) {
     return {
       type: 'validation',
-      message: error.message || 'Please correct the validation errors',
-      errors: error.details?.errors || error.errors,
+      message: (err.message as string) || 'Please correct the validation errors',
+      errors: (err.details?.errors || err.errors) as Record<string, string[]>,
       retryable: false,
     };
   }
 
   // Network errors
   if (
-    error?.name === 'NetworkError' ||
-    error?.name === 'AbortError' ||
-    error?.code === 'ECONNREFUSED' ||
-    error?.code === 'ETIMEDOUT' ||
-    error?.message?.includes('fetch') ||
-    error?.message?.includes('network')
+    err?.name === 'NetworkError' ||
+    err?.name === 'AbortError' ||
+    err?.code === 'ECONNREFUSED' ||
+    err?.code === 'ETIMEDOUT' ||
+    (err?.message as string)?.includes('fetch') ||
+    (err?.message as string)?.includes('network')
   ) {
     return {
       type: 'network',
@@ -54,34 +56,34 @@ export function categorizeError(error: any): ErrorDetails {
   }
 
   // Server errors (5xx)
-  if (error?.status >= 500 && error?.status < 600) {
+  if ((err?.status as number) >= 500 && (err?.status as number) < 600) {
     return {
       type: 'server',
-      message: error.message || 'Server error. Please try again later.',
+      message: (err.message as string) || 'Server error. Please try again later.',
       retryable: true,
     };
   }
 
   // Authentication errors
-  if (error?.status === 401 || error?.status === 403) {
+  if (err?.status === 401 || err?.status === 403) {
     return {
       type: 'auth',
-      message: error.message || 'Authentication required. Please log in again.',
+      message: (err.message as string) || 'Authentication required. Please log in again.',
       retryable: false,
     };
   }
 
   // Not found errors
-  if (error?.status === 404) {
+  if (err?.status === 404) {
     return {
       type: 'not_found',
-      message: error.message || 'The requested resource was not found.',
+      message: (err.message as string) || 'The requested resource was not found.',
       retryable: false,
     };
   }
 
   // Rate limiting
-  if (error?.status === 429) {
+  if (err?.status === 429) {
     return {
       type: 'server',
       message: 'Too many requests. Please wait a moment and try again.',

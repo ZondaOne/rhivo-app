@@ -181,7 +181,7 @@ export class EmailService {
    *
    * TODO: Implement webhook endpoint to receive delivery status updates from Resend
    */
-  async checkDeliveryStatus(messageId: string): Promise<any> {
+  async checkDeliveryStatus(messageId: string): Promise<unknown> {
     // TODO: Implement Resend API call to check email status
     // This will require Resend API support for email status queries
     console.warn('checkDeliveryStatus not yet implemented');

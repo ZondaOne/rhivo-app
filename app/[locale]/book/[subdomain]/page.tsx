@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { TenantConfig, Category, Service } from '@/lib/config/tenant-schema';
 import { v4 as uuidv4 } from 'uuid';
 import { applyBrandColors, removeBrandColors } from '@/lib/theme/brand-colors';
-import { ServiceSelectionSkeleton, CalendarSkeleton, TimeSlotsSkeleton } from '@/components/booking/skeletons';
+import { CalendarSkeleton, TimeSlotsSkeleton } from '@/components/booking/skeletons';
 import './brand-theme.css';
 
 interface TimeSlot {
@@ -48,13 +48,15 @@ export default function BookingPage() {
   const [guestEmail, setGuestEmail] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [bookingNotes, setBookingNotes] = useState('');
-  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [, setBookingNotes] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [, setCustomFieldValues] = useState<Record<string, string>>({});
 
   const [reserving, setReserving] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [reservationId, setReservationId] = useState<string | null>(null);
-  const [appointmentId, setAppointmentId] = useState<string | null>(null);
+  const [, setReservationId] = useState<string | null>(null);
+  const [, setAppointmentId] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [cancellationToken, setCancellationToken] = useState<string | null>(null);
 
@@ -202,7 +204,7 @@ export default function BookingPage() {
         setError(t('details.loadSlotsFailed'));
       })
       .finally(() => setLoadingSlots(false));
-  }, [selectedService, selectedDate, subdomain]);
+  }, [selectedService, selectedDate, subdomain, t]);
 
   // Handle service selection
   const handleServiceSelect = (service: Service) => {
@@ -1765,6 +1767,6 @@ function formatTimeWithTimezone(date: Date, timezone: string, locale: string): s
 }
 
 function getDayOfWeek(date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' {
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  return days[date.getDay()] as any;
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+  return days[date.getDay()] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 }

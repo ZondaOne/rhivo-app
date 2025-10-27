@@ -33,16 +33,18 @@ export default function LoginPage() {
       // User object is now updated in auth context
       // Role check and redirect will happen in the useEffect below
       setPending(false);
-    } catch (err: any) {
+    } catch (err) {
       setPending(false);
 
       // Check if error is due to unverified email
-      if (err?.message?.includes('verify your email') || err?.requiresVerification) {
+      const errorMessage = err instanceof Error ? err.message : '';
+      const errorObj = err as { requiresVerification?: boolean };
+      if (errorMessage.includes('verify your email') || errorObj?.requiresVerification) {
         setUnverifiedEmail(email);
         setShowVerificationModal(true);
         setError(null); // Clear error since we're showing modal
       } else {
-        setError(err?.message || t('login.loginFailed'));
+        setError(errorMessage || t('login.loginFailed'));
       }
     }
   }

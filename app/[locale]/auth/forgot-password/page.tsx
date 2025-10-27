@@ -32,8 +32,8 @@ export default function ForgotPasswordPage() {
       }
 
       setSuccess(true);
-    } catch (err: any) {
-      setError(err?.message || t('forgotPassword.sendFailed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('forgotPassword.sendFailed'));
     } finally {
       setPending(false);
     }

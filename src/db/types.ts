@@ -118,8 +118,8 @@ export interface AuditLog {
   appointment_id: string;
   actor_id: string | null;
   action: AuditAction;
-  old_state: Record<string, any> | null;
-  new_state: Record<string, any>;
+  old_state: Record<string, unknown> | null;
+  new_state: Record<string, unknown>;
   timestamp: Date;
 }
 

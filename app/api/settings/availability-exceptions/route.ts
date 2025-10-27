@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Read YAML config from database
-    const config = yaml.load(business.config_yaml) as any;
+    const config = yaml.load(business.config_yaml) as { availabilityExceptions?: unknown[] };
 
     // Return availability exceptions
     const exceptions = config.availabilityExceptions || [];
@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Read YAML config from database
-    const config = yaml.load(business.config_yaml) as any;
+    const config = yaml.load(business.config_yaml) as { availabilityExceptions?: unknown[] };
 
     // Initialize availabilityExceptions if not exists
     if (!config.availabilityExceptions) {
@@ -255,8 +255,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if exception already exists for this date
-    const existingIndex = config.availabilityExceptions.findIndex(
-      (ex: any) => ex.date === date
+    const existingIndex = (config.availabilityExceptions || []).findIndex(
+      (ex: { date: string }) => ex.date === date
     );
 
     const newException: AvailabilityException = {
@@ -275,9 +275,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Sort exceptions by date
-    config.availabilityExceptions.sort((a: any, b: any) =>
-      a.date.localeCompare(b.date)
-    );
+    if (config.availabilityExceptions) {
+      (config.availabilityExceptions as Array<{ date: string }>).sort((a, b) =>
+        a.date.localeCompare(b.date)
+      );
+    }
 
     // Validate the updated config against schema
     const validationResult = TenantConfigSchema.safeParse(config);
@@ -404,7 +406,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Read YAML config from database
-    const config = yaml.load(business.config_yaml) as any;
+    const config = yaml.load(business.config_yaml) as { availabilityExceptions?: unknown[] };
 
     // Check if exception exists
     const initialLength = config.availabilityExceptions?.length || 0;
@@ -417,8 +419,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove the exception
-    config.availabilityExceptions = config.availabilityExceptions.filter(
-      (ex: any) => ex.date !== date
+    config.availabilityExceptions = (config.availabilityExceptions || []).filter(
+      (ex: { date: string }) => ex.date !== date
     );
 
     if (config.availabilityExceptions.length === initialLength) {

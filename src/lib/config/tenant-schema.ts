@@ -558,9 +558,9 @@ export function validateTenantConfig(config: TenantConfig): {
 
   // Validate days of week in availability cover all 7 days
   const days = config.availability.map(a => a.day);
-  const expectedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const expectedDays: Array<'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday'> = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   for (const day of expectedDays) {
-    if (!days.includes(day as any)) {
+    if (!days.includes(day)) {
       errors.push(`Missing availability for ${day}`);
     }
   }

@@ -254,9 +254,23 @@ export async function searchAddresses(
       };
     }
 
-    const results = await response.json();
+    const results = await response.json() as Array<{
+      lat: string;
+      lon: string;
+      display_name: string;
+      address?: {
+        road?: string;
+        street?: string;
+        city?: string;
+        town?: string;
+        village?: string;
+        state?: string;
+        postcode?: string;
+        country?: string;
+      };
+    }>;
 
-    return results.map((result: any) => ({
+    return results.map((result) => ({
       latitude: parseFloat(result.lat),
       longitude: parseFloat(result.lon),
       displayName: result.display_name,

@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import RescheduleModal from './components/RescheduleModal';
 
+// Force dynamic rendering to avoid prerendering errors with useAuth
+export const dynamic = 'force-dynamic';
+
 type AppointmentStatus = 'confirmed' | 'canceled' | 'completed' | 'no_show';
 
 interface Appointment {

@@ -355,12 +355,12 @@ async function buildConfigFromDatabase(businessId: string): Promise<ParseResult>
       timeSlotDuration: 30,
       availability: availability.length > 0
         ? availability.map(a => ({
-            day: dayNames[a.day_of_week] as any,
+            day: dayNames[a.day_of_week] as 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday',
             enabled: a.is_available,
             slots: [{ open: a.start_time, close: a.end_time }],
           }))
         : dayNames.map(day => ({
-            day: day as any,
+            day: day as 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday',
             enabled: day !== 'sunday',
             slots: [{ open: '09:00', close: '17:00' }],
           })),
@@ -369,7 +369,7 @@ async function buildConfigFromDatabase(businessId: string): Promise<ParseResult>
         id: c.id,
         name: c.name,
         sortOrder: c.sort_order,
-        services: (c.services || []).map((s: any) => ({
+        services: (c.services || []).map((s: { id: string; name: string; duration: number; price: number; color: string; sortOrder: number; enabled: boolean }) => ({
           id: s.id,
           name: s.name,
           duration: s.duration,

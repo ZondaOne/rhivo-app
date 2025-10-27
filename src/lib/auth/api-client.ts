@@ -19,7 +19,7 @@ interface RequestOptions extends RequestInit {
 /**
  * Make authenticated API request
  */
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   url: string,
   options: RequestOptions = {}
 ): Promise<T> {
@@ -45,11 +45,18 @@ export async function apiRequest<T = any>(
 
     // Create an error object that preserves status, code, message, and validation errors
     // UX-002: Preserve validation errors for inline display
-    const error: any = new Error(
+    interface ApiError extends Error {
+      status: number;
+      code?: string;
+      details?: unknown;
+      errors?: unknown;
+    }
+
+    const error = new Error(
       errorBody.message ||
       errorBody.error ||
       'Request failed'
-    );
+    ) as ApiError;
     error.status = response.status;
     error.code = errorBody.code;
     error.details = errorBody.details;

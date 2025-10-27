@@ -71,12 +71,21 @@ export async function GET(request: NextRequest) {
     `;
 
     // Calculate total bookings for percentage
-    const totalBookings = servicesData.reduce((sum: number, service: any) => {
+    const totalBookings = servicesData.reduce((sum: number, service: { booking_count: string }) => {
       return sum + parseInt(service.booking_count, 10);
     }, 0);
 
     // Format the data
-    const services = servicesData.map((service: any) => {
+    const services = servicesData.map((service: {
+      id: string;
+      name: string;
+      color: string;
+      price_cents: number;
+      booking_count: string;
+      completed_count: string;
+      cancelled_count: string;
+      total_revenue: string;
+    }) => {
       const bookingCount = parseInt(service.booking_count, 10);
       const completedCount = parseInt(service.completed_count, 10);
       const cancelledCount = parseInt(service.cancelled_count, 10);

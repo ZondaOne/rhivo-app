@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Ensure basic weekday availability
-    const [{ count }] = await sql`SELECT COUNT(*)::int AS count FROM availability WHERE business_id = ${businessId}` as any;
+    const [{ count }] = await sql`SELECT COUNT(*)::int AS count FROM availability WHERE business_id = ${businessId}` as Array<{ count: number }>;
     if (!count || Number(count) === 0) {
       const days = [1, 2, 3, 4, 5];
       for (const d of days) {

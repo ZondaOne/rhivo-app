@@ -302,7 +302,18 @@ export class CustomerNotificationService {
   /**
    * Fetch full appointment details from database and YAML config
    */
-  private async fetchAppointmentDetails(appointmentId: string): Promise<any> {
+  private async fetchAppointmentDetails(appointmentId: string): Promise<{
+    id: string;
+    slot_start: Date;
+    slot_end: Date;
+    guest_name: string;
+    guest_email: string;
+    service_name: string;
+    price_cents: number;
+    business_name: string;
+    business_timezone: string;
+    [key: string]: unknown;
+  }> {
     const result = await this.db`
       SELECT
         a.id,

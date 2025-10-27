@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -43,7 +43,7 @@ const createCustomIcon = (color: string = '#14b8a6', isHovered: boolean = false)
 };
 
 // Custom cluster icon
-const createClusterIcon = (cluster: any) => {
+const createClusterIcon = (cluster: { getChildCount: () => number }) => {
   const count = cluster.getChildCount();
   const size = count < 10 ? 40 : count < 50 ? 50 : 60;
 

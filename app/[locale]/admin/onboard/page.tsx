@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function OnboardBusinessPage() {
   const [yamlPath, setYamlPath] = useState('config/tenants/wellness-spa.yaml');
@@ -179,9 +180,9 @@ export default function OnboardBusinessPage() {
                         </div>
                         <div>
                           <span className="text-gray-600 block mb-1">Owner Dashboard:</span>
-                          <a href="/auth/login" className="text-indigo-600 hover:text-indigo-700 underline">
+                          <Link href="/auth/login" className="text-indigo-600 hover:text-indigo-700 underline">
                             Login to Dashboard
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function CustomerLoginPage() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState(''); // email or phone

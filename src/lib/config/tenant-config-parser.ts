@@ -288,7 +288,7 @@ export function validateConfigMigration(
 /**
  * Export configuration to JSON Schema for documentation
  */
-export function generateJSONSchema(): Record<string, any> {
+export function generateJSONSchema(): Record<string, unknown> {
   // This would use a library like zod-to-json-schema in production
   // For now, we return a placeholder
   return {

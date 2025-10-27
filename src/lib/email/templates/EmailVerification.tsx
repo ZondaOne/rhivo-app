@@ -67,7 +67,7 @@ export const EmailVerification = ({
               Se il pulsante non funziona, copia e incolla questo link nel tuo browser:
             </Text>
             <Text style={alternativeTextSecondary}>
-              If the button doesn't work, copy and paste this link into your browser:
+              If the button doesn&apos;t work, copy and paste this link into your browser:
             </Text>
             <Text style={linkText}>
               <Link href={verificationUrl} style={link}>
@@ -84,7 +84,7 @@ export const EmailVerification = ({
               • Questo link scadrà tra {expiryHours} ore / This link expires in {expiryHours} hours
             </Text>
             <Text style={securityText}>
-              • Se non hai creato questo account, ignora questa email / If you didn't create this account, please ignore this email
+              • Se non hai creato questo account, ignora questa email / If you didn&apos;t create this account, please ignore this email
             </Text>
             <Text style={securityText}>
               • Non condividere questo link con nessuno / Never share this link with anyone
@@ -95,7 +95,7 @@ export const EmailVerification = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
-              Questa è un'email automatica da Rhivo.
+              Questa è un&apos;email automatica da Rhivo.
             </Text>
             <Text style={footerTextSecondary}>
               This is an automated email from Rhivo.

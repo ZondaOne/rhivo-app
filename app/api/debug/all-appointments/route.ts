@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ownerBusinessId,
       appointmentCount: appointments.length,
-      appointments: appointments.map((a: any) => ({
+      appointments: appointments.map((a: { business_id: string; [key: string]: unknown }) => ({
         ...a,
         isOwnersAppointment: a.business_id === ownerBusinessId
       }))

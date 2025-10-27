@@ -34,7 +34,7 @@ export interface OnboardingFormData {
   secondaryColor?: string;
 
   // Services (will be empty initially for self-service)
-  categories?: any[];
+  categories?: Array<{ id: string; name: string; description?: string; sortOrder: number; services: unknown[] }>;
 
   // Availability
   availability: Array<{
@@ -121,7 +121,7 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
       availability: Array.isArray(formData.availability)
         ? formData.availability.map((day) => {
             const mapped = {
-              day: day.day as any,
+              day: day.day as 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday',
               enabled: day.enabled,
               slots: day.slots || [],
             };
@@ -242,7 +242,7 @@ export function generateYAML(formData: OnboardingFormData): {
     if (!validation.success) {
       console.error('Schema validation failed:', validation.error);
       const errors = validation.error?.issues
-        ? validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`)
+        ? validation.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`)
         : ['Validation failed with unknown errors'];
       return {
         success: false,

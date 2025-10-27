@@ -3,12 +3,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-type Json = any;
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 interface TestResult {
   passed?: boolean;
   message?: string;
-  [key: string]: any;
+  [key: string]: Json;
 }
 
 interface TestCategory {
@@ -23,7 +23,7 @@ interface TestDefinition {
   id: string;
   label: string;
   description: string;
-  run: () => Promise<any>;
+  run: () => Promise<TestResult>;
   requiresAuth?: boolean;
   requiresBiz?: boolean;
 }
@@ -37,7 +37,7 @@ export default function ApiDebugPage() {
   const [showDocsModal, setShowDocsModal] = useState(false);
   const [autoCreds, setAutoCreds] = useState<{ email: string; password: string } | null>(null);
   const [ownerBizId, setOwnerBizId] = useState<string | null>(null);
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<{ id: string; slot_start: string; [key: string]: Json }[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, TestResult>>({});
   const accessTokenRef = useRef<string | null>(null);
@@ -53,7 +53,7 @@ export default function ApiDebugPage() {
     accessTokenRef.current = accessToken;
   }, [accessToken]);
 
-  async function run(label: string, fn: () => Promise<any>) {
+  async function run(label: string, fn: () => Promise<TestResult>) {
     try {
       setLoading(label);
       const res = await fn();
@@ -63,8 +63,8 @@ export default function ApiDebugPage() {
         ...prev,
         [label]: res
       }));
-    } catch (e: any) {
-      const errorResult = { error: e?.message || String(e), passed: false };
+    } catch (e: unknown) {
+      const errorResult = { error: e instanceof Error ? e.message : String(e), passed: false };
       setOutput(errorResult);
 
       setTestResults(prev => ({
@@ -143,7 +143,7 @@ export default function ApiDebugPage() {
     setAutoCreds(creds);
     setShowModal(true);
 
-    const signupRes: any = await signupOwner({
+    const signupRes = await signupOwner({
       email: creds.email,
       password: creds.password,
       name: 'Debug Owner',
@@ -669,7 +669,7 @@ export default function ApiDebugPage() {
                 <div className="mt-4">
                   <h4 className="text-xs font-semibold text-gray-700 mb-2">Active Reservations</h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {reservations.map((res: any) => (
+                    {reservations.map((res) => (
                       <div
                         key={res.id}
                         className={`p-2 rounded-lg border-2 cursor-pointer transition-colors text-xs ${

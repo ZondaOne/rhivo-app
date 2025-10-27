@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     let totalCancelled = 0;
     let totalUpcoming = 0;
 
-    appointments.forEach((row: any) => {
+    appointments.forEach((row: { date: string; count: string; status: string }) => {
       const dateStr = row.date;
       const count = parseInt(row.count, 10);
       dateMap.set(dateStr, (dateMap.get(dateStr) || 0) + count);

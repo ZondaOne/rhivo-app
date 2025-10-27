@@ -66,11 +66,13 @@ export default function GuestRescheduleModal({
     if (selectedDate) {
       fetchAvailableSlots();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   // Fetch week availability when week changes
   useEffect(() => {
     loadWeekAvailability();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWeekStart]);
 
   function getWeekStart(date: Date): Date {
@@ -231,8 +233,8 @@ export default function GuestRescheduleModal({
       }
 
       setAvailableSlots(data.slots || []);
-    } catch (err: any) {
-      setError(err.message || t('loadSlotsError'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('loadSlotsError'));
     } finally {
       setLoadingSlots(false);
     }
@@ -271,8 +273,8 @@ export default function GuestRescheduleModal({
       }
 
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || t('rescheduleError'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('rescheduleError'));
     } finally {
       setLoading(false);
     }

@@ -1725,9 +1725,9 @@ export default function OnboardBusinessPage() {
         setVerificationEmail(email);
         setShowVerificationModal(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Submission error:', err);
-      setError(err?.message || 'Failed to register business. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to register business. Please try again.');
     } finally {
       setLoading(false);
     }

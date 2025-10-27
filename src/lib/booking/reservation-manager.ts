@@ -127,14 +127,15 @@ export class ReservationManager {
       }
 
       return result[0] as Reservation;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string; code?: string };
       // Check if it's a capacity error
-      if (error.message === 'SLOT_UNAVAILABLE') {
+      if (err.message === 'SLOT_UNAVAILABLE') {
         throw new Error('The selected time slot is no longer available');
       }
 
       // Check for duplicate idempotency key race condition
-      if (error.code === '23505') {
+      if (err.code === '23505') {
         const retryReservation = await this.db`
           SELECT * FROM reservations
           WHERE idempotency_key = ${idempotencyKey}

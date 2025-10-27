@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     let totalRevenue = 0;
     let totalBookings = 0;
 
-    revenueData.forEach((row: any) => {
+    revenueData.forEach((row: { date: string; revenue: string; booking_count: string }) => {
       const dateStr = row.date;
       const revenue = parseFloat(row.revenue) || 0;
       const count = parseInt(row.booking_count, 10);

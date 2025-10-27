@@ -109,8 +109,8 @@ function SettingsContent() {
       setConfirmPassword('');
 
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err?.message || t('password.changeFailed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('password.changeFailed'));
     } finally {
       setPending(false);
     }
@@ -121,6 +121,7 @@ function SettingsContent() {
     if (isAuthenticated && accessToken && selectedBusinessId) {
       fetchBusinessConfig();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, accessToken, selectedBusinessId]);
 
   async function fetchBusinessConfig() {
@@ -157,6 +158,7 @@ function SettingsContent() {
     if (isAuthenticated && accessToken) {
       fetchOffDays();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, accessToken]);
 
   async function fetchOffDays() {
@@ -260,8 +262,8 @@ function SettingsContent() {
       // Show success message
       setOffDaySuccess(t('offDays.success.added'));
       setTimeout(() => setOffDaySuccess(null), 3000);
-    } catch (err: any) {
-      setOffDayError(err?.message || t('offDays.errors.addFailed'));
+    } catch (err) {
+      setOffDayError(err instanceof Error ? err.message : t('offDays.errors.addFailed'));
     } finally {
       setSavingOffDay(false);
     }
@@ -290,8 +292,8 @@ function SettingsContent() {
       // Show success message
       setOffDaySuccess(t('offDays.success.removed'));
       setTimeout(() => setOffDaySuccess(null), 3000);
-    } catch (err: any) {
-      setOffDayError(err?.message || t('offDays.errors.removeFailed'));
+    } catch (err) {
+      setOffDayError(err instanceof Error ? err.message : t('offDays.errors.removeFailed'));
     }
   }
 

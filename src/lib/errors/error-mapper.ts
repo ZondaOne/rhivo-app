@@ -7,7 +7,7 @@ export interface ApiError {
   message: string;
   code?: string;
   status?: number;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -69,20 +69,23 @@ const BUSINESS_ERROR_MESSAGES: Record<string, string> = {
 /**
  * Map any error to a user-friendly message
  */
-export function mapErrorToUserMessage(error: any): string {
+export function mapErrorToUserMessage(error: unknown): string {
   // Handle null/undefined
   if (!error) {
     return HTTP_ERROR_MESSAGES[500];
   }
 
+  // Type guard for error-like objects
+  const errorObj = error as { code?: string; message?: string; status?: number };
+
   // Handle custom business error codes first (highest priority)
-  if (error.code && BUSINESS_ERROR_MESSAGES[error.code]) {
-    return BUSINESS_ERROR_MESSAGES[error.code];
+  if (errorObj.code && BUSINESS_ERROR_MESSAGES[errorObj.code]) {
+    return BUSINESS_ERROR_MESSAGES[errorObj.code];
   }
 
   // Handle error message that contains specific keywords
-  if (error.message) {
-    const message = error.message.toLowerCase();
+  if (errorObj.message) {
+    const message = errorObj.message.toLowerCase();
 
     if (message.includes('no available capacity') || message.includes('fully booked')) {
       return BUSINESS_ERROR_MESSAGES['NO_CAPACITY'];
@@ -110,13 +113,18 @@ export function mapErrorToUserMessage(error: any): string {
   }
 
   // Handle HTTP status codes
-  if (error.status && HTTP_ERROR_MESSAGES[error.status]) {
-    return HTTP_ERROR_MESSAGES[error.status];
+  if (errorObj.status && HTTP_ERROR_MESSAGES[errorObj.status]) {
+    return HTTP_ERROR_MESSAGES[errorObj.status];
   }
 
   // Handle Error instances with messages that don't match patterns above
   if (error instanceof Error && error.message && !error.message.startsWith('HTTP ')) {
     return error.message;
+  }
+
+  // Handle error message in object
+  if (errorObj.message && !errorObj.message.startsWith('HTTP ')) {
+    return errorObj.message;
   }
 
   // Default fallback
@@ -130,7 +138,7 @@ export function createApiError(
   message: string,
   code?: string,
   status?: number,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): ApiError {
   return {
     message,
@@ -143,31 +151,34 @@ export function createApiError(
 /**
  * Check if an error is a specific type
  */
-export function isErrorType(error: any, code: string): boolean {
-  return error?.code === code || error?.message?.includes(code);
+export function isErrorType(error: unknown, code: string): boolean {
+  const errorObj = error as { code?: string; message?: string };
+  return errorObj?.code === code || errorObj?.message?.includes(code);
 }
 
 /**
  * Check if error is a conflict/concurrent modification error
  */
-export function isConflictError(error: any): boolean {
+export function isConflictError(error: unknown): boolean {
+  const errorObj = error as { status?: number; code?: string; message?: string };
   return (
-    error?.status === 409 ||
-    error?.code === 'CONFLICT' ||
-    error?.code === 'VERSION_MISMATCH' ||
-    error?.message?.toLowerCase().includes('modified')
+    errorObj?.status === 409 ||
+    errorObj?.code === 'CONFLICT' ||
+    errorObj?.code === 'VERSION_MISMATCH' ||
+    errorObj?.message?.toLowerCase().includes('modified')
   );
 }
 
 /**
  * Check if error is a capacity/availability error
  */
-export function isCapacityError(error: any): boolean {
+export function isCapacityError(error: unknown): boolean {
+  const errorObj = error as { code?: string; message?: string };
   return (
-    error?.code === 'NO_CAPACITY' ||
-    error?.code === 'MAX_SIMULTANEOUS_BOOKINGS_REACHED' ||
-    error?.code === 'SLOT_UNAVAILABLE' ||
-    error?.message?.toLowerCase().includes('capacity') ||
-    error?.message?.toLowerCase().includes('fully booked')
+    errorObj?.code === 'NO_CAPACITY' ||
+    errorObj?.code === 'MAX_SIMULTANEOUS_BOOKINGS_REACHED' ||
+    errorObj?.code === 'SLOT_UNAVAILABLE' ||
+    errorObj?.message?.toLowerCase().includes('capacity') ||
+    errorObj?.message?.toLowerCase().includes('fully booked')
   );
 }

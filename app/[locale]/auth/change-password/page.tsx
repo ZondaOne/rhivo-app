@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/contexts/AuthContext';
 import { Logo } from '@/components/Logo';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 export default function ChangePasswordPage() {
   const t = useTranslations('auth');
-  const locale = useLocale();
   const router = useRouter();
   const { user, isAuthenticated, isLoading, accessToken } = useAuth();
 
@@ -68,8 +67,8 @@ export default function ChangePasswordPage() {
 
       // Redirect to dashboard after 2 seconds
       setTimeout(() => router.push('/dashboard'), 2000);
-    } catch (err: any) {
-      setError(err?.message || t('changePassword.changeFailed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('changePassword.changeFailed'));
     } finally {
       setPending(false);
     }

@@ -72,7 +72,24 @@ export async function GET() {
       ORDER BY bd.name ASC
     `;
 
-    const businessSummaries = businesses.map((b: any) => ({
+    const businessSummaries = businesses.map((b: {
+      subdomain: string;
+      name: string;
+      description?: string;
+      street?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+      phone?: string;
+      website?: string;
+      latitude?: number;
+      longitude?: number;
+      logo_url?: string;
+      primary_color?: string;
+      min_price?: number;
+      max_price?: number;
+      [key: string]: unknown;
+    }) => ({
       subdomain: b.subdomain,
       name: b.name,
       description: b.description || undefined,

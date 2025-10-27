@@ -50,7 +50,7 @@ function isUuid(value: string): boolean {
  * const service = await getServiceByIdentifier(db, businessId, "swedish-massage-60");
  */
 export async function getServiceByIdentifier(
-  db: any,
+  db: { query: <T>(strings: TemplateStringsArray, ...values: unknown[]) => Promise<T[]> } & ((strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>),
   businessId: string,
   identifier: string
 ): Promise<ServiceRecord | null> {
@@ -63,7 +63,7 @@ export async function getServiceByIdentifier(
   console.log('  identifier:', identifier);
   console.log('  isUuid:', isUuid(identifier));
 
-  let result: any;
+  let result: ServiceRecord[];
 
   if (isUuid(identifier)) {
     // Look up by UUID (id column)
@@ -103,7 +103,7 @@ export async function getServiceByIdentifier(
  * const uuid = await getServiceUuid(db, businessId, "swedish-massage-60");
  */
 export async function getServiceUuid(
-  db: any,
+  db: { query: <T>(strings: TemplateStringsArray, ...values: unknown[]) => Promise<T[]> } & ((strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>),
   businessId: string,
   externalId: string
 ): Promise<string | null> {
@@ -122,7 +122,7 @@ export async function getServiceUuid(
  * @throws Error if service not found or not available
  */
 export async function validateServiceForBooking(
-  db: any,
+  db: { query: <T>(strings: TemplateStringsArray, ...values: unknown[]) => Promise<T[]> } & ((strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>),
   businessId: string,
   identifier: string
 ): Promise<ServiceRecord> {

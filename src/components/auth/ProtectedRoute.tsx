@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from '@/i18n/routing';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -21,9 +21,15 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure we only run on client side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (!isMounted || isLoading) return;
 
     // Not authenticated - redirect to appropriate login page
     if (!isAuthenticated) {
@@ -64,7 +70,12 @@ export function ProtectedRoute({
         router.push(fallbackPath);
       }
     }
-  }, [isAuthenticated, isLoading, user, requireRole, router, fallbackPath]);
+  }, [isMounted, isAuthenticated, isLoading, user, requireRole, router, fallbackPath]);
+
+  // Don't render anything server-side
+  if (!isMounted) {
+    return null;
+  }
 
   // Show loading state
   if (isLoading) {

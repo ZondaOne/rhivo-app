@@ -5,10 +5,10 @@ import { verifyAccessToken } from '@/lib/auth/tokens';
  * Auth middleware to verify JWT and extract claims
  */
 export function withAuth(
-  handler: (request: NextRequest, context: any) => Promise<NextResponse>,
+  handler: (request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse>,
   options: { requireRole?: ('owner' | 'staff' | 'customer')[] } = {}
 ) {
-  return async (request: NextRequest, context: any) => {
+  return async (request: NextRequest, context: { params: Record<string, string> }) => {
     try {
       // Get token from Authorization header
       const authHeader = request.headers.get('authorization');
@@ -25,7 +25,7 @@ export function withAuth(
       let payload;
       try {
         payload = verifyAccessToken(token);
-      } catch (error) {
+      } catch {
         return NextResponse.json(
           { error: 'Invalid or expired token' },
           { status: 401 }

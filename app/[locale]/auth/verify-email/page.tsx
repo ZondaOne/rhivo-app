@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Link, useRouter } from '@/i18n/routing';
 import { Logo } from '@/components/Logo';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 export default function VerifyEmailPage() {
   const t = useTranslations('auth');
-  const locale = useLocale();
   const router = useRouter();
   const params = useSearchParams();
   const [status, setStatus] = useState<'idle'|'pending'|'success'|'error'>('idle');
@@ -35,9 +34,9 @@ export default function VerifyEmailPage() {
         if (!r.ok) throw new Error(data.error || t('verifyEmail.failed'));
         setStatus('success');
         setMessage(t('verifyEmail.success'));
-      } catch (e: any) {
+      } catch (e) {
         setStatus('error');
-        setMessage(e?.message || t('verifyEmail.failed'));
+        setMessage(e instanceof Error ? e.message : t('verifyEmail.failed'));
       }
     }
 

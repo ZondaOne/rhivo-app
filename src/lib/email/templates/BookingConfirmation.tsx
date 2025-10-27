@@ -135,7 +135,7 @@ export const BookingConfirmationEmail = ({
           <Hr style={hr} />
           <Section style={footer}>
             <Text style={footerText}>
-              Questa è un'email di conferma automatica da Rhivo.
+              Questa è un&apos;email di conferma automatica da Rhivo.
             </Text>
             <Text style={footerTextSecondary}>
               This is an automated confirmation email from Rhivo.

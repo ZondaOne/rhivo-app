@@ -17,7 +17,7 @@ export default function SignupPage() {
   const [businessPhone, setBusinessPhone] = useState('');
   const [timezone, setTimezone] = useState('America/New_York');
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ success?: boolean; message?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
@@ -28,8 +28,8 @@ export default function SignupPage() {
     try {
       const res = await signupOwner({ email, password, name, businessName, businessPhone, timezone });
       setResult(res);
-    } catch (err: any) {
-      setError(err?.message || t('signup.signupFailed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('signup.signupFailed'));
     } finally {
       setPending(false);
     }
