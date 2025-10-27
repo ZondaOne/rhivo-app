@@ -29,6 +29,7 @@ import {
   getIntersectingOffTimes,
   OffTimeInterval,
 } from './off-time-system';
+import { getStartOfDay, getEndOfDay } from '@/lib/utils/timezone';
 
 export interface TimeSlot {
   start: string; // ISO datetime string
@@ -156,11 +157,9 @@ function generateSlotsForDay(
 
   // For slot generation, we need to iterate through each availability slot
   // and generate booking slots within the available periods
-  const dayStart = new Date(date);
-  dayStart.setHours(0, 0, 0, 0);
-
-  const dayEnd = new Date(date);
-  dayEnd.setHours(23, 59, 59, 999);
+  // IMPORTANT: Use timezone-aware functions to get correct day boundaries
+  const dayStart = getStartOfDay(date, timezone);
+  const dayEnd = getEndOfDay(date, timezone);
 
   // Check advance booking limits
   const maxAdvanceDate = new Date(now);
