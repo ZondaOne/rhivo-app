@@ -27,45 +27,32 @@ export function HeroSection() {
           mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
       >
-        {/* Headline - Apple-like: Clean, elegant, single focused message */}
-        <div className="mb-6 sm:mb-8 space-y-1 sm:space-y-2">
-          {/* Main headline - simple, clear, focused */}
+        {/* Headline - Apple-like: Clean, elegant, single focused message with accent */}
+        <div className="mb-6 sm:mb-8">
           <h1
-            className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[1.05] transition-all duration-700 delay-100 ${
+            className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[1.1] transition-all duration-700 delay-100 ${
               mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            <span className="text-gray-900">{t('title.line1')}</span>
-          </h1>
-          
-          {/* Accent line - subtle gradient, not too bold */}
-          <h2
-            className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[1.05] transition-all duration-700 delay-150 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            <span className="bg-gradient-to-r from-teal-600 to-green-500 bg-clip-text text-transparent">
-              {t('title.line2')}
+            <span className="text-gray-900">
+              {t('title.before')}{' '}
             </span>
-          </h2>
+            <span className="bg-gradient-to-r from-teal-600 to-green-500 bg-clip-text text-transparent">
+              {t('title.accent')}
+            </span>
+            <span className="text-gray-900">
+              {' '}{t('title.after')}
+            </span>
+          </h1>
         </div>
 
         {/* Subheadline - Apple's descriptive style */}
         <p
-          className={`text-xl sm:text-2xl md:text-3xl text-gray-600 font-normal max-w-4xl mx-auto leading-snug mb-8 sm:mb-10 px-4 transition-all duration-700 delay-200 ${
+          className={`text-xl sm:text-2xl md:text-3xl text-gray-600 font-normal max-w-4xl mx-auto leading-snug mb-10 sm:mb-12 md:mb-14 px-4 transition-all duration-700 delay-200 ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
         >
           {t('subtitle')}
-        </p>
-
-        {/* Simple note - understated */}
-        <p
-          className={`text-base sm:text-lg text-gray-500 max-w-2xl mx-auto mb-10 sm:mb-12 md:mb-14 transition-all duration-700 delay-250 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}
-        >
-          {t('subtitleNote')}
         </p>
 
         {/* Primary CTA - premium hover effect */}

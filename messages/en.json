@@ -15,11 +15,11 @@
     },
     "hero": {
       "title": {
-        "line1": "Everywhere you want to be.",
-        "line2": "Booked."
+        "before": "Life's Better When",
+        "accent": "booking",
+        "after": "It's Simple."
       },
-      "subtitle": "See what's available. Pick a time. You're done.",
-      "subtitleNote": "It really is that simple.",
+      "subtitle": "Ready to go? Browse services, choose your preferred slot, and everything's confirmed with a tap.",
       "cta": "Find a business",
       "scroll": "Scroll"
     },

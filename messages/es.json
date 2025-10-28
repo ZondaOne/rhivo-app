@@ -15,11 +15,11 @@
     },
     "hero": {
       "title": {
-        "line1": "Donde quieras estar.",
-        "line2": "Reservado."
+        "before": "La Vida Es Mejor Cuando",
+        "accent": "reservar",
+        "after": "Es Sencillo."
       },
-      "subtitle": "Mira lo que hay disponible. Elige una hora. Listo.",
-      "subtitleNote": "Realmente es así de simple.",
+      "subtitle": "¿Listo para empezar? Explora servicios, elige tu franja horaria preferida y todo se confirma con un toque.",
       "cta": "Encuentra un negocio",
       "scroll": "Desplazar"
     },
