@@ -21,6 +21,28 @@ const nextConfig: NextConfig = {
   experimental: {
     skipTrailingSlashRedirect: true,
   },
+  // Disable caching for all API routes to ensure fresh data on Netlify
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, must-revalidate',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store',
+          },
+          {
+            key: 'Netlify-CDN-Cache-Control',
+            value: 'no-store',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
