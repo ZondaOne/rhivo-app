@@ -9,8 +9,15 @@
 
 # Disable caching for all API routes to ensure fresh data
 [[headers]]
-  for = "/api/*"
+  for = "/api/appointments"
   [headers.values]
-    Cache-Control = "private, no-cache, no-store, must-revalidate"
+    Cache-Control = "no-store"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[headers]]
+  for = "/api/owner/*"
+  [headers.values]
+    Cache-Control = "no-store"
     Pragma = "no-cache"
     Expires = "0"
