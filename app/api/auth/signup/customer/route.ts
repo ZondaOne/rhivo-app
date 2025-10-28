@@ -151,6 +151,7 @@ export async function POST(request: NextRequest) {
 
     // Send verification email if email was provided
     if (validatedData.email && verificationUrl) {
+      console.log(`📧 Preparing to send verification email to ${validatedData.email}`);
       const emailService = createEmailService(sql);
 
       const emailHtml = await renderEmailVerification({
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
         expiryHours: 24,
       });
 
+      console.log(`📤 Calling emailService.sendEmail for ${validatedData.email}`);
       const emailResult = await emailService.sendEmail({
         to: validatedData.email,
         subject: 'Verifica la tua Email - Verify Your Email | Rhivo',
@@ -168,9 +170,11 @@ export async function POST(request: NextRequest) {
       });
 
       if (!emailResult.success) {
-        console.error('Failed to send verification email:', emailResult.error);
+        console.error('❌ Failed to send verification email:', emailResult.error);
         // Note: We still return success because the user was created
         // They can request a new verification email later
+      } else {
+        console.log(`✅ Verification email sent successfully to ${validatedData.email}, messageId: ${emailResult.messageId}`);
       }
     }
 

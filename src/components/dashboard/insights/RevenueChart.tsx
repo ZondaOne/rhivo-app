@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { getAccessToken } from '@/lib/auth/api-client';
 
 interface RevenueChartProps {
   businessId: string | null;
@@ -41,11 +42,21 @@ export function RevenueChart({ businessId, timeRange }: RevenueChartProps) {
 
       setLoading(true);
       try {
-        const response = await fetch(`/api/insights/revenue?businessId=${businessId}&timeRange=${timeRange}`);
+        const token = getAccessToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`/api/insights/revenue?businessId=${businessId}&timeRange=${timeRange}`, {
+          headers
+        });
         if (response.ok) {
           const result = await response.json();
           setData(result.chartData || []);
           setStats(result.stats || { totalRevenue: 0, totalBookings: 0, averageBookingValue: 0 });
+        } else {
+          console.error('Failed to fetch revenue data:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch revenue data:', error);

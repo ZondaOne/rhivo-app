@@ -3,8 +3,14 @@ import { DbClient } from '@/db/client';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '@/lib/env';
 
-// Initialize Resend client
-const resend = new Resend(env.RESEND_API_KEY);
+// Lazy initialization of Resend client to ensure env vars are loaded
+let resendClient: Resend | null = null;
+function getResendClient(): Resend {
+  if (!resendClient) {
+    resendClient = new Resend(env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 export type EmailTemplate =
   | 'appointment_confirmed'
@@ -45,6 +51,8 @@ export class EmailService {
   async sendEmail(params: SendEmailParams): Promise<EmailDeliveryResult> {
     const { to, subject, html, templateName, appointmentId } = params;
 
+    console.log(`🔔 EmailService.sendEmail called for template: ${templateName}, recipient: ${to}`);
+
     const maxRetries = 3;
     const baseDelay = 1000; // 1 second
 
@@ -56,6 +64,7 @@ export class EmailService {
         // Use Resend's onboarding domain for testing (or your verified domain)
         const fromEmail = env.EMAIL_FROM || 'Rhivo <onboarding@resend.dev>';
 
+        const resend = getResendClient();
         const { data, error } = await resend.emails.send({
           from: fromEmail,
           to,

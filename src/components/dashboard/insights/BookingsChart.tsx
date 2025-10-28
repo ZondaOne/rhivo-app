@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { getAccessToken } from '@/lib/auth/api-client';
 
 interface BookingsChartProps {
   businessId: string | null;
@@ -40,11 +41,21 @@ export function BookingsChart({ businessId, timeRange }: BookingsChartProps) {
 
       setLoading(true);
       try {
-        const response = await fetch(`/api/insights/bookings?businessId=${businessId}&timeRange=${timeRange}`);
+        const token = getAccessToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`/api/insights/bookings?businessId=${businessId}&timeRange=${timeRange}`, {
+          headers
+        });
         if (response.ok) {
           const result = await response.json();
           setData(result.chartData || []);
           setStats(result.stats || { total: 0, completed: 0, cancelled: 0, upcoming: 0 });
+        } else {
+          console.error('Failed to fetch bookings data:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch bookings data:', error);
