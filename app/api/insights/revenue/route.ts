@@ -106,6 +106,12 @@ export async function GET(request: NextRequest) {
         revenue: d.revenue / 100 // Convert cents to dollars for chart
       })),
       stats
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Revenue insights API error:', error);

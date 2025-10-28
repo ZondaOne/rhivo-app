@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       // Don't fail the booking if notification fails
     }
 
-    // Send booking confirmation email to customer (completely non-blocking)
+    // Send booking confirmation email to customer
     console.log('📧 Triggering booking confirmation email:', {
       appointmentId: appointment.id,
       guestEmail: data.guestEmail,
@@ -76,27 +76,29 @@ export async function POST(request: NextRequest) {
     });
 
     const customerNotificationService = new CustomerNotificationService(db);
-    
-    // Fire and forget - email sends in background
+
+    // Await email send to ensure DB connection stays active
     if (appointment.slot_start && appointment.slot_end) {
-      customerNotificationService.sendBookingConfirmation({
-        id: appointment.id,
-        businessId: appointment.business_id,
-        serviceId: appointment.service_id,
-        customerId: data.customerId,
-        guestEmail: data.guestEmail,
-        guestPhone: data.guestPhone,
-        guestName: data.guestName,
-        slotStart: new Date(appointment.slot_start),
-        slotEnd: new Date(appointment.slot_end),
-        status: appointment.status,
-        bookingId: appointment.booking_id,
-        cancellationToken: appointment.cancellation_token || undefined,
-      }).then(() => {
+      try {
+        await customerNotificationService.sendBookingConfirmation({
+          id: appointment.id,
+          businessId: appointment.business_id,
+          serviceId: appointment.service_id,
+          customerId: data.customerId,
+          guestEmail: data.guestEmail,
+          guestPhone: data.guestPhone,
+          guestName: data.guestName,
+          slotStart: new Date(appointment.slot_start),
+          slotEnd: new Date(appointment.slot_end),
+          status: appointment.status,
+          bookingId: appointment.booking_id,
+          cancellationToken: appointment.cancellation_token || undefined,
+        });
         console.log('✅ Booking confirmation email sent successfully');
-      }).catch((error) => {
+      } catch (error) {
         console.error('❌ Failed to send booking confirmation email:', error);
-      });
+        // Don't fail the booking if email fails
+      }
     } else {
       console.error('❌ Cannot send booking confirmation: missing slot_start or slot_end');
     }

@@ -4,6 +4,10 @@ import { getDbClient } from '@/db/client';
 import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 import { z } from 'zod';
 
+// Force dynamic rendering - disable all caching at Next.js level
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const querySchema = z.object({
   start: z.string().datetime().optional(),
   end: z.string().datetime().optional(),

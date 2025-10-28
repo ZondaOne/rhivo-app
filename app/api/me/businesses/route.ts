@@ -58,6 +58,12 @@ async function handler(request: NextRequest) {
 
     return NextResponse.json({
       businesses: businessesWithBranding,
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Get user businesses error:', error);

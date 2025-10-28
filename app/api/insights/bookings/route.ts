@@ -3,6 +3,10 @@ import { getDbClient } from '@/db/client';
 import { verifyToken } from '@/lib/auth';
 import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
 
+// Force dynamic rendering - disable all caching at Next.js level
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
@@ -103,6 +107,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       chartData,
       stats
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Insights API error:', error);

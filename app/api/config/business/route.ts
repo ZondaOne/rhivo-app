@@ -82,6 +82,12 @@ export async function GET(request: NextRequest) {
       success: true,
       config: result.config,
       subdomain: result.subdomain,
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
   } catch (error) {
     console.error('Error loading business config:', error);
