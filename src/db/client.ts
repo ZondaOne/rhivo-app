@@ -9,8 +9,9 @@ neonConfig.fetchConnectionCache = true;
 export function getDbClient() {
   return neon(env.DATABASE_URL, {
     fetchOptions: {
-      // Reuse HTTP connections across invocations for better performance
-      cache: 'force-cache',
+      // Disable cache to ensure fresh data on every query
+      // Note: Connection pooling via fetchConnectionCache is still enabled for performance
+      cache: 'no-store',
     },
   });
 }
