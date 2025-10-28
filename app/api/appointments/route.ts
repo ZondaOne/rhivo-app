@@ -117,9 +117,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(appointments, {
       headers: {
-        // Appointments change frequently - cache for 1 minute only
-        // Use private cache since this is authenticated data
-        'Cache-Control': 'private, max-age=60, stale-while-revalidate=300',
+        // Appointments change frequently via reschedules, cancellations, and new bookings
+        // Disable HTTP caching to prevent stale data after mutations
+        // The Calendar component has its own in-memory cache for performance
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     });
   } catch (error) {
