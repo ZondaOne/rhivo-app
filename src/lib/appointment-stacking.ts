@@ -157,45 +157,61 @@ export function allocateCascadeColumns(
     const start = new Date(apt.start_time).getTime();
     const end = new Date(apt.end_time).getTime();
 
-    // Find the first available column (Step 7o enhancement: use full appointment span)
-    let columnIndex = 0;
-    let foundColumn = false;
+    // Find the first available column where the last appointment ended before this one starts
+    let columnIndex = -1;
 
     for (let i = 0; i < columns.length; i++) {
-      // Check if this column is free (last appointment's END time is before current START time)
-      // This correctly handles multi-hour appointments that span across hour boundaries
       if (columns[i].end <= start) {
         columnIndex = i;
-        foundColumn = true;
         break;
       }
     }
 
-    if (!foundColumn) {
-      // Need a new column
+    // If no available column found, create a new one
+    if (columnIndex === -1) {
       columnIndex = columns.length;
-      columns.push({ end, appointments: [] });
-    } else {
-      // Update existing column's end time to the maximum of current end or appointment end
-      // This ensures subsequent appointments consider the full span of multi-hour appointments
-      columns[columnIndex].end = Math.max(columns[columnIndex].end, end);
+      columns.push({ end: 0, appointments: [] });
     }
+
+    // Update column's end time
+    columns[columnIndex].end = end;
 
     const cascaded: CascadedAppointment = {
       ...apt,
       columnIndex,
-      totalColumns: Math.max(columns.length, columnIndex + 1),
+      totalColumns: columns.length, // Will be updated in second pass
     };
 
     columns[columnIndex].appointments.push(cascaded);
     result.push(cascaded);
   }
 
-  // Update totalColumns for all appointments
-  const totalColumns = columns.length;
-  result.forEach(apt => {
-    apt.totalColumns = totalColumns;
-  });
+  // Second pass: for each appointment, find the true totalColumns by checking overlaps
+  for (let i = 0; i < result.length; i++) {
+    const apt = result[i];
+    const aptStart = new Date(apt.start_time).getTime();
+    const aptEnd = new Date(apt.end_time).getTime();
+
+    // Find all appointments that overlap with this one
+    const overlappingIndices = new Set<number>();
+    overlappingIndices.add(apt.columnIndex); // Include self
+
+    for (let j = 0; j < result.length; j++) {
+      if (i === j) continue;
+
+      const other = result[j];
+      const otherStart = new Date(other.start_time).getTime();
+      const otherEnd = new Date(other.end_time).getTime();
+
+      // Check if they overlap (start1 < end2 && start2 < end1)
+      if (aptStart < otherEnd && otherStart < aptEnd) {
+        overlappingIndices.add(other.columnIndex);
+      }
+    }
+
+    // totalColumns is the maximum column index + 1 among overlapping appointments
+    apt.totalColumns = Math.max(...overlappingIndices) + 1;
+  }
 
   return result;
 }
