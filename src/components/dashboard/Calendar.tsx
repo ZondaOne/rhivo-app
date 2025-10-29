@@ -889,7 +889,7 @@ function DayCell({
                       key={apt.id}
                       draggable={!isCanceled}
                       style={{ animationDelay: `${idx * 50}ms` }}
-                      className={`text-[9px] md:text-sm lg:text-base xl:text-lg px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center rounded-md md:rounded-lg lg:rounded-xl font-semibold overflow-hidden flex-shrink-0 transition-all duration-200 ease-out animate-in fade-in slide-in-from-left-2 ${
+                      className={`text-[8px] md:text-xs lg:text-base xl:text-lg px-1.5 md:px-2.5 lg:px-5 xl:px-6 py-0.5 md:py-1 lg:py-2 xl:py-2.5 box-border flex items-center rounded-md md:rounded-lg lg:rounded-xl font-semibold overflow-hidden flex-shrink-0 transition-all duration-200 ease-out animate-in fade-in slide-in-from-left-2 ${
                         isCanceled
                           ? 'bg-gray-50/70 border border-dashed border-gray-300 text-gray-400 opacity-60 cursor-default'
                           : isDragging
@@ -923,7 +923,7 @@ function DayCell({
                 {overflow > 0 && (
                   <div className="flex-shrink-0">
                     <div
-                      className="px-2 md:px-3.5 lg:px-5 xl:px-6 py-1 md:py-1.5 lg:py-2 xl:py-2.5 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] text-[9px] md:text-sm lg:text-base xl:text-lg font-semibold cursor-pointer transition-all duration-200 ease-out"
+                      className="px-1.5 md:px-2.5 lg:px-5 xl:px-6 py-0.5 md:py-1 lg:py-2 xl:py-2.5 box-border flex items-center justify-center rounded-md md:rounded-lg lg:rounded-xl bg-teal-600/10 border border-teal-200 text-teal-700 hover:bg-teal-600/20 hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] text-[8px] md:text-xs lg:text-base xl:text-lg font-semibold cursor-pointer transition-all duration-200 ease-out"
                       onClick={(e) => {
                         e.stopPropagation();
                         // Navigate to list view filtered to this date
