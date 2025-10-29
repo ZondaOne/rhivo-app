@@ -1,0 +1,10 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /customer/
+
+# Sitemap location
+Sitemap: https://rhivo.com/sitemap.xml
