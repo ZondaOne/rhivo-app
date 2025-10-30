@@ -9,7 +9,7 @@ interface OnboardingStep {
   visual: "welcome" | "calendar" | "createAppointment" | "dragDrop" | "manageBookings" | "insights" | "settings";
 }
 
-const OnboardingTutorial = () => {
+const OnboardingTutorial = ({ open, onClose }: { open?: boolean; onClose?: () => void }) => {
   const t = useTranslations("dashboard.onboarding");
 
   const steps: OnboardingStep[] = [
@@ -22,22 +22,34 @@ const OnboardingTutorial = () => {
     { id: "settings", visual: "settings" },
   ];
 
-  const [showTutorial, setShowTutorial] = useState(false);
+  const [showTutorial, setShowTutorial] = useState<boolean>(!!open);
   const [currentStep, setCurrentStep] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
+    // If parent controls `open`, follow that. Otherwise, default to localStorage behavior.
+    if (open !== undefined) {
+      setShowTutorial(open);
+      return;
+    }
+
     const tutorialShown = localStorage.getItem("tutorialShown");
     if (!tutorialShown) {
       setShowTutorial(true);
     }
-  }, []);
+  }, [open]);
 
   const handleClose = () => {
     if (dontShowAgain) {
       localStorage.setItem("tutorialShown", "true");
     }
-    setShowTutorial(false);
+
+    // If parent provided an onClose handler, call it so parent can control visibility.
+    if (onClose) {
+      onClose();
+    } else {
+      setShowTutorial(false);
+    }
   };
 
   const handleNext = () => {

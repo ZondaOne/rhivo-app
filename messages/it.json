@@ -17,9 +17,13 @@
       "title": {
         "before": "Quando",
         "accent": "prenotare",
-        "after": "è Facile, È Tutta un'Altra Storia."
+        "after": "è facile, è tutta un'altra storia."
       },
       "subtitle": "Hai già scelto? Dai un'occhiata ai servizi, scegli la fascia oraria che fa per te, e hai la conferma in un attimo.",
+      "eyebrow": "Pensato per le aziende moderne",
+      "watchDemo": "Guarda la demo",
+      "socialProofAccent": "Unisciti",
+      "socialProof": "ad altre attività che usano Rhivo",
       "cta": "Trova un'attività",
       "scroll": "Scorri"
     },

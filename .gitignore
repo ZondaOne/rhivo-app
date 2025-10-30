@@ -49,3 +49,4 @@ prompt.xml
 /app/[locale]/debug/
 /app/api/admin/
 /app/api/debug/
+plan.xml

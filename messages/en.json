@@ -4,9 +4,9 @@
       "howItWorks": "How it works",
       "useCases": "Use cases",
       "forBusiness": "For business",
-      "login": "Login",
-      "getStarted": "Get started",
-      "mobileMenu": {
+  "login": "Login",
+  "getStarted": "Get started",
+  "mobileMenu": {
         "title": "Menu",
         "subtitle": "Navigate to sections",
         "accountLabel": "Account",
@@ -20,6 +20,10 @@
         "after": "It's Simple."
       },
       "subtitle": "Ready to go? Browse services, choose your preferred slot, and everything's confirmed with a tap.",
+      "eyebrow": "Built for modern businesses",
+      "watchDemo": "Watch demo",
+      "socialProofAccent": "Join",
+      "socialProof": "other businesses using Rhivo",
       "cta": "Find a business",
       "scroll": "Scroll"
     },
