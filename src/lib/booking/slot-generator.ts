@@ -203,8 +203,10 @@ function generateSlotsForDay(
       const effectiveStart = new Date(slotStart);
       effectiveStart.setMinutes(effectiveStart.getMinutes() - bufferBefore);
 
-      // Check if service + buffer can fit in remaining time of this availability slot
-      if (bufferEnd > slotClose) {
+      // Check if service can fit in remaining time of this availability slot
+      // Note: We only check slotEnd (not bufferEnd) because buffers are for preventing
+      // double-booking, not for requiring the business to be "open" during buffer time
+      if (slotEnd > slotClose) {
         break; // Service would extend past this slot's closing time
       }
 
@@ -217,11 +219,13 @@ function generateSlotsForDay(
 
       // CRITICAL: Check if this time range conflicts with any off-time intervals (Step 7f2)
       // This prevents bookings from spanning across breaks, closed periods, or holidays
-      const conflictsWithOffTime = !isTimeAvailable(effectiveStart, bufferEnd, offTimeIntervals);
+      // Note: We only check the actual service time (slotStart to slotEnd), not the buffer times
+      // Buffers are for preventing double-booking, not for requiring the business to be open
+      const conflictsWithOffTime = !isTimeAvailable(slotStart, slotEnd, offTimeIntervals);
 
       if (conflictsWithOffTime) {
         // Get detailed reasons for unavailability
-        const intersectingOffTimes = getIntersectingOffTimes(effectiveStart, bufferEnd, offTimeIntervals);
+        const intersectingOffTimes = getIntersectingOffTimes(slotStart, slotEnd, offTimeIntervals);
         const reason = intersectingOffTimes.length > 0
           ? intersectingOffTimes[0].reason
           : 'Unavailable during off-time';
