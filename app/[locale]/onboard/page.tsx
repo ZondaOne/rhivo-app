@@ -131,6 +131,8 @@ export default function OnboardBusinessPage() {
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('IT');
   const [website, setWebsite] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
 
   // Geocoding
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -271,6 +273,12 @@ export default function OnboardBusinessPage() {
 
         const websiteError = validateUrl(website, t);
         if (websiteError) errors.website = websiteError;
+
+        const instagramError = validateUrl(instagram, t);
+        if (instagramError) errors.instagram = instagramError;
+
+        const facebookError = validateUrl(facebook, t);
+        if (facebookError) errors.facebook = facebookError;
 
         if (!latitude || !longitude) {
           errors.address = t('onboard.validation.addressRequired');
@@ -741,6 +749,38 @@ export default function OnboardBusinessPage() {
                 validationErrors.website ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               placeholder={t('onboard.contact.websitePlaceholder')}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              Instagram (Optional)
+              {validationErrors.instagram && <span className="text-red-600 text-xs ml-1 sm:ml-2">{validationErrors.instagram}</span>}
+            </label>
+            <input
+              type="url"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.instagram ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="https://instagram.com/yourbusiness"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              Facebook (Optional)
+              {validationErrors.facebook && <span className="text-red-600 text-xs ml-1 sm:ml-2">{validationErrors.facebook}</span>}
+            </label>
+            <input
+              type="url"
+              value={facebook}
+              onChange={(e) => setFacebook(e.target.value)}
+              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                validationErrors.facebook ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="https://facebook.com/yourbusiness"
             />
           </div>
         </div>
@@ -1675,6 +1715,8 @@ export default function OnboardBusinessPage() {
         postalCode,
         country,
         website,
+        instagram,
+        facebook,
         latitude,
         longitude,
 

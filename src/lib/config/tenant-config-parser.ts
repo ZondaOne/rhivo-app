@@ -218,6 +218,14 @@ function generateWarnings(config: TenantConfig, warnings: string[]): void {
     warnings.push('Website URL is missing.');
   }
 
+  if (!config.contact.instagram) {
+    warnings.push('Instagram URL is missing. Adding social media links helps customers connect with your business.');
+  }
+
+  if (!config.contact.facebook) {
+    warnings.push('Facebook URL is missing. Adding social media links helps customers connect with your business.');
+  }
+
   // Warn if services don't have descriptions
   const servicesWithoutDescription = config.categories.flatMap(cat =>
     cat.services.filter(svc => !svc.description).map(svc => svc.name)

@@ -26,6 +26,8 @@ export interface OnboardingFormData {
   postalCode?: string;
   country: string;
   website?: string;
+  instagram?: string;
+  facebook?: string;
   latitude?: number | null;
   longitude?: number | null;
 
@@ -103,6 +105,12 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
         website: formData.website && !formData.website.startsWith('http')
           ? `https://${formData.website}`
           : formData.website,
+        instagram: formData.instagram && !formData.instagram.startsWith('http')
+          ? `https://${formData.instagram}`
+          : formData.instagram,
+        facebook: formData.facebook && !formData.facebook.startsWith('http')
+          ? `https://${formData.facebook}`
+          : formData.facebook,
         ...(formData.latitude && formData.longitude ? {
           latitude: formData.latitude,
           longitude: formData.longitude,

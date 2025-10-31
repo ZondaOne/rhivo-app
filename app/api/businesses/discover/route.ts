@@ -59,6 +59,8 @@ export async function GET() {
         bd.config_json->'contact'->'address'->>'country' as country,
         bd.config_json->'contact'->>'latitude' as latitude,
         bd.config_json->'contact'->>'longitude' as longitude,
+        bd.config_json->'contact'->>'instagram' as instagram,
+        bd.config_json->'contact'->>'facebook' as facebook,
         bd.config_json->'branding'->>'coverImageUrl' as cover_image_url,
         bd.config_json->'branding'->>'profileImageUrl' as profile_image_url,
         bd.config_json->'branding'->>'primaryColor' as primary_color,
@@ -82,6 +84,8 @@ export async function GET() {
       country?: string;
       phone?: string;
       website?: string;
+      instagram?: string;
+      facebook?: string;
       latitude?: number;
       longitude?: number;
       logo_url?: string;
@@ -105,6 +109,8 @@ export async function GET() {
       primaryColor: b.primary_color || undefined,
       latitude: b.latitude ? parseFloat(b.latitude) : undefined,
       longitude: b.longitude ? parseFloat(b.longitude) : undefined,
+      instagram: b.instagram || undefined,
+      facebook: b.facebook || undefined,
       priceRange: {
         min: b.min_price || 0,
         max: b.max_price || 0

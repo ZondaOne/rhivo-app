@@ -64,6 +64,8 @@ const ContactSchema = z.object({
   email: EmailString,
   phone: PhoneString,
   website: OptionalUrlString,
+  instagram: OptionalUrlString,
+  facebook: OptionalUrlString,
   // Geolocation coordinates for map display
   latitude: z.number()
     .min(-90, 'Latitude must be between -90 and 90')

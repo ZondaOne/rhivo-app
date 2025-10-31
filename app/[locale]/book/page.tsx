@@ -49,6 +49,8 @@ interface BusinessSummary {
   primaryColor?: string;
   latitude?: number;
   longitude?: number;
+  instagram?: string;
+  facebook?: string;
   priceRange: {
     min: number;
     max: number;
