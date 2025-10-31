@@ -148,6 +148,8 @@ export default function OnboardBusinessPage() {
   const [secondaryColor, setSecondaryColor] = useState('#14b8a6');
   const [profileImageUrl, setProfileImageUrl] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [fetchedInstagramProfilePic, setFetchedInstagramProfilePic] = useState('');
+  const [fetchingInstagramPic, setFetchingInstagramPic] = useState(false);
 
   // Dropdown states
   const [timezoneOpen, setTimezoneOpen] = useState(false);
@@ -274,8 +276,10 @@ export default function OnboardBusinessPage() {
         const websiteError = validateUrl(website, t);
         if (websiteError) errors.website = websiteError;
 
-        const instagramError = validateUrl(instagram, t);
-        if (instagramError) errors.instagram = instagramError;
+        // Instagram is now a username, not a URL - validate username format if provided
+        if (instagram && !/^[a-zA-Z0-9._]+$/.test(instagram)) {
+          errors.instagram = 'Invalid Instagram username format';
+        }
 
         const facebookError = validateUrl(facebook, t);
         if (facebookError) errors.facebook = facebookError;
@@ -394,6 +398,46 @@ export default function OnboardBusinessPage() {
 
   const generateBusinessId = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  };
+
+  // Fetch Instagram profile picture from username
+  const fetchInstagramProfilePicture = async (username: string) => {
+    if (!username || username.trim() === '') {
+      return;
+    }
+
+    // Extract username if user pasted a URL
+    let cleanUsername = username.trim();
+    if (cleanUsername.includes('instagram.com/')) {
+      const match = cleanUsername.match(/instagram\.com\/([a-zA-Z0-9._]+)/);
+      if (match) {
+        cleanUsername = match[1];
+      }
+    }
+
+    setFetchingInstagramPic(true);
+    setFetchedInstagramProfilePic('');
+
+    try {
+      const response = await fetch('/api/instagram/profile-picture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUsername }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.profilePictureUrl) {
+        setFetchedInstagramProfilePic(data.profilePictureUrl);
+        console.log('✅ Instagram profile picture fetched successfully');
+      } else {
+        console.warn('Failed to fetch Instagram profile picture:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching Instagram profile picture:', error);
+    } finally {
+      setFetchingInstagramPic(false);
+    }
   };
 
   const handleBusinessNameChange = (name: string) => {
@@ -754,18 +798,35 @@ export default function OnboardBusinessPage() {
 
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-              Instagram (Optional)
+              Instagram Username (Optional)
               {validationErrors.instagram && <span className="text-red-600 text-xs ml-1 sm:ml-2">{validationErrors.instagram}</span>}
             </label>
-            <input
-              type="url"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
-                validationErrors.instagram ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="https://instagram.com/yourbusiness"
-            />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                <span className="text-gray-500 text-sm sm:text-base">@</span>
+              </div>
+              <input
+                type="text"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                onBlur={(e) => {
+                  const username = e.target.value.trim();
+                  if (username) {
+                    fetchInstagramProfilePicture(username);
+                  }
+                }}
+                className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-900 border-2 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+                  validationErrors.instagram ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}
+                placeholder="yourbusiness"
+              />
+              {fetchingInstagramPic && (
+                <div className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-500 border-t-transparent"></div>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">We'll fetch your profile picture automatically</p>
           </div>
 
           <div>
@@ -996,6 +1057,12 @@ export default function OnboardBusinessPage() {
             value={profileImageUrl}
             onChange={setProfileImageUrl}
             aspectRatio="profile"
+            fetchedUrl={fetchedInstagramProfilePic}
+            isLoadingFetched={fetchingInstagramPic}
+            onFetchedUrlAccept={() => {
+              // When user accepts the Instagram profile pic, set it as the profile image
+              setProfileImageUrl(fetchedInstagramProfilePic);
+            }}
           />
 
           <ImageUpload

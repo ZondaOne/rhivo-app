@@ -10,6 +10,9 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   aspectRatio?: 'profile' | 'banner'; // profile = 1:1, banner = 16:9 or wider
   description?: string;
+  fetchedUrl?: string; // Auto-fetched URL (e.g., from Instagram) - shown as default
+  onFetchedUrlAccept?: () => void; // Called when user accepts the fetched URL
+  isLoadingFetched?: boolean; // Loading state for fetched URL
 }
 
 /**
@@ -42,16 +45,26 @@ export default function ImageUpload({
   value,
   onChange,
   aspectRatio = 'profile',
-  description
+  description,
+  fetchedUrl,
+  onFetchedUrlAccept,
+  isLoadingFetched = false
 }: ImageUploadProps) {
   const t = useTranslations('onboard.branding');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState(value);
+  const [previewUrl, setPreviewUrl] = useState(value || fetchedUrl || '');
+  const [showFetchedPreview, setShowFetchedPreview] = useState(!!fetchedUrl && !value);
 
   useEffect(() => {
-    setPreviewUrl(value);
-  }, [value]);
+    if (value) {
+      setPreviewUrl(value);
+      setShowFetchedPreview(false);
+    } else if (fetchedUrl) {
+      setPreviewUrl(fetchedUrl);
+      setShowFetchedPreview(true);
+    }
+  }, [value, fetchedUrl]);
 
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -132,46 +145,131 @@ export default function ImageUpload({
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl p-4 bg-white hover:border-gray-300 transition-colors">
+    <div>
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <h4 className="text-sm font-medium text-gray-900">{label}</h4>
-          {description && (
-            <p className="text-xs text-gray-500 mt-0.5">{description}</p>
-          )}
-        </div>
-        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-          {t('optional')}
-        </span>
-      </div>
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+        {label}
+        {description && (
+          <span className="block text-xs text-gray-500 font-normal mt-0.5">{description}</span>
+        )}
+      </label>
 
       {/* Upload Area or Preview */}
-      {previewUrl ? (
-        // Preview mode
-        <div className="space-y-2">
-          <div className={`relative w-full ${aspectRatio === 'profile' ? 'h-32' : 'h-24'} rounded-lg overflow-hidden bg-gray-100`}>
-            <img
-              src={previewUrl}
-              alt={label}
-              className="w-full h-full object-cover"
-            />
+      {isLoadingFetched ? (
+        // Loading state for fetched image
+        <div className="relative">
+          <div className={`relative ${aspectRatio === 'profile' ? 'aspect-square w-40 sm:w-48' : 'w-full aspect-[3/1]'} rounded-xl overflow-hidden bg-gray-50 border-2 border-gray-200 flex items-center justify-center`}>
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-gray-700"></div>
+              <p className="text-sm text-gray-600">Loading...</p>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="w-full px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <X className="h-4 w-4" />
-            {t('removeImage')}
-          </button>
         </div>
+      ) : previewUrl ? (
+        // Preview mode - different layouts for profile vs banner
+        aspectRatio === 'profile' ? (
+          // Profile: compact inline display
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-gray-200 flex-shrink-0">
+              <img
+                src={previewUrl}
+                alt={label}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              {showFetchedPreview ? (
+                <div className="space-y-2">
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Loaded from Instagram
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onChange(fetchedUrl || '');
+                        setShowFetchedPreview(false);
+                        onFetchedUrlAccept?.();
+                      }}
+                      className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-xl transition-all"
+                    >
+                      Use This
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemove}
+                      className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                    >
+                      Upload Different
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleRemove}
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Banner: full width preview with remove button below
+          <div className="space-y-3">
+            <div className="relative w-full aspect-[3/1] rounded-xl overflow-hidden border-2 border-gray-200">
+              <img
+                src={previewUrl}
+                alt={label}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+            >
+              Remove
+            </button>
+          </div>
+        )
       ) : (
-        // Upload mode
-        <div>
-          <label
-            className={`block w-full ${aspectRatio === 'profile' ? 'h-32' : 'h-24'} border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-400 hover:bg-teal-50/50 transition-all cursor-pointer ${uploading ? 'opacity-50 pointer-events-none bg-gray-50' : 'bg-gray-50'}`}
-          >
+        // Upload mode - simplified
+        aspectRatio === 'profile' ? (
+          <div className="w-40 sm:w-48">
+            <label className="relative block aspect-square w-full border-2 border-dashed border-gray-300 rounded-xl hover:border-gray-400 transition-colors cursor-pointer group">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={uploading}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-700"></div>
+                    <p className="text-xs sm:text-sm text-gray-600">{t('uploading')}</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-6 w-6 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    <div className="text-center">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">
+                        {t('uploadButton')}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {t('imageSizeHint')}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </label>
+          </div>
+        ) : (
+          <label className="relative block w-full h-32 sm:h-40 border-2 border-dashed border-gray-300 rounded-xl hover:border-gray-400 transition-colors cursor-pointer group">
             <input
               type="file"
               accept="image/*"
@@ -179,23 +277,17 @@ export default function ImageUpload({
               className="hidden"
               disabled={uploading}
             />
-            <div className="h-full flex flex-col items-center justify-center gap-2 px-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
               {uploading ? (
                 <>
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-teal-500 border-t-transparent"></div>
-                  <p className="text-sm text-gray-600">{t('uploading')}</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-700"></div>
+                  <p className="text-xs sm:text-sm text-gray-600">{t('uploading')}</p>
                 </>
               ) : (
                 <>
-                  <div className="p-2.5 bg-teal-100 rounded-full">
-                    {aspectRatio === 'profile' ? (
-                      <ImageIcon className="h-5 w-5 text-teal-600" />
-                    ) : (
-                      <Upload className="h-5 w-5 text-teal-600" />
-                    )}
-                  </div>
+                  <Upload className="h-6 w-6 text-gray-400 group-hover:text-gray-600 transition-colors" />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-xs sm:text-sm font-medium text-gray-700">
                       {t('uploadButton')}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -206,22 +298,22 @@ export default function ImageUpload({
               )}
             </div>
           </label>
-        </div>
+        )
       )}
 
       {/* Error message */}
       {error && (
-        <p className="text-xs text-red-600 mt-2 flex items-center gap-1">
-          <X className="h-3 w-3" />
+        <p className="text-xs sm:text-sm text-red-600 mt-2 flex items-center gap-1.5">
+          <X className="h-3.5 w-3.5 flex-shrink-0" />
           {error}
         </p>
       )}
 
       {/* Cloudinary warning */}
       {!cloudName || !uploadPreset ? (
-        <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-xs text-amber-800">
-            <strong>Setup required:</strong> Cloudinary not configured. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET to your .env.local file.
+        <div className="mt-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-amber-50 border-2 border-amber-200 rounded-xl">
+          <p className="text-xs sm:text-sm text-amber-800">
+            <strong className="font-semibold">Setup required:</strong> Cloudinary not configured. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET to your .env.local file.
           </p>
         </div>
       ) : null}

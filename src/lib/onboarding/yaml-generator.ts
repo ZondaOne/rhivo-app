@@ -105,9 +105,11 @@ export function generateTenantConfig(formData: OnboardingFormData): TenantConfig
         website: formData.website && !formData.website.startsWith('http')
           ? `https://${formData.website}`
           : formData.website,
-        instagram: formData.instagram && !formData.instagram.startsWith('http')
-          ? `https://${formData.instagram}`
-          : formData.instagram,
+        instagram: formData.instagram
+          ? (formData.instagram.startsWith('http')
+              ? formData.instagram
+              : `https://instagram.com/${formData.instagram.replace(/^@/, '')}`)
+          : undefined,
         facebook: formData.facebook && !formData.facebook.startsWith('http')
           ? `https://${formData.facebook}`
           : formData.facebook,
