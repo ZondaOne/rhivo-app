@@ -4,9 +4,10 @@
       "howItWorks": "How it works",
       "useCases": "Use cases",
       "forBusiness": "For business",
-  "login": "Login",
-  "getStarted": "Get started",
-  "mobileMenu": {
+      "pricing": "Pricing",
+      "login": "Login",
+      "getStarted": "Get started",
+      "mobileMenu": {
         "title": "Menu",
         "subtitle": "Navigate to sections",
         "accountLabel": "Account",
@@ -93,6 +94,205 @@
       "terms": "Terms",
       "madeBy": "Made by",
       "copyright": "All rights reserved."
+    },
+    "pricing": {
+      "label": "Flexible Pricing",
+      "title": "Plans for Every Business",
+      "subtitle": "Start free and scale as you grow",
+      "mostPopular": "Most Popular",
+      "free": "Free",
+      "customPricing": "Custom",
+      "perMonth": "/month",
+      "orYearly": "or €{price}/year",
+      "getStarted": "Get Started",
+      "contactSales": "Contact Sales",
+      "contactToUpgrade": "Contact to Upgrade",
+      "contactUs": "Contact Us",
+      "upgradeSubject": "Upgrade to {plan}",
+      "viewDetails": "View detailed comparison",
+      "noHiddenFees": "No hidden fees • No commission on bookings",
+      "tiersFree": {
+        "features": {
+          "unlimitedBookings": "Unlimited bookings",
+          "oneStaff": "1 staff member",
+          "qrCode": "QR code & booking page",
+          "emailNotifications": "Email notifications",
+          "basicCalendar": "Basic calendar"
+        }
+      },
+      "tiersBasic": {
+        "features": {
+          "upTo5Staff": "Up to 5 staff members",
+          "customBranding": "Custom branding",
+          "basicAnalytics": "Basic analytics",
+          "customerDatabase": "Customer database",
+          "sms100": "100 SMS/month",
+          "emailSupport": "Email support"
+        }
+      },
+      "tiersPro": {
+        "features": {
+          "upTo15Staff": "Up to 15 staff members",
+          "advancedAnalytics": "Advanced analytics",
+          "upTo3Locations": "Up to 3 locations",
+          "sms500": "500 SMS/month",
+          "apiAccess": "API access",
+          "customDomain": "Custom domain"
+        }
+      },
+      "tiersEnterprise": {
+        "features": {
+          "unlimitedStaffLocations": "Unlimited staff & locations",
+          "whiteLabel": "Full white-label",
+          "dedicatedSupport": "Dedicated support",
+          "customIntegrations": "Custom integrations",
+          "slaGuarantee": "SLA guarantee",
+          "accountManager": "Account manager"
+        }
+      }
+    }
+  },
+  "pricingModal": {
+    "title": "Get in Touch",
+    "subtitle": "Leave your email and our team will contact you within 24 hours to discuss your needs.",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "newsletterLabel": "Subscribe to our newsletter for product updates and tips",
+    "submitButton": "Send Request",
+    "submitting": "Sending...",
+    "successTitle": "Request Sent!",
+    "successMessage": "We'll be in touch within 24 hours.",
+    "errorTitle": "Something went wrong",
+    "errorMessage": "Please try again or contact us directly at team@zonda.one",
+    "privacyNote": "We respect your privacy. Your information will only be used to contact you about your inquiry.",
+    "duplicateTitle": "Already Contacted",
+    "duplicateMessage": "You submitted an inquiry for {planName} {days, plural, =1 {yesterday} other {# days ago}}.",
+    "duplicateMessageToday": "You already submitted an inquiry for {planName} today.",
+    "duplicateNote": "Our team will reach out to you soon. If you need immediate assistance, please email team@zonda.one"
+  },
+  "pricing": {
+    "label": "Pricing",
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Choose the plan that fits your business. No hidden fees, no commission on bookings.",
+    "mostPopular": "Most Popular",
+    "free": "Free",
+    "customPricing": "Custom",
+    "perMonth": "/month",
+    "orYearly": "or €{price}/year",
+    "getStarted": "Get Started",
+    "contactSales": "Contact Sales",
+    "contactToUpgrade": "Contact to Upgrade",
+    "upgradeSubject": "Upgrade to {plan}",
+    "noHiddenFees": "No hidden fees • No commission on bookings",
+    "annualSavings": "Save 17% with annual billing",
+    "comparison": {
+      "title": "Compare Plans",
+      "feature": "Feature",
+      "unlimited": "Unlimited",
+      "tiers": {
+        "starter": "Starter",
+        "professional": "Professional",
+        "growth": "Growth",
+        "enterprise": "Enterprise"
+      },
+      "features": {
+        "staffMembers": "Staff Members",
+        "locations": "Locations",
+        "bookings": "Bookings",
+        "customBranding": "Custom Branding",
+        "analytics": "Analytics",
+        "customerDatabase": "Customer Database",
+        "smsNotifications": "SMS Notifications",
+        "dataExport": "Data Export",
+        "apiAccess": "API Access",
+        "support": "Support"
+      },
+      "analytics": {
+        "none": "None",
+        "basic": "Basic",
+        "advanced": "Advanced"
+      },
+      "sms": {
+        "none": "0/month",
+        "basic": "100/month",
+        "growth": "500/month"
+      },
+      "support": {
+        "community": "Community",
+        "email48": "Email (48h)",
+        "email24": "Email (24h)",
+        "phone4": "Phone (4h)"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "question": "Do you charge commission on bookings?",
+        "answer": "No! Unlike competitors like Treatwell, we never take a cut of your bookings. You pay a simple monthly fee and keep 100% of your revenue."
+      },
+      "q2": {
+        "question": "Can I upgrade or downgrade anytime?",
+        "answer": "Yes, you can change your plan at any time. Upgrades take effect immediately, and downgrades will apply at the end of your current billing period."
+      },
+      "q3": {
+        "question": "Do you handle customer payments?",
+        "answer": "No. Rhivo focuses on booking management, not payment processing. Your customers book for free, and you handle payments in-store or via your own systems."
+      },
+      "q4": {
+        "question": "What happens if I cancel?",
+        "answer": "You can cancel anytime. Your data will be retained for 30 days in case you change your mind, then permanently deleted if requested."
+      },
+      "q5": {
+        "question": "Is there a free trial?",
+        "answer": "The Starter plan is free forever with no credit card required. Perfect for solo operators to try Rhivo risk-free."
+      }
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "subtitle": "Join hundreds of Italian businesses using Rhivo to manage their bookings.",
+      "startFree": "Start Free",
+      "contactSales": "Contact Sales"
+    },
+    "tiers": {
+      "free": {
+        "features": {
+          "unlimitedBookings": "Unlimited bookings",
+          "oneStaff": "1 staff member",
+          "qrCode": "QR code & booking page",
+          "emailNotifications": "Email notifications",
+          "basicCalendar": "Basic calendar"
+        }
+      },
+      "basic": {
+        "features": {
+          "upTo5Staff": "Up to 5 staff members",
+          "customBranding": "Custom branding",
+          "basicAnalytics": "Basic analytics",
+          "customerDatabase": "Customer database",
+          "sms100": "100 SMS/month",
+          "emailSupport": "Email support"
+        }
+      },
+      "pro": {
+        "features": {
+          "upTo15Staff": "Up to 15 staff members",
+          "advancedAnalytics": "Advanced analytics",
+          "upTo3Locations": "Up to 3 locations",
+          "sms500": "500 SMS/month",
+          "apiAccess": "API access",
+          "customDomain": "Custom domain"
+        }
+      },
+      "enterprise": {
+        "features": {
+          "unlimitedStaffLocations": "Unlimited staff & locations",
+          "whiteLabel": "Full white-label",
+          "dedicatedSupport": "Dedicated support",
+          "customIntegrations": "Custom integrations",
+          "slaGuarantee": "SLA guarantee",
+          "accountManager": "Account manager"
+        }
+      }
     }
   },
   "discovery": {

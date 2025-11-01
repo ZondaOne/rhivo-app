@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbClient } from '@/db/client';
 import { verifyToken } from '@/lib/auth';
 import { requireBusinessOwnership } from '@/lib/auth/verify-ownership';
+import { checkFeatureAccess } from '@/lib/subscription/feature-gates';
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,6 +39,18 @@ export async function GET(request: NextRequest) {
     // CRITICAL: Verify user owns this business before querying data
     const unauthorizedResponse = await requireBusinessOwnership(sql, payload.sub, businessId);
     if (unauthorizedResponse) return unauthorizedResponse;
+
+    // Check if business has access to analytics feature
+    const featureCheck = await checkFeatureAccess(businessId, 'analyticsLevel');
+    if (!featureCheck.hasAccess) {
+      return NextResponse.json({
+        error: 'Feature not available',
+        message: featureCheck.upgradeMessage,
+        currentTier: featureCheck.currentTier,
+        suggestedTier: featureCheck.suggestedTier,
+        upgradeRequired: true,
+      }, { status: 403 });
+    }
 
     // Calculate date range
     const now = new Date();

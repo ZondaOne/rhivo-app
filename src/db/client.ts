@@ -1,6 +1,5 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { env } from '@/lib/env';
-import { isDatabaseError, getDatabaseErrorType, reportCriticalError } from '@/lib/monitoring/critical-errors';
 
 // Enable fetch connection cache for better serverless performance
 // This allows connection reuse across serverless function invocations
@@ -8,37 +7,13 @@ neonConfig.fetchConnectionCache = true;
 
 // Create a connection using the DATABASE_URL from environment
 export function getDbClient() {
-  const client = neon(env.DATABASE_URL, {
+  return neon(env.DATABASE_URL, {
     fetchOptions: {
       // Disable cache to ensure fresh data on every query
       // Note: Connection pooling via fetchConnectionCache is still enabled for performance
       cache: 'no-store',
-      // Add 10 second timeout for database queries
-      signal: AbortSignal.timeout(10000),
     },
   });
-
-  // Wrap the client to catch and report critical database errors
-  return new Proxy(client, {
-    apply: async (target, thisArg, args) => {
-      try {
-        return await target.apply(thisArg, args);
-      } catch (error) {
-        if (error instanceof Error && isDatabaseError(error)) {
-          reportCriticalError({
-            errorType: getDatabaseErrorType(error),
-            severity: 'critical',
-            error,
-            metadata: {
-              query: args[0]?.toString?.().substring(0, 200), // First 200 chars of query
-              timestamp: new Date().toISOString(),
-            },
-          });
-        }
-        throw error;
-      }
-    },
-  }) as typeof client;
 }
 
 // Lazy-loaded default client for convenience

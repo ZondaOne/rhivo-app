@@ -4,6 +4,7 @@
       "howItWorks": "Come funziona",
       "useCases": "Casi d'uso",
       "forBusiness": "Per aziende",
+      "pricing": "Prezzi",
       "login": "Accedi",
       "getStarted": "Inizia",
       "mobileMenu": {
@@ -93,6 +94,205 @@
       "terms": "Termini",
       "madeBy": "Fatto da",
       "copyright": "Tutti i diritti riservati."
+    },
+    "pricing": {
+      "label": "Prezzi Flessibili",
+      "title": "Piani per Ogni Attività",
+      "subtitle": "Inizia gratis e scala man mano che cresci",
+      "mostPopular": "Più Popolare",
+      "free": "Gratis",
+      "customPricing": "Personalizzato",
+      "perMonth": "/mese",
+      "orYearly": "o €{price}/anno",
+      "getStarted": "Inizia",
+      "contactSales": "Contatta Vendite",
+      "contactToUpgrade": "Contatta per Aggiornare",
+      "contactUs": "Contattaci",
+      "upgradeSubject": "Aggiorna a {plan}",
+      "viewDetails": "Visualizza confronto dettagliato",
+      "noHiddenFees": "Nessun costo nascosto • Nessuna commissione sulle prenotazioni",
+      "tiersFree": {
+        "features": {
+          "unlimitedBookings": "Prenotazioni illimitate",
+          "oneStaff": "1 membro dello staff",
+          "qrCode": "Codice QR e pagina di prenotazione",
+          "emailNotifications": "Notifiche via email",
+          "basicCalendar": "Calendario base"
+        }
+      },
+      "tiersBasic": {
+        "features": {
+          "upTo5Staff": "Fino a 5 membri dello staff",
+          "customBranding": "Marchio personalizzato",
+          "basicAnalytics": "Analisi base",
+          "customerDatabase": "Database clienti",
+          "sms100": "100 SMS/mese",
+          "emailSupport": "Supporto via email"
+        }
+      },
+      "tiersPro": {
+        "features": {
+          "upTo15Staff": "Fino a 15 membri dello staff",
+          "advancedAnalytics": "Analisi avanzate",
+          "upTo3Locations": "Fino a 3 sedi",
+          "sms500": "500 SMS/mese",
+          "apiAccess": "Accesso API",
+          "customDomain": "Dominio personalizzato"
+        }
+      },
+      "tiersEnterprise": {
+        "features": {
+          "unlimitedStaffLocations": "Staff e sedi illimitati",
+          "whiteLabel": "Marchio bianco completo",
+          "dedicatedSupport": "Supporto dedicato",
+          "customIntegrations": "Integrazioni personalizzate",
+          "slaGuarantee": "Garanzia SLA",
+          "accountManager": "Account manager"
+        }
+      }
+    }
+  },
+  "pricingModal": {
+    "title": "Contattaci",
+    "subtitle": "Lascia la tua email e il nostro team ti contatterà entro 24 ore per discutere delle tue esigenze.",
+    "emailLabel": "Indirizzo Email",
+    "emailPlaceholder": "tua@email.com",
+    "newsletterLabel": "Iscriviti alla nostra newsletter per aggiornamenti sui prodotti e consigli",
+    "submitButton": "Invia Richiesta",
+    "submitting": "Invio in corso...",
+    "successTitle": "Richiesta Inviata!",
+    "successMessage": "Ti contatteremo entro 24 ore.",
+    "errorTitle": "Qualcosa è andato storto",
+    "errorMessage": "Riprova o contattaci direttamente a team@zonda.one",
+    "privacyNote": "Rispettiamo la tua privacy. Le tue informazioni verranno utilizzate solo per contattarti riguardo alla tua richiesta.",
+    "duplicateTitle": "Già Contattato",
+    "duplicateMessage": "Hai inviato una richiesta per {planName} {days, plural, =1 {ieri} other {# giorni fa}}.",
+    "duplicateMessageToday": "Hai già inviato una richiesta per {planName} oggi.",
+    "duplicateNote": "Il nostro team ti contatterà presto. Se hai bisogno di assistenza immediata, invia un'email a team@zonda.one"
+  },
+  "pricing": {
+    "label": "Prezzi",
+    "title": "Prezzi Semplici e Trasparenti",
+    "subtitle": "Scegli il piano adatto alla tua attività. Nessun costo nascosto, nessuna commissione sulle prenotazioni.",
+    "mostPopular": "Più Popolare",
+    "free": "Gratis",
+    "customPricing": "Personalizzato",
+    "perMonth": "/mese",
+    "orYearly": "o €{price}/anno",
+    "getStarted": "Inizia",
+    "contactSales": "Contatta Vendite",
+    "contactToUpgrade": "Contatta per Aggiornare",
+    "upgradeSubject": "Aggiorna a {plan}",
+    "noHiddenFees": "Nessun costo nascosto • Nessuna commissione sulle prenotazioni",
+    "annualSavings": "Risparmia il 17% con fatturazione annuale",
+    "comparison": {
+      "title": "Confronta i Piani",
+      "feature": "Funzionalità",
+      "unlimited": "Illimitato",
+      "tiers": {
+        "starter": "Base",
+        "professional": "Professionale",
+        "growth": "Crescita",
+        "enterprise": "Enterprise"
+      },
+      "features": {
+        "staffMembers": "Membri dello Staff",
+        "locations": "Sedi",
+        "bookings": "Prenotazioni",
+        "customBranding": "Marchio Personalizzato",
+        "analytics": "Analisi",
+        "customerDatabase": "Database Clienti",
+        "smsNotifications": "Notifiche SMS",
+        "dataExport": "Esportazione Dati",
+        "apiAccess": "Accesso API",
+        "support": "Supporto"
+      },
+      "analytics": {
+        "none": "Nessuno",
+        "basic": "Base",
+        "advanced": "Avanzato"
+      },
+      "sms": {
+        "none": "0/mese",
+        "basic": "100/mese",
+        "growth": "500/mese"
+      },
+      "support": {
+        "community": "Community",
+        "email48": "Email (48h)",
+        "email24": "Email (24h)",
+        "phone4": "Telefono (4h)"
+      }
+    },
+    "faq": {
+      "title": "Domande Frequenti",
+      "q1": {
+        "question": "Addebitate commissioni sulle prenotazioni?",
+        "answer": "No! A differenza di competitor come Treatwell, non prendiamo mai una percentuale sulle tue prenotazioni. Paghi una semplice tariffa mensile e tieni il 100% dei tuoi ricavi."
+      },
+      "q2": {
+        "question": "Posso fare upgrade o downgrade in qualsiasi momento?",
+        "answer": "Sì, puoi cambiare il tuo piano in qualsiasi momento. Gli upgrade hanno effetto immediato, mentre i downgrade si applicheranno alla fine del periodo di fatturazione corrente."
+      },
+      "q3": {
+        "question": "Gestite i pagamenti dei clienti?",
+        "answer": "No. Rhivo si concentra sulla gestione delle prenotazioni, non sul processamento dei pagamenti. I tuoi clienti prenotano gratuitamente e tu gestisci i pagamenti in negozio o tramite i tuoi sistemi."
+      },
+      "q4": {
+        "question": "Cosa succede se cancello?",
+        "answer": "Puoi cancellare in qualsiasi momento. I tuoi dati saranno conservati per 30 giorni nel caso tu cambi idea, poi eliminati definitivamente se richiesto."
+      },
+      "q5": {
+        "question": "C'è una prova gratuita?",
+        "answer": "Il piano Base è gratuito per sempre senza bisogno di carta di credito. Perfetto per operatori singoli che vogliono provare Rhivo senza rischi."
+      }
+    },
+    "cta": {
+      "title": "Pronto per iniziare?",
+      "subtitle": "Unisciti a centinaia di attività italiane che usano Rhivo per gestire le loro prenotazioni.",
+      "startFree": "Inizia Gratis",
+      "contactSales": "Contatta Vendite"
+    },
+    "tiers": {
+      "free": {
+        "features": {
+          "unlimitedBookings": "Prenotazioni illimitate",
+          "oneStaff": "1 membro dello staff",
+          "qrCode": "Codice QR e pagina di prenotazione",
+          "emailNotifications": "Notifiche via email",
+          "basicCalendar": "Calendario base"
+        }
+      },
+      "basic": {
+        "features": {
+          "upTo5Staff": "Fino a 5 membri dello staff",
+          "customBranding": "Marchio personalizzato",
+          "basicAnalytics": "Analisi base",
+          "customerDatabase": "Database clienti",
+          "sms100": "100 SMS/mese",
+          "emailSupport": "Supporto via email"
+        }
+      },
+      "pro": {
+        "features": {
+          "upTo15Staff": "Fino a 15 membri dello staff",
+          "advancedAnalytics": "Analisi avanzate",
+          "upTo3Locations": "Fino a 3 sedi",
+          "sms500": "500 SMS/mese",
+          "apiAccess": "Accesso API",
+          "customDomain": "Dominio personalizzato"
+        }
+      },
+      "enterprise": {
+        "features": {
+          "unlimitedStaffLocations": "Staff e sedi illimitati",
+          "whiteLabel": "Marchio bianco completo",
+          "dedicatedSupport": "Supporto dedicato",
+          "customIntegrations": "Integrazioni personalizzate",
+          "slaGuarantee": "Garanzia SLA",
+          "accountManager": "Account manager"
+        }
+      }
     }
   },
   "discovery": {

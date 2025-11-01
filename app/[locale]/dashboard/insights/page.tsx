@@ -11,14 +11,73 @@ import { Logo } from '@/components/Logo';
 import { BookingsChart } from '@/components/dashboard/insights/BookingsChart';
 import { RevenueChart } from '@/components/dashboard/insights/RevenueChart';
 import { ComingSoonWidget } from '@/components/dashboard/insights/ComingSoonWidget';
+import { LockedFeature } from '@/components/subscription/LockedFeature';
+import { useUpgrade } from '@/hooks/useUpgrade';
+import { getAccessToken } from '@/lib/auth/api-client';
 
 function InsightsContent() {
   const t = useTranslations('dashboard');
   const { isAuthenticated, user, logout } = useAuth();
   const { businesses, selectedBusiness, selectedBusinessId, isLoading: businessLoading, selectBusiness } = useBusiness();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const [featureAccess, setFeatureAccess] = useState<{
+    hasAccess: boolean;
+    currentTier: string;
+    suggestedTier?: string;
+    loading: boolean;
+  }>({ hasAccess: true, currentTier: 'free', loading: true });
+
+  const { showUpgrade, UpgradeModal } = useUpgrade({ currentTier: featureAccess.currentTier });
 
   const businessName = selectedBusiness?.name || user?.email?.split('@')[0] || "My Business";
+
+  // Check feature access on mount and when business changes
+  useEffect(() => {
+    async function checkAccess() {
+      if (!selectedBusinessId) {
+        setFeatureAccess({ hasAccess: true, currentTier: 'free', loading: false });
+        return;
+      }
+
+      setFeatureAccess(prev => ({ ...prev, loading: true }));
+
+      try {
+        const token = getAccessToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        // Try to fetch bookings data to check if analytics is available
+        const response = await fetch(`/api/insights/bookings?businessId=${selectedBusinessId}&timeRange=30d`, {
+          headers
+        });
+
+        if (response.status === 403) {
+          const errorData = await response.json();
+          setFeatureAccess({
+            hasAccess: false,
+            currentTier: errorData.currentTier || 'free',
+            suggestedTier: errorData.suggestedTier || 'basic',
+            loading: false
+          });
+          // Automatically show the upgrade modal
+          showUpgrade({
+            suggestedTier: errorData.suggestedTier || 'basic',
+            featureName: 'Analytics and insights',
+            message: errorData.message
+          });
+        } else {
+          setFeatureAccess({ hasAccess: true, currentTier: 'basic', loading: false });
+        }
+      } catch (error) {
+        console.error('Failed to check feature access:', error);
+        setFeatureAccess({ hasAccess: true, currentTier: 'free', loading: false });
+      }
+    }
+
+    checkAccess();
+  }, [selectedBusinessId]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -109,45 +168,79 @@ function InsightsContent() {
         <div className="px-4 sm:px-8 lg:px-12 py-4 sm:py-6 lg:py-8">
           <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 lg:mb-8">{t('insights.title')}</h2>
 
-          {/* Widgets Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            {/* Bookings Chart */}
-            <BookingsChart
-              businessId={selectedBusinessId}
-              timeRange={timeRange}
-            />
+          {featureAccess.loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-gray-500 font-medium">Loading insights...</span>
+              </div>
+            </div>
+          ) : !featureAccess.hasAccess ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              <LockedFeature
+                featureName="Analytics and insights"
+                description="Track your bookings, revenue, and customer trends over time"
+                currentTier={featureAccess.currentTier}
+                suggestedTier={featureAccess.suggestedTier || 'basic'}
+                onUpgrade={() => showUpgrade({
+                  suggestedTier: featureAccess.suggestedTier || 'basic',
+                  featureName: 'Analytics and insights'
+                })}
+              />
+              <LockedFeature
+                featureName="Revenue tracking"
+                description="Monitor your earnings and average booking values"
+                currentTier={featureAccess.currentTier}
+                suggestedTier={featureAccess.suggestedTier || 'basic'}
+                onUpgrade={() => showUpgrade({
+                  suggestedTier: featureAccess.suggestedTier || 'basic',
+                  featureName: 'Analytics and insights'
+                })}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              {/* Bookings Chart */}
+              <BookingsChart
+                businessId={selectedBusinessId}
+                timeRange={timeRange}
+              />
 
-            {/* Revenue Chart */}
-            <RevenueChart
-              businessId={selectedBusinessId}
-              timeRange={timeRange}
-            />
+              {/* Revenue Chart */}
+              <RevenueChart
+                businessId={selectedBusinessId}
+                timeRange={timeRange}
+              />
 
-            {/* Customer Insights - Coming Soon */}
-            <ComingSoonWidget 
-              title="Customer Analytics"
-              description="Understand your customer base with repeat booking rates, new vs returning customers, and demographics."
-              icon={
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
-              }
-            />
+              {/* Customer Insights - Coming Soon */}
+              <ComingSoonWidget
+                title="Customer Analytics"
+                description="Understand your customer base with repeat booking rates, new vs returning customers, and demographics."
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                  </svg>
+                }
+              />
 
-            {/* Service Performance - Coming Soon */}
-            <ComingSoonWidget 
-              title="Service Performance"
-              description="See which services are most popular, average duration, and capacity utilization."
-              icon={
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
-                </svg>
-              }
-            />
-          </div>
+              {/* Service Performance - Coming Soon */}
+              <ComingSoonWidget
+                title="Service Performance"
+                description="See which services are most popular, average duration, and capacity utilization."
+                icon={
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                  </svg>
+                }
+              />
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal />
     </div>
   );
 }

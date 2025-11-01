@@ -72,6 +72,12 @@ export function LandingHeader() {
                 >
                   {t('forBusiness')}
                 </button>
+                <button
+                  onClick={() => scrollToSection('#pricing')}
+                  className="text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  {t('pricing')}
+                </button>
               </div>
 
               <LanguageSwitcher />
@@ -153,6 +159,12 @@ export function LandingHeader() {
               className="w-full text-left px-4 py-3 text-base font-semibold text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-teal-50 hover:to-green-50 rounded-xl transition-all"
             >
               {t('forBusiness')}
+            </button>
+            <button
+              onClick={() => scrollToSection('#pricing')}
+              className="w-full text-left px-4 py-3 text-base font-semibold text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-teal-50 hover:to-green-50 rounded-xl transition-all"
+            >
+              {t('pricing')}
             </button>
 
             {/* Divider */}

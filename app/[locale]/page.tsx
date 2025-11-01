@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { HowItWorksSection } from '@/components/HowItWorksSection';
 import { UseCasesSection } from '@/components/UseCasesSection';
 import { ForBusinessSection } from '@/components/ForBusinessSection';
+import { PricingPreview } from '@/components/PricingPreview';
 import { HomeFooter } from '@/components/HomeFooter';
 import { LandingHeader } from '@/components/LandingHeader';
 import { PageLoader } from '@/components/PageLoader';
@@ -26,6 +27,9 @@ export default function Home() {
 
         {/* For Business Owners Section */}
         <ForBusinessSection />
+
+        {/* Pricing Preview Section */}
+        <PricingPreview />
 
         {/* Footer */}
         <HomeFooter />
