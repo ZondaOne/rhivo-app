@@ -84,10 +84,30 @@ export async function GET(request: NextRequest) {
 /**
  * Fallback cleanup trigger when reservation queries detect high expired count
  * This provides automatic cleanup even if cron job fails
+ *
+ * Authentication: Requires CRON_SECRET in Authorization header
  */
 export async function POST(request: NextRequest) {
-  // This endpoint can be called by internal services without auth
-  // to trigger emergency cleanup
+  // Verify cron secret for security
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (!cronSecret) {
+    console.error('[Cleanup] CRON_SECRET not configured for POST endpoint');
+    return NextResponse.json(
+      { error: 'Cleanup endpoint not configured' },
+      { status: 500 }
+    );
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    console.error('[Cleanup] Unauthorized POST cleanup attempt');
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
   const startTime = Date.now();
 
   try {

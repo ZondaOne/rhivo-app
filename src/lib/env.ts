@@ -19,8 +19,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
   NEXT_PUBLIC_APP_URL: z.string().url(),
 
-  // Optional but recommended
-  CRON_SECRET: z.string().min(32).optional(),
+  // Cron Job Security (Required for cleanup endpoints)
+  CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 characters for security'),
 });
 
 // Parse and validate environment variables

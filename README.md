@@ -1,5 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 📊 Monitoring & Alerts
+
+**Set up error tracking and uptime monitoring in 5 minutes:**
+
+See **[MONITORING_QUICKSTART.md](./MONITORING_QUICKSTART.md)** for quick setup or **[docs/MONITORING_SETUP.md](./docs/MONITORING_SETUP.md)** for detailed configuration.
+
+Get email alerts for:
+- Database connection failures
+- Booking system errors
+- App downtime
+
+**100% Free** using Sentry and BetterUptime free tiers.
+
 ## Getting Started
 
 First, run the development server:
